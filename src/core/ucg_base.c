@@ -51,7 +51,7 @@ ucg_status_t ucg_mem_query(const void *ptr, ucg_mem_attr_t *attr)
     UCG_CHECK_NULL_INVALID(ptr, attr);
     /* There is no way to check whether the memory is on the host side. Therefore,
        if all planc cannot determine the memory type of the ptr, we regard it
-       as host memory. */
+       as host memory.*/
     attr->mem_type = UCG_MEM_TYPE_HOST;
     int count = ucg_planc_count();
     for (int i = 0; i < count; ++i) {

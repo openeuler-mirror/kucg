@@ -69,45 +69,156 @@ static ucg_config_field_t barrier_config_table[] = {
 UCG_PLANC_UCX_BUILTIN_ALGO_REGISTER(UCG_COLL_TYPE_BARRIER, barrier_config_table,
                                     sizeof(ucg_planc_ucx_barrier_config_t))
 
-void ucg_planc_ucx_barrier_set_plan_attr(ucg_vgroup_t *vgroup,
-                                         ucg_plan_attr_t *default_plan_attr)
-{
-    ucg_plan_attr_t *attr;
-    for (attr = default_plan_attr; !UCG_PLAN_ATTR_IS_LAST(attr); ++attr) {
-        ucg_plan_range_t range = {0, UCG_PLAN_RANGE_MAX};
-        attr->range = range;
-        attr->score = UCG_PLANC_UCX_DEFAULT_SCORE;
-    }
+static ucg_plan_policy_t barrier_4_4[] = {
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_4_8[] = {
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_4_16[] = {
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_4_32[] = {
+    {5, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_4_64[] = {
+    {7, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_4_LG[] = {
+    {7, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_8_4[] = {
+    {6, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_8_8[] = {
+    {6, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_8_16[] = {
+    {3, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_8_32[] = {
+    {7, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_8_64[] = {
+    {7, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_8_LG[] = {
+    {5, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_16_4[] = {
+    {4, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_16_8[] = {
+    {4, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_16_16[] = {
+    {3, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_16_32[] = {
+    {5, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_16_64[] = {
+    {5, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_16_LG[] = {
+    {5, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_LG_4[] = {
+    {4, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_LG_8[] = {
+    {4, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_LG_16[] = {
+    {3, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_LG_32[] = {
+    {5, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_LG_64[] = {
+    {4, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t barrier_LG_LG[] = {
+    {4, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
 
-    ucg_group_t *group = vgroup->group;
-    int32_t ppn = group->topo->ppn;
-    int32_t node_cnt = group->size / ppn;
-    if (ppn == UCG_TOPO_PPX_UNBALANCED) {
-        return;
-    }
-    const int32_t score = UCG_PLANC_UCX_DEFAULT_SCORE + 1;
-    if (node_cnt <= 4) {
-        if (ppn <= 8) {
-            ucg_plan_attr_array_update(default_plan_attr, 4, 0, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 16) {
-            ucg_plan_attr_array_update(default_plan_attr, 1, 0, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 32) {
-            ucg_plan_attr_array_update(default_plan_attr, 5, 0, UCG_PLAN_RANGE_MAX, score);
-        } else {
-            ucg_plan_attr_array_update(default_plan_attr, 7, 0, UCG_PLAN_RANGE_MAX, score);
-        }
-    } else if (node_cnt <= 8) {
-        if (ppn <= 8) {
-            ucg_plan_attr_array_update(default_plan_attr, 6, 0, UCG_PLAN_RANGE_MAX, score);
-        } else {
-            ucg_plan_attr_array_update(default_plan_attr, 7, 0, UCG_PLAN_RANGE_MAX, score);
-        }
-    } else {
-        if (ppn <= 8) {
-            ucg_plan_attr_array_update(default_plan_attr, 4, 0, UCG_PLAN_RANGE_MAX, score);
-        } else {
-            ucg_plan_attr_array_update(default_plan_attr, 5, 0, UCG_PLAN_RANGE_MAX, score);
-        }
-    }
-    return;
+static ucg_plan_policy_t* barrier_plan_policy[] = {
+    barrier_4_4,
+    barrier_4_8,
+    barrier_4_16,
+    barrier_4_32,
+    barrier_4_64,
+    barrier_4_LG,
+    barrier_8_4,
+    barrier_8_8,
+    barrier_8_16,
+    barrier_8_32,
+    barrier_8_64,
+    barrier_8_LG,
+    barrier_16_4,
+    barrier_16_8,
+    barrier_16_16,
+    barrier_16_32,
+    barrier_16_64,
+    barrier_16_LG,
+    barrier_LG_4,
+    barrier_LG_8,
+    barrier_LG_16,
+    barrier_LG_32,
+    barrier_LG_64,
+    barrier_LG_LG
+};
+
+const ucg_plan_policy_t *ucg_planc_ucx_get_barrier_plan_policy(ucg_planc_ucx_node_level_t node_level,
+                                                               ucg_planc_ucx_ppn_level_t ppn_level)
+{
+    int idx = node_level * PPN_LEVEL_NUMS + ppn_level;
+    ucg_assert(idx < NODE_LEVEL_NUMS * PPN_LEVEL_NUMS);
+    ucg_plan_policy_t *policy = barrier_plan_policy[idx];
+    return policy;
 }

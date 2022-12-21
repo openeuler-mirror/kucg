@@ -17,13 +17,21 @@ static ucg_status_t ucg_planc_ucx_allreduce_sa_rd_and_bntree_check(ucg_vgroup_t 
         ucg_info("Allreduce sa_rd_and_bntree don't support non-commutative op");
         return UCG_ERR_UNSUPPORTED;
     }
+    if (vgroup->group->topo->ppn == UCG_TOPO_PPX_UNKNOWN) {
+        ucg_info("Allreduce sa_rd_and_bntree don't support unknown ppn");
+        return UCG_ERR_UNSUPPORTED;
+    }
+    if (vgroup->group->topo->pps == UCG_TOPO_PPX_UNKNOWN) {
+        ucg_info("Allreduce sa_rd_and_bntree don't support unknown pps");
+        return UCG_ERR_UNSUPPORTED;
+    }
     return UCG_OK;
 }
 
 ucg_plan_meta_op_t* ucg_planc_ucx_allreduce_sa_rd_and_bntree_op_new(ucg_planc_ucx_group_t* ucx_group,
-                                                                    ucg_vgroup_t *vgroup,
+                                                                    ucg_vgroup_t* vgroup,
                                                                     const ucg_coll_args_t* args,
-                                                                    const ucg_planc_ucx_allreduce_config_t *config)
+                                                                    const ucg_planc_ucx_allreduce_config_t* config)
 {
     UCG_CHECK_NULL(NULL, ucx_group, vgroup, args, config);
 
@@ -86,12 +94,12 @@ ucg_status_t ucg_planc_ucx_allreduce_sa_rd_and_bntree_prepare(ucg_vgroup_t *vgro
         return UCG_ERR_UNSUPPORTED;
     }
 
-    ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
+    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
     ucg_planc_ucx_allreduce_config_t config;
     config.fanin_intra_degree = 2;
     config.fanout_intra_degree = 2;
 
-    ucg_plan_meta_op_t *meta_op;
+    ucg_plan_meta_op_t* meta_op;
     meta_op = ucg_planc_ucx_allreduce_sa_rd_and_bntree_op_new(ucx_group, vgroup, args, &config);
     if (meta_op == NULL) {
         return UCG_ERR_NO_MEMORY;

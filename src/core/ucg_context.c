@@ -30,8 +30,8 @@ static ucg_config_field_t ucg_context_config_table[] = {
 
     {"USE_MT_MUTEX", "n",
      "Use mutex for multithreading support in UCG\n"
-     " - y      : use mutex for multi-thread support\n"
-     " - n      : use spinlock by default",
+     " - y    : use mutex for multi-thread support\n"
+     " - n    : use spinlock by default",
      ucg_offsetof(ucg_config_t, use_mt_mutex), UCG_CONFIG_TYPE_BOOL},
 
     {NULL},
@@ -90,7 +90,7 @@ static ucg_status_t ucg_config_read_planc_cfg(ucg_config_t *config,
     }
 
     ucg_status_t status;
-    for (int i = 0; i< count; ++i) {
+    for (int i = 0; i < count; ++i) {
         ucg_planc_t *planc = ucg_planc_get_by_idx(i);
         status = planc->config_read(env_prefix, filename, &config->planc_cfg[i]);
         if (status != UCG_OK) {
@@ -245,7 +245,7 @@ static ucg_status_t ucg_context_fill_resource_mt(ucg_context_t *context,
     };
     int num_planc_rscs = context->num_planc_rscs;
     for (int i = 0; i < num_planc_rscs; ++i) {
-        ucg_resource_planc_t*rsc = &context->planc_rscs[i];
+        ucg_resource_planc_t *rsc = &context->planc_rscs[i];
         /* Some planc may not support the query of thread mode which indicates
            that is a non-thread-safe planc, so set the initial thread mode. */
         attr.thread_mode = UCG_THREAD_MODE_SINGLE;
@@ -322,10 +322,16 @@ static ucg_proc_info_t* ucg_context_get_local_proc_info(ucg_context_t *context)
         ucg_error("Failed to get location of rank %d", context->oob_group.myrank);
         goto err_free_proc;
     }
+
+    proc->location.subnet_id = (proc->location.field_mask & UCG_LOCATION_FIELD_SUBNET_ID) ?
+                                proc->location.subnet_id : -1;
+    proc->location.node_id   = (proc->location.field_mask & UCG_LOCATION_FIELD_NODE_ID) ?
+                                proc->location.node_id : -1;
+    proc->location.socket_id = (proc->location.field_mask & UCG_LOCATION_FIELD_SOCKET_ID) ?
+                                proc->location.socket_id : -1;
+
     ucg_debug("Location of rank %d: subnet %d, node %d, socket %d", context->oob_group.myrank,
-        (proc->location.field_mask & UCG_LOCATION_FIELD_SUBNET_ID) ? proc->location.subnet_id : -1,
-        (proc->location.field_mask & UCG_LOCATION_FIELD_NODE_ID) ? proc->location.node_id : -1,
-        (proc->location.field_mask & UCG_LOCATION_FIELD_SOCKET_ID) ? proc->location.socket_id : -1);
+        proc->location.subnet_id, proc->location.node_id, proc->location.socket_id);
 
     proc->num_addr_desc = num_planc_rscs;
     attr.field_mask |= UCG_PLANC_CONTEXT_ATTR_FIELD_ADDR;

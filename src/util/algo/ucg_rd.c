@@ -18,14 +18,14 @@ static inline void ucg_algo_rd_iter_update(ucg_algo_rd_iter_t *iter)
                 iter->current = iter->myrank - 1;
             } else {
                 new_current = iter->new_rank ^ UCG_BIT(iter->idx - 1);
-                iter->current = (new_current < iter->proxy_num) ?
-                                (new_current * 2 + 1) : (new_current + iter->proxy_num);
+                iter->current = (new_current < iter->proxy_num)?
+                                (new_current * 2 + 1):(new_current + iter->proxy_num);
             }
             break;
         case UCG_ALGO_RD_ITER_BASE:
             new_current = iter->new_rank ^ UCG_BIT(iter->idx);
-            iter->current = (new_current < iter->proxy_num) ?
-                            (new_current * 2 + 1) : (new_current + iter->proxy_num);
+            iter->current = (new_current < iter->proxy_num)?
+                            (new_current * 2 + 1):(new_current + iter->proxy_num);
             break;
         case UCG_ALGO_RD_ITER_EXTRA:
             iter->current = iter->myrank + 1;

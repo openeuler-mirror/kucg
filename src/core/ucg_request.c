@@ -36,7 +36,7 @@
             ucg_assert(mem_type != UCG_MEM_TYPE_UNKNOWN); \
             info->mem_type = mem_type; \
         } \
-    } while(0)
+    } while (0)
 
 #define UCG_REQUEST_APPLY_INFO_RETURN(_dst, _src, ...) \
     ucg_request_apply_info(_dst, _src); \
@@ -101,7 +101,7 @@ static ucg_status_t ucg_request_ctor(ucg_request_t *self, const ucg_coll_args_t 
     self->args = *args;
     self->id = UCG_GROUP_INVALID_REQ_ID;
     /** trade-off, get more information from comments of @ref ucg_op_init */
-    if (args->type == UCG_COLL_TYPE_ALLREDUCE) {
+    if (args->type == UCG_COLL_TYPE_ALLREDUCE && args->allreduce.op != NULL) {
         if (!ucg_op_is_persistent(args->allreduce.op)) {
             self->args.allreduce.op = &self->args.allreduce.gop.super;
             ucg_op_copy(self->args.allreduce.op, args->allreduce.op);
@@ -206,9 +206,14 @@ ucg_status_t ucg_request_alltoallv_init(const void *sendbuf, const int32_t sendc
                                         ucg_group_h group, const ucg_request_info_t *info,
                                         ucg_request_h *request)
 {
-    UCG_CHECK_NULL_INVALID(sendbuf, sendcounts, sdispls, sendtype, recvbuf,
-                           recvcounts, rdispls, recvtype, group, request);
-
+#ifdef UCG_ENABLE_CHECK_PARAMS
+    if (sendbuf == UCG_IN_PLACE) {
+        UCG_CHECK_NULL_INVALID(recvbuf, recvcounts, rdispls, recvtype, group, request);
+    } else {
+        UCG_CHECK_NULL_INVALID(sendbuf, sendcounts, sdispls, sendtype, recvbuf,
+                               recvcounts, rdispls, recvtype, group, request);
+    }
+#endif
     ucg_coll_args_t args = {
         .type = UCG_COLL_TYPE_ALLTOALLV,
         .alltoallv.sendbuf = sendbuf,
@@ -234,7 +239,12 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
 {
 #ifdef UCG_ENABLE_CHECK_PARAMS
     if (group->myrank == root) {
-        UCG_CHECK_NULL_INVALID(sendbuf, sendcounts, displs, sendtype, group, request);
+        if (recvbuf == UCG_IN_PLACE) {
+            UCG_CHECK_NULL_INVALID(sendbuf, sendcounts, displs, sendtype, group, request);
+        } else {
+            UCG_CHECK_NULL_INVALID(sendbuf, sendcounts, displs, sendtype, recvbuf,
+                                   recvtype, group, request);
+        }
     } else {
         /* sendbuf, sendcounts, displs and sendtype are not significant for non-root process*/
         UCG_CHECK_NULL_INVALID(recvbuf, recvtype, group, request);
@@ -267,7 +277,7 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
 }
 
 ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcount,
-                                      ucg_dt_t *sendtype, void *recvbuf,
+                                      ucg_dt_t *sendtype, void *recvbuf, 
                                       const int32_t* recvcounts, const int32_t *displs,
                                       ucg_dt_t *recvtype, ucg_rank_t root,
                                       ucg_group_h group, const ucg_request_info_t *info,
@@ -275,7 +285,11 @@ ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcou
 {
 #ifdef UCG_ENABLE_CHECK_PARAMS
     if (group->myrank == root) {
-        UCG_CHECK_NULL_INVALID(recvbuf, recvcounts, displs, recvbuf, group, request);
+        if (sendbuf == UCG_IN_PLACE) {
+            UCG_CHECK_NULL_INVALID (recvbuf, recvcounts, displs, recvbuf, group, request);
+        } else {
+            UCG_CHECK_NULL_INVALID (sendbuf, sendtype, recvbuf, recvcounts, displs, recvbuf, group, request);
+        }
     } else {
         /* sendbuf, sendcounts, displs and sendtype are not significant for non-root process*/
         UCG_CHECK_NULL_INVALID(sendbuf, sendtype, group, request);

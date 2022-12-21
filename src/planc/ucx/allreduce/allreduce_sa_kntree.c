@@ -17,11 +17,19 @@ static ucg_status_t ucg_planc_ucx_allreduce_sa_kntree_check(ucg_vgroup_t *vgroup
         ucg_info("Allreduce sa_kntree don't support non-commutative op");
         return UCG_ERR_UNSUPPORTED;
     }
+    if (vgroup->group->topo->ppn == UCG_TOPO_PPX_UNKNOWN) {
+        ucg_info("Allreduce sa_kntree don't support unknown ppn");
+        return UCG_ERR_UNSUPPORTED;
+    }
+    if (vgroup->group->topo->pps == UCG_TOPO_PPX_UNKNOWN) {
+        ucg_info("Allreduce sa_kntree don't support unknown pps");
+        return UCG_ERR_UNSUPPORTED;
+    }
     return UCG_OK;
 }
 
 ucg_plan_meta_op_t* ucg_planc_ucx_allreduce_sa_kntree_op_new(ucg_planc_ucx_group_t* ucx_group,
-                                                             ucg_vgroup_t *vgroup,
+                                                             ucg_vgroup_t* vgroup,
                                                              const ucg_coll_args_t* args,
                                                              const ucg_planc_ucx_allreduce_config_t* config)
 {
@@ -57,8 +65,8 @@ ucg_plan_meta_op_t* ucg_planc_ucx_allreduce_sa_kntree_op_new(ucg_planc_ucx_group
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     status = ucg_planc_ucx_allreduce_add_bcast_kntree_op(meta_op, ucx_group,
-                                                          vgroup, meta_args,
-                                                          config, UCG_TOPO_GROUP_TYPE_NODE_LEADER);
+                                                         vgroup, meta_args,
+                                                         config, UCG_TOPO_GROUP_TYPE_NODE_LEADER);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     status = ucg_planc_ucx_allreduce_add_bcast_kntree_op(meta_op, ucx_group,
@@ -91,12 +99,12 @@ ucg_status_t ucg_planc_ucx_allreduce_sa_kntree_prepare(ucg_vgroup_t *vgroup,
         return UCG_ERR_UNSUPPORTED;
     }
 
-    ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
+    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
     ucg_planc_ucx_allreduce_config_t *config;
     config = UCG_PLANC_UCX_CONTEXT_BUILTIN_CONFIG_BUNDLE(ucx_group->context, allreduce,
-                                                          UCG_COLL_TYPE_ALLREDUCE);
+                                                         UCG_COLL_TYPE_ALLREDUCE);
 
-    ucg_plan_meta_op_t *meta_op;
+    ucg_plan_meta_op_t* meta_op;
     meta_op = ucg_planc_ucx_allreduce_sa_kntree_op_new(ucx_group, vgroup, args, config);
     if (meta_op == NULL) {
         return UCG_ERR_NO_MEMORY;

@@ -15,7 +15,7 @@
             printf("[%s:%d]Failed to %s, %s\n", __FILE__, __LINE__, #_stmt, \
                    ucg_status_string(status)); \
         } \
-    } while(0)
+    } while (0)
 
 
 #ifdef UCG_BUILD_PLANC_HCCL
@@ -27,7 +27,7 @@
             printf("[%s:%d]Failed to %s, %s\n", __FILE__, __LINE__, #_stmt, \
                    aclGetRecentErrMsg()); \
         } \
-    } while(0)
+    } while (0)
 
 #define ACL_INIT() \
     ACL_CHECK(aclInit(NULL)); \

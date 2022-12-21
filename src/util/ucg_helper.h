@@ -29,7 +29,7 @@
 
 /* Paste two tokens */
 #define _UCG_TOKENPASTE(_a, _b) _a ## _b
-#define UCG_TOKENPASTE(_a, _b)  _UCG_TOKENPASTE(_a, _b)
+#define UCG_TOKENPASTE(_a, _b) _UCG_TOKENPASTE(_a, _b)
 
 /* Count number of macro arguments */
 #define _UCG_NUM_ARGS(_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,N,...) N
@@ -61,48 +61,48 @@
 #ifdef UCG_ENABLE_CHECK_PARAMS
 /* Any parameter is NULL, it will return _rc. */
 #define UCG_CHECK_NULL(_rc, ...) \
-    do { \
-        if (UCG_FOREACH(UCG_IS_NULL, UCG_OR, __VA_ARGS__)) { \
+    do {\
+        if (UCG_FOREACH(UCG_IS_NULL, UCG_OR, __VA_ARGS__)) {\
             return _rc; \
-        } \
+        }\
     } while(0)
 /* Any parameter is NULL, it will return UCG_ERR_INVALID_PARAM. */
 #define UCG_CHECK_NULL_INVALID(...) \
-    do { \
-        if (UCG_FOREACH(UCG_IS_NULL, UCG_OR, __VA_ARGS__)) { \
+    do {\
+        if (UCG_FOREACH(UCG_IS_NULL, UCG_OR, __VA_ARGS__)) {\
             return UCG_ERR_INVALID_PARAM; \
-        } \
+        }\
     } while(0)
 /* Any parameter is NULL, it will return void. */
 #define UCG_CHECK_NULL_VOID(...) \
-    do { \
-        if (UCG_FOREACH(UCG_IS_NULL, UCG_OR, __VA_ARGS__)) { \
+    do {\
+        if (UCG_FOREACH(UCG_IS_NULL, UCG_OR, __VA_ARGS__)) {\
             return; \
-        } \
+        }\
     } while(0)
 #define UCG_CHECK_OUT_RANGE(_rc, _num, _lb, _ub) \
-    do { \
-        if (_num < _lb || _num >= _ub) { \
+    do {\
+        if (_num < _lb || _num >= _ub) {\
             return _rc; \
-        } \
+        }\
     } while(0)
 #else
 #define UCG_CHECK_NULL(_rc, ...)
 #define UCG_CHECK_NULL_INVALID(...)
 #define UCG_CHECK_NULL_VOID(...)
 #define UCG_CHECK_OUT_RANGE(_rc, _num, _lb, _ub)
-#endif //UCG_ENABLE_CHECK_PARAMS
+#endif // UCG_ENABLE_CHECK_PARAMS
 
 #define UCG_COPY_VALUE(_dst, _src) ({_dst = _src; UCG_OK;})
 // When no require field or copy fails, it will goto _err_label
 #define UCG_COPY_REQUIRED_FIELD(_field, _copy, _dst, _src, _err_label) \
-    if (field_mask & _field) { \
-        ucg_status_t status = _copy(_dst, _src); \
-        if (status != UCG_OK) { \
+    if (field_mask & _field) {\
+        ucg_status_t status = _copy(_dst, _src);\
+        if (status != UCG_OK) {\
             goto _err_label;\
-        } \
-    } else { \
-        goto _err_label; \
+        }\
+    } else {\
+        goto _err_label;\
     }
 // When copy fails, it will goto _err_label
 #define UCG_COPY_OPTIONAL_FIELD(_field, _copy, _dst, _src, _default, _err_label) \
@@ -111,10 +111,10 @@
         if (field_mask & _field) { \
             status = _copy(_dst, _src); \
         } else { \
-            status = _copy(_dst, _default); \
+            status = _copy(_dst, _default);\
         } \
         if (status != UCG_OK) { \
-            goto _err_label;\
+            goto _err_label; \
         } \
     }
 
@@ -129,10 +129,10 @@
 
 #define UCG_CHECK_GOTO(_stmt, _label) \
     do { \
-        if (_stmt != UCG_OK) { \
+        if (_stmt != UCG_OK) {\
             goto _label; \
         } \
-    } while(0)
+    } while (0)
 
 #define UCG_STATIC_ASSERT(_cond) do{switch(0) case 0: case(_cond):;}while(0)
 

@@ -126,7 +126,7 @@ void ucg_mpool_put(void *obj)
         return;
     }
     /* depends on the implementation of ucs mpool. */
-    ucs_mpool_elem_t *elem = (ucs_mpool_elem_t *)obj - 1;
+    ucs_mpool_elem_t *elem = (ucs_mpool_elem_t*)obj - 1;
     ucg_mpool_t *mp = ucg_derived_of(elem->mpool, ucg_mpool_t);
     ucg_lock_enter(&mp->lock);
     ucs_mpool_put(obj);
