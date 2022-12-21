@@ -47,16 +47,16 @@
     (((_n) > 0) && ucg_is_pow2_or_zero(_n))
 
 #define ucg_padding(_n, _alignment) \
-    (((_alignment) - (_n) % (_alignment)) % (_alignment))
+    ( ((_alignment) - (_n) % (_alignment)) % (_alignment) )
 
 #define ucg_align_down(_n, _alignment) \
-    ((_n) - ((_n) % (_alignment)))
+    ( (_n) - ((_n) % (_alignment)) )
 
 #define ucg_align_up(_n, _alignment) \
-    ((_n) + ucg_padding(_n, _alignment))
+    ( (_n) + ucg_padding(_n, _alignment) )
 
 #define ucg_align_down_pow2(_n, _alignment) \
-    ((_n) & ~((_alignment) - 1))
+    ( (_n) & ~((_alignment) - 1) )
 
 #define ucg_align_up_pow2(_n, _alignment) \
     ucg_align_down_pow2((_n) + (_alignment) - 1, _alignment)
@@ -81,7 +81,7 @@
     (((_n) > (typeof(_n))0) - ((_n) < (typeof(_n))0))
 
 #define ucg_roundup_pow2_or0(_n) \
-    (((_n) == 0) ? 0 : ucg_roundup_pow2(_n))
+    ( ((_n) == 0) ? 0 : ucg_roundup_pow2(_n) )
 
 /* Return values: 0 - aligned, non-0 - unaligned */
 #define ucg_check_if_align_pow2(_n, _p) ((_n) & ((_p) - 1))
@@ -201,7 +201,7 @@ static inline double ucg_log2(double x)
  * @param _mask     Generate sub-masks of this value
  */
 #define ucg_for_each_submask(_submask, _mask) \
-    for (/* start with 0*/ \
+    for (/* start with 0 */ \
          (_submask) = 0; \
          /* end when reaching _mask + 1 */ \
          (_submask) <= (_mask); \

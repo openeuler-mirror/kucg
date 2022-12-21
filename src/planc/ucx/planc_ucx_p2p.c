@@ -119,31 +119,63 @@ static ucp_ep_h ucg_planc_ucx_p2p_get_ucp_ep(ucg_vgroup_t *vgroup, ucg_rank_t vr
     ucg_rank_t ctx_rank = ucg_group_get_ctx_rank(vgroup->group, group_rank);
     ucg_planc_ucx_context_t *ucx_context = ucx_group->context;
 
-    if (ucx_context->config.use_oob == UCG_YES) {
-        void* group = vgroup->group->oob_group.group;
-        return ucg_planc_ucx_get_oob_ucp_ep(group, group_rank);
-    }
-
     if (ucx_context->eps[ctx_rank] != NULL) {
         return ucx_context->eps[ctx_rank];
     }
-
-    ucg_context_t *context = vgroup->group->context;
-    ucg_planc_ucx_t *planc_ucx = ucg_planc_ucx_instance();
-    void *ucp_addr = ucg_context_get_proc_addr(context, ctx_rank, &planc_ucx->super);
-    ucp_ep_params_t params = {
-        .field_mask = UCP_EP_PARAM_FIELD_REMOTE_ADDRESS,
-        .address = (ucp_address_t*)ucp_addr
-    };
-    ucp_ep_h ep;
-    ucs_status_t status = ucp_ep_create(ucx_context->ucp_worker, &params, &ep);
-    if (status != UCS_OK) {
-        ucg_error("Failed to create ucp ep, %s", ucs_status_string(status));
-        return NULL;
+    
+    ucp_ep_h ep = NULL;
+    if (ucx_context->config.use_oob == UCG_YES) {
+        void* group = vgroup->group->oob_group.group;
+        ep = ucg_planc_ucx_get_oob_ucp_ep(group, group_rank);
+    } else {
+        ucg_context_t *context = vgroup->group->context;
+        ucg_planc_ucx_t *planc_ucx = ucg_planc_ucx_instance();
+        void *ucp_addr = ucg_context_get_proc_addr(context, ctx_rank, &planc_ucx->super);
+        ucp_ep_params_t params = {
+            .field_mask = UCP_EP_PARAM_FIELD_REMOTE_ADDRESS |
+                          UCP_EP_PARAM_FIELD_ERR_HANDLING_MODE,
+            .address = (ucp_address_t*)ucp_addr,
+        };
+        ucs_status_t status = ucp_ep_create(ucx_context->ucp_worker, &params, &ep);
+        if (status != UCS_OK) {
+            ucg_error("Failed to create ucp ep, %s", ucs_status_string(status));
+            return NULL;
+        }
     }
 
     ucx_context->eps[ctx_rank] = ep;
     return ep;
+}
+
+static void ucg_planc_ucx_p2p_close_ep(ucp_ep_h ep, ucp_worker_h ucp_worker)
+{
+    ucs_status_t status;
+    ucs_status_ptr_t close_req = ucp_ep_close_nb(ep, UCP_EP_CLOSE_MODE_FLUSH);
+    if (UCS_PTR_IS_PTR(close_req)) {
+        do {
+            ucp_worker_progress(ucp_worker);
+            status = ucp_request_check_status(close_req);
+        } while (status == UCS_INPROGRESS);
+        ucp_request_free(close_req);
+    } else {
+        status = UCS_PTR_STATUS(close_req);
+    }
+    if (status != UCS_OK) {
+        ucg_error("Failed to close ucp ep, ep %p, status %s",
+                  ep, ucs_status_string(status));
+    }
+    return;
+}
+
+void ucg_planc_ucx_p2p_close_all_ep(ucg_planc_ucx_context_t *context)
+{
+    int oob_group_size = context->ucg_context->oob_group.size;
+    for (int i = 0; i < oob_group_size; ++i) {
+        if (context->eps[i] != NULL) {
+            ucg_planc_ucx_p2p_close_ep(context->eps[i], context->ucp_worker);
+        }
+    }
+    return;
 }
 
 static void ucg_planc_ucx_p2p_isend_done(void *request, ucs_status_t status,

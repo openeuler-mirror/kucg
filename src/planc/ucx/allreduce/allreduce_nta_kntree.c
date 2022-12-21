@@ -145,14 +145,14 @@ ucg_status_t ucg_planc_ucx_allreduce_add_inter_subnet_op(ucg_plan_meta_op_t *met
     return ucg_plan_meta_op_add(meta_op, &ucx_op->super);
 }
 
-ucg_plan_meta_op_t* ucg_planc_ucx_allreduce_nta_kntree_op_new(ucg_planc_ucx_group_t* ucx_group,
+ucg_plan_meta_op_t *ucg_planc_ucx_allreduce_nta_kntree_op_new(ucg_planc_ucx_group_t *ucx_group,
                                                               ucg_vgroup_t *vgroup,
-                                                              const ucg_coll_args_t* args,
+                                                              const ucg_coll_args_t *args,
                                                               ucg_planc_ucx_allreduce_config_t *config)
 {
     UCG_CHECK_NULL(NULL, ucx_group, vgroup, args, config);
 
-    ucg_plan_meta_op_t* meta_op = ucg_plan_meta_op_new(vgroup->group, vgroup, args);
+    ucg_plan_meta_op_t *meta_op = ucg_plan_meta_op_new(vgroup->group, vgroup, args);
     if (meta_op == NULL) {
         goto err;
     }

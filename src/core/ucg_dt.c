@@ -32,8 +32,24 @@
             ++a; \
             ++b; \
         } \
-        return UCG_OK; \
+        return UCG_OK;\
     }
+
+#define UCG_OP_FUNC_UNSUPPORTED(_type, _dt) \
+    static inline ucg_status_t ucg_op_func_##_type##_##_dt(void *op, \
+                                                           const void *source, \
+                                                           void *target, \
+                                                           int32_t count, \
+                                                           void *dt) \
+    { \
+        return UCG_ERR_UNSUPPORTED; \
+    }
+
+#ifdef UCG_SUPPORT_FLOAT16
+    #define UCG_OP_FUNC_FP16(_type, _dt, _func) UCG_OP_FUNC(_type, _dt, _func)
+#else
+    #define UCG_OP_FUNC_FP16(_type, _dt, _func) UCG_OP_FUNC_UNSUPPORTED(_type, _dt)
+#endif
 
 #define UCG_OP_PREDEFINED_FUNCS(_type, _TYPE) \
     UCG_OP_FUNC(_type, int8_t, UCG_OP_FUNC_##_TYPE) \
@@ -44,7 +60,7 @@
     UCG_OP_FUNC(_type, uint16_t, UCG_OP_FUNC_##_TYPE) \
     UCG_OP_FUNC(_type, uint32_t, UCG_OP_FUNC_##_TYPE) \
     UCG_OP_FUNC(_type, uint64_t, UCG_OP_FUNC_##_TYPE) \
-    UCG_OP_FUNC(_type, _Float16, UCG_OP_FUNC_##_TYPE) \
+    UCG_OP_FUNC_FP16(_type, _Float16, UCG_OP_FUNC_##_TYPE) \
     UCG_OP_FUNC(_type, float, UCG_OP_FUNC_##_TYPE) \
     UCG_OP_FUNC(_type, double, UCG_OP_FUNC_##_TYPE)
 
@@ -65,10 +81,10 @@
         [UCG_DT_TYPE_FP64]      = ucg_op_func_##_type##_double, \
     }; \
     static ucg_status_t UCG_OP_PREDEFINED_NAME(_type)(void *op, \
-                                                       const void *source, \
-                                                       void *target, \
-                                                       int32_t count, \
-                                                       void *dt) \
+                                                      const void *source, \
+                                                      void *target, \
+                                                      int32_t count, \
+                                                      void *dt) \
     { \
         ucg_assert(((ucg_op_t*)op)->type == UCG_OP_TYPE_##_TYPE); \
         ucg_dt_t *ucg_dt = (ucg_dt_t*)dt; \
@@ -99,7 +115,7 @@
         ucg_mpool_put(_state); \
         _state = NULL; \
         break; \
-    } while(0)
+    } while (0)
 
 #define UCG_DT_STATE_CLEANUP(_state) \
     do { \
@@ -109,7 +125,7 @@
             gdt->conv.finish(_state->generic.state); \
         } \
         ucg_mpool_put(_state); \
-    } while(0)
+    } while (0)
 
 #define UCG_DT_STATE_ACTION(_action, _state, _offset, _buf, _length, _status) \
     do { \
@@ -135,7 +151,7 @@
         \
         const ucg_dt_generic_t *gdt = ucg_derived_of(dt, ucg_dt_generic_t); \
         _status = gdt->conv._action(_state->generic.state, _offset, _buf, _length); \
-    } while(0)
+    } while (0)
 
 static ucg_mpool_t ucg_dt_state_mp;
 static ucg_dt_t ucg_dt_predefined[UCG_DT_TYPE_PREDEFINED_LAST] = {
@@ -157,9 +173,9 @@ UCG_OP_PREDEFINED(min, MIN);
 UCG_OP_PREDEFINED(sum, SUM);
 UCG_OP_PREDEFINED(prod, PROD);
 static ucg_op_t ucg_op_predefined[UCG_OP_TYPE_PREDEFINED_LAST] = {
-    {UCG_OP_TYPE_MAX,  UCG_OP_PREDEFINED_FLAGS, UCG_OP_PREDEFINED_NAME(max)},
-    {UCG_OP_TYPE_MIN,  UCG_OP_PREDEFINED_FLAGS, UCG_OP_PREDEFINED_NAME(min)},
-    {UCG_OP_TYPE_SUM,  UCG_OP_PREDEFINED_FLAGS, UCG_OP_PREDEFINED_NAME(sum)},
+    {UCG_OP_TYPE_MAX, UCG_OP_PREDEFINED_FLAGS, UCG_OP_PREDEFINED_NAME(max)},
+    {UCG_OP_TYPE_MIN, UCG_OP_PREDEFINED_FLAGS, UCG_OP_PREDEFINED_NAME(min)},
+    {UCG_OP_TYPE_SUM, UCG_OP_PREDEFINED_FLAGS, UCG_OP_PREDEFINED_NAME(sum)},
     {UCG_OP_TYPE_PROD, UCG_OP_PREDEFINED_FLAGS, UCG_OP_PREDEFINED_NAME(prod)},
 };
 

@@ -375,19 +375,19 @@ static ucg_status_t ucg_planc_ucx_allreduce_rabenseifner_common_op_init(ucg_plan
     ucg_op->allreduce.rabenseifner.rank_type = rank_type;
     ucg_op->allreduce.rabenseifner.new_rank = new_rank;
 
-    int32_t *send_index = ucg_malloc(nstep *sizeof(int32_t), "allreduce send index");
+    int32_t *send_index = ucg_malloc(nstep * sizeof(int32_t), "allreduce send index");
     if (send_index == NULL) {
         goto err;
     }
-    int32_t *recv_index = ucg_malloc(nstep *sizeof(int32_t), "allreduce recv index");
+    int32_t *recv_index = ucg_malloc(nstep * sizeof(int32_t), "allreduce recv index");
     if (recv_index == NULL) {
         goto err_free_send_index;
     }
-    int32_t *send_count = ucg_malloc(nstep *sizeof(int32_t), "allreduce send count");
+    int32_t *send_count = ucg_malloc(nstep * sizeof(int32_t), "allreduce send count");
     if (send_count == NULL) {
         goto err_free_recv_index;
     }
-    int32_t *recv_count = ucg_malloc(nstep *sizeof(int32_t), "allreduce recv count");
+    int32_t *recv_count = ucg_malloc(nstep * sizeof(int32_t), "allreduce recv count");
     if (recv_count == NULL) {
         goto err_free_send_count;
     }
@@ -752,8 +752,8 @@ ucg_status_t ucg_planc_ucx_allreduce_rabenseifner_prepare(ucg_vgroup_t *vgroup,
         return UCG_ERR_UNSUPPORTED;
     }
 
-    ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
-    ucg_plan_meta_op_t *meta_op;
+    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
+    ucg_plan_meta_op_t* meta_op;
     meta_op = ucg_planc_ucx_allreduce_rabenseifner_op_new(ucx_group, vgroup, args);
     if (meta_op == NULL) {
         return UCG_ERR_NO_MEMORY;

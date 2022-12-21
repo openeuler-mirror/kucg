@@ -18,6 +18,10 @@ static ucg_status_t ucg_planc_ucx_allreduce_add_bcast_topo_group_op(ucg_plan_met
 {
     ucg_topo_group_t *topo_group;
     topo_group = ucg_topo_get_group(vgroup->group->topo, type);
+    if (topo_group == NULL) {
+        return UCG_ERR_UNSUPPORTED;
+    }
+
     if (topo_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
         /* I'm not in the topo group. */
         return ucg_planc_ucx_add_empty_op(meta_op, ucx_group, vgroup);
@@ -56,7 +60,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_add_rd_topo_group_op(ucg_plan_meta_o
         return UCG_ERR_NO_RESOURCE;
     }
 
-    ucg_planc_ucx_op_t *ucx_op;
+    ucg_planc_ucx_op_t* ucx_op;
     ucx_op = ucg_planc_ucx_allreduce_rd_op_new(ucx_group, &topo_group->super, args);
     if (ucx_op == NULL) {
         return UCG_ERR_NO_MEMORY;
@@ -203,14 +207,19 @@ ucg_status_t ucg_planc_ucx_allreduce_add_reduce_scatter_op(ucg_plan_meta_op_t *m
     return ucg_plan_meta_op_add(meta_op, &ucx_op->super);
 }
 
-static ucg_status_t ucg_planc_ucx_allreduce_init_rd_args(ucg_vgroup_t *vgroup,
-                                                         const ucg_coll_args_t *args,
-                                                         ucg_topo_group_type_t topo_type,
-                                                         int32_t *offset, int32_t *count)
+ucg_status_t ucg_planc_ucx_allreduce_get_rd_args(ucg_vgroup_t *vgroup,
+                                                 const ucg_coll_args_t *args,
+                                                 ucg_topo_group_type_t topo_type,
+                                                 int32_t *offset, int32_t *count)
 {
     ucg_status_t status = UCG_OK;
     ucg_topo_group_t *topo_group;
     topo_group = ucg_topo_get_group(vgroup->group->topo, topo_type);
+    if (topo_group == NULL || topo_group->state == UCG_TOPO_GROUP_STATE_ERROR ||
+        topo_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
+        return UCG_ERR_UNSUPPORTED;
+    }
+    
     ucg_rank_t myrank = topo_group->super.myrank;
     int32_t size = topo_group->super.size;
 
@@ -291,22 +300,8 @@ ucg_status_t ucg_planc_ucx_allreduce_add_allreduce_op(ucg_plan_meta_op_t *meta_o
                                                       ucg_planc_ucx_group_t *ucx_group,
                                                       ucg_vgroup_t *vgroup,
                                                       const ucg_coll_args_t *args,
-                                                      ucg_topo_group_type_t topo_type,
                                                       ucg_planc_ucx_algo_group_type_t group_type)
 {
-    ucg_status_t status;
-    ucg_coll_args_t rd_args = *args;
-    int32_t offset, count;
-    status = ucg_planc_ucx_allreduce_init_rd_args(vgroup, args, topo_type, &offset, &count);
-    if (status != UCG_OK) {
-        return UCG_ERR_NO_MEMORY;
-    }
-    if (count > 0) { // has added reduce_scatter op
-        rd_args.allreduce.sendbuf = args->allreduce.recvbuf + offset;
-        rd_args.allreduce.recvbuf = args->allreduce.recvbuf + offset;
-        rd_args.allreduce.count = count;
-    }
-
     ucg_planc_ucx_algo_group_t *algo_group = &ucx_group->groups[group_type];
     if (algo_group->state == UCG_ALGO_GROUP_STATE_DISABLE) {
         /* I'm not in the algo group. */
@@ -319,7 +314,7 @@ ucg_status_t ucg_planc_ucx_allreduce_add_allreduce_op(ucg_plan_meta_op_t *meta_o
     }
 
     ucg_planc_ucx_op_t *ucx_op;
-    ucx_op = ucg_planc_ucx_allreduce_rd_op_new(ucx_group, &algo_group->super, &rd_args);
+    ucx_op = ucg_planc_ucx_allreduce_rd_op_new(ucx_group, &algo_group->super, args);
     if (ucx_op == NULL) {
         return UCG_ERR_NO_MEMORY;
     }

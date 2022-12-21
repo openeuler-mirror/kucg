@@ -40,9 +40,9 @@ add_subdirectory(src)
 
 if (UCG_BUILD_TOOLS MATCHES "ON")
     add_subdirectory(tools)
-endif()
+endif ()
 
 if (UCG_BUILD_TESTS MATCHES "ON")
     enable_testing()
     add_subdirectory(tests)
-endif()
+endif ()

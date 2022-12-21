@@ -392,7 +392,7 @@ typedef struct {
      */
     uint64_t field_mask;
 
-     /**Memory type. Corresponding bit is UCG_MEM_ATTR_FIELD_MEM_TYPE */
+     /** Memory type. Corresponding bit is UCG_MEM_ATTR_FIELD_MEM_TYPE */
     ucg_mem_type_t mem_type;
 } ucg_mem_attr_t;
 
@@ -868,7 +868,7 @@ ucg_status_t ucg_op_init(const ucg_op_params_t *params, ucg_op_h op, uint32_t op
  * @retval Otherwise Failure.
  */
 ucg_status_t ucg_config_read(const char *env_prefix, const char *filename,
-                            ucg_config_h *config);
+                             ucg_config_h *config);
 
 /**
  * @ingroup UCG_CONTEXT
@@ -1154,20 +1154,18 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
  * @ingroup UCG_REQUEST
  * @brief Create a persistent gatherv request.
  *
- * The block of data sent from the j-th process is received by every process and
- * placed in the j-th block of the recvbuf.
+ * Gathers varying amounts of data from all processes to the root process.
  *
  * @param [in]  sendbuf         Starting address of send buffer
- * @param [in]  sendcount       Number of elements in send buffer(non-negative
- *                              integer)
+ * @param [in]  sendcount       Number of elements in send buffer
  * @param [in]  sendtype        Data type of send buffer elements
  * @param [out] recvbuf         Address of receive buffer
- * @param [in]  recvcounts      Non-negative integer array (of length group size)
- *                              containing the number of elements that are received
- *                              from each process
+ * @param [in]  recvcounts      Integer array (of length group size) containing
+ *                              the number of elements that are received from each
+ *                              process (significant only at root)
  * @param [in]  displs          Integer array (of length group size). Entry i specifies
- *                              the displacement (relative to recvbuf) at which to
- *                              place the incoming data from process i
+ *                              the displacement (relative to sendbuf) from which to
+ *                              take the outgoing data destined for process i
  * @param [in]  recvtype        Data type of receive buffer elements
  * @param [in]  root            Rank of receiving process
  * @param [in]  group           Communication group

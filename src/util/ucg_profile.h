@@ -21,9 +21,9 @@
 /**
  * @brief declare a profiled scope of code.
  *
- * Usage:
+ * Usage :
  * UCG_PROFILE_CODE(<name>) {
- *  <code>
+ *    <code>
  * }
  */
 #define UCG_PROFILE_CODE(_name)         UCS_PROFILE_CODE(_name)
@@ -34,7 +34,7 @@
  * Usage:
  * UCG_PROFILE_FUNC(<ret>, <func_name>, (a, b), int a, int b)
  * {
- *      <function-body>
+ *    <function-body>
  * }
  *
  * @param _rettype  the return type of function
@@ -51,7 +51,7 @@
  * Usage:
  * UCG_PROFILE_FUNC_VOID(<func_name>, (a, b), int a, int b)
  * {
- *      <function-body>
+ *    <function-body>
  * }
  *
  * @param _name     the name of function

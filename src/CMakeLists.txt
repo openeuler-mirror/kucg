@@ -25,6 +25,14 @@ endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions(-DUCG_ENABLE_DEBUG)
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+    message("-- Set CMAKE_C_FLAGS: '${CMAKE_C_FLAGS_DEBUG}'")
+    message("-- Set CMAKE_CXX_FLAGS: '${CMAKE_CXX_FLAGS_DEBUG}'")
+endif()
+
+if (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64")
+    add_definitions(-DUCG_SUPPORT_FLOAT16)
 endif()
 
 if (UCG_ENABLE_PROFILE MATCHES "ON")
@@ -66,7 +74,7 @@ set_target_properties(ucg
 set(UCG_PUBLIC_HEADER
     ${CMAKE_CURRENT_SOURCE_DIR}/ucg/api/ucg.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ucg/api/ucg_version.h)
-set_target_properties(ucg PROPERTIES PUBLIC_HEADER "${UCG_PUBLIC_HEADER}")
+set_target_properties (ucg PROPERTIES PUBLIC_HEADER "${UCG_PUBLIC_HEADER}")
 target_link_libraries(ucg PRIVATE
                       "-Wl,--whole-archive"
                       ucg_core

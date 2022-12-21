@@ -12,7 +12,7 @@
 #include "core/ucg_topo.h"
 #include "util/algo/ucg_kntree.h"
 #include "util/algo/ucg_ring.h"
-
+#include "util/ucg_log.h"
 
 typedef struct ucg_planc_ucx_bcast_config {
     /* configuration of kntree bcast */
@@ -42,8 +42,8 @@ typedef struct ucg_planc_ucx_bcast {
     };
 } ucg_planc_ucx_bcast_t;
 
-void ucg_planc_ucx_bcast_set_plan_attr(ucg_vgroup_t *vgroup,
-                                       ucg_plan_attr_t *default_plan_attr);
+const ucg_plan_policy_t *ucg_planc_ucx_get_bcast_plan_policy(ucg_planc_ucx_node_level_t node_level,
+                                                             ucg_planc_ucx_ppn_level_t ppn_level);
 
 /* xxx_op_new routines are provided for internal algorithm combination */
 ucg_planc_ucx_op_t *ucg_planc_ucx_bcast_kntree_op_new(ucg_planc_ucx_group_t *ucx_group,

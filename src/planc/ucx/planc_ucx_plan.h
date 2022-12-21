@@ -19,9 +19,10 @@
 #include "scatterv/scatterv.h"
 #include "gatherv/gatherv.h"
 
-#ifndef UCG_PLANC_UCX_DEFAULT_SCORE
-    #define UCG_PLANC_UCX_DEFAULT_SCORE 90
-#endif
+#define UCG_PLAN_UCX_PLAN_SCORE_0TH 90
+#define UCG_PLAN_UCX_PLAN_SCORE_1ST (UCG_PLAN_UCX_PLAN_SCORE_0TH - 1)
+#define UCG_PLAN_UCX_PLAN_SCORE_2ND (UCG_PLAN_UCX_PLAN_SCORE_1ST - 1)
+#define UCG_PLAN_UCX_PLAN_SCORE_3RD (UCG_PLAN_UCX_PLAN_SCORE_2ND - 1)
 
 #define UCG_PLANC_UCX_BUILTIN_ALGO_REGISTER(_coll_type, _config, _size) \
     UCG_PLANC_UCX_ALGO_REGISTER(_coll_type, UCX_BUILTIN, _config, _size)
@@ -117,5 +118,43 @@ static inline void ucg_planc_ucx_op_set_p2p_params(ucg_planc_ucx_op_t *op,
 }
 
 ucg_status_t ucg_planc_ucx_get_plans(ucg_planc_group_h planc_group, ucg_plans_t *plans);
+
+static inline int32_t log2_n(int32_t n, int32_t begin)
+{
+    int32_t index = 0;
+    while (n >= begin) {
+        n >>= 1;
+        ++index;
+    }
+    return index;
+}
+
+static inline ucg_planc_ucx_ppn_level_t ucg_planc_ucx_get_ppn_level(int32_t ppn)
+{
+    const int ppn_lev_small = 4;
+    const int ppn_lev_large = 64;
+    if (ppn <= ppn_lev_small) {
+        return PPN_LEVEL_4;
+    }
+    if (ppn > ppn_lev_large) {
+        return PPN_LEVEL_LG;
+    }
+    --ppn;
+    return (ucg_planc_ucx_ppn_level_t)log2_n(ppn, ppn_lev_small);
+}
+
+static inline ucg_planc_ucx_node_level_t ucg_planc_ucx_get_node_level(int32_t node_cnt)
+{
+    const int node_lev_small = 4;
+    const int node_lev_large = 16;
+    if (node_cnt <= node_lev_small) {
+        return NODE_LEVEL_4;
+    }
+    if (node_cnt > node_lev_large) {
+        return NODE_LEVEL_LG;
+    }
+    --node_cnt;
+    return (ucg_planc_ucx_node_level_t)log2_n(node_cnt, node_lev_small);
+}
 
 #endif

@@ -8,11 +8,27 @@
 #include "core/ucg_group.h"
 #include "core/ucg_plan.h"
 
+static ucg_status_t ucg_planc_ucx_bcast_na_bntree_check(ucg_vgroup_t *vgroup,
+                                                        const ucg_coll_args_t *args)
+{
+    if (vgroup->group->topo->ppn == UCG_TOPO_PPX_UNKNOWN) {
+        ucg_info("Bcast na_bntree don't support unknown ppn");
+        return UCG_ERR_UNSUPPORTED;
+    }
+    return UCG_OK;
+}
+
 ucg_status_t ucg_planc_ucx_bcast_na_bntree_prepare(ucg_vgroup_t *vgroup,
                                                    const ucg_coll_args_t *args,
                                                    ucg_plan_op_t **op)
 {
     UCG_CHECK_NULL_INVALID(vgroup, args, op);
+
+    ucg_status_t status;
+    status = ucg_planc_ucx_bcast_na_bntree_check(vgroup, args);
+    if (status != UCG_OK) {
+        return UCG_ERR_UNSUPPORTED;
+    }
 
     ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
     ucg_planc_ucx_bcast_config_t *bcast_config;

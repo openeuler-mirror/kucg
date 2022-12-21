@@ -83,7 +83,7 @@ void ucg_algo_kntree_iter_init(ucg_algo_kntree_iter_t *iter, int size, int degre
         int next_subsize = subsize * degree;
         if (v_myrank % next_subsize != 0) {
             iter->parent = v_myrank / next_subsize * next_subsize;
-            iter->parent = (iter->parent + root) %size;
+            iter->parent = (iter->parent + root) % size;
             break;
         }
         /* I'm the root of the bigger sub-kntree, keep looking. */
@@ -121,7 +121,7 @@ int32_t ucg_algo_kntree_get_subtree_size(ucg_algo_kntree_iter_t *iter, ucg_rank_
                               iter->root, rank, 1);
     int32_t count = 1;
     ucg_rank_t peer;
-    while ((peer = ucg_algo_kntree_iter_child_value(&inner_iter)) != UCG_INVALID_RANK) {
+    while((peer = ucg_algo_kntree_iter_child_value(&inner_iter)) != UCG_INVALID_RANK) {
         count += ucg_algo_kntree_get_subtree_size(&inner_iter, peer);
         ucg_algo_kntree_iter_child_inc(&inner_iter);
     }
