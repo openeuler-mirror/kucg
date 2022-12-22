@@ -36,7 +36,7 @@ static void init_context(ucg_context_h *context)
     params.oob_group.group = NULL;
     params.get_location = get_location;
 
-	 UCG_CHECK(ucg_init(&params, config, context));
+	UCG_CHECK(ucg_init(&params, config, context));
     return;
 }
 
@@ -58,7 +58,7 @@ static void create_group(ucg_context_h context, ucg_group_h *group)
     params.oob_group.size = 1;
     params.oob_group.group = NULL;
 
-	 UCG_CHECK(ucg_group_create(context, &params, group));
+	UCG_CHECK(ucg_group_create(context, &params, group));
 }
 
 void print_plans()

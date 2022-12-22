@@ -87,8 +87,8 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_reduce_scatter(ucg_plan_op_t
         status = ucg_planc_ucx_p2p_testall(op->ucx_group, params.state);
         UCG_CHECK_GOTO(status, out);
         int32_t recvblock = (my_rank + group_size - step_idx - 1) % group_size;
-        int32_t blockoffset = ((recvblock < spilt_rank) ? (recvblock *large_blkcount) :
-                                (recvblock *small_blkcount + spilt_rank));
+        int32_t blockoffset = ((recvblock < spilt_rank) ? (recvblock * large_blkcount) :
+                                (recvblock * small_blkcount + spilt_rank));
         int32_t blockcount = ((recvblock < spilt_rank) ? large_blkcount : small_blkcount);
         void *tmprecv = args->recvbuf + blockoffset * dt_ext;
         status = ucg_op_reduce(args->op, temp_staging_area, tmprecv, blockcount, args->dt);

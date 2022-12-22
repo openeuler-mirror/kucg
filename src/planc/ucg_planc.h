@@ -43,9 +43,9 @@
  * @brief PlanC context attributes field mask.
  */
 typedef enum {
-    UCG_PLANC_CONTEXT_ATTR_FIELD_ADDR = UCG_BIT(0), /**< Context address. */
-    UCG_PLANC_CONTEXT_ATTR_FIELD_ADDR_LEN = UCG_BIT(1), /**< Length of Context address. */
-    UCG_PLANC_CONTEXT_ATTR_FIELD_THREAD_MODE = UCG_BIT(2), /**< Thread mode of Context. */
+    UCG_PLANC_CONTEXT_ATTR_FIELD_ADDR = UCG_BIT(0), /** < Context address. */
+    UCG_PLANC_CONTEXT_ATTR_FIELD_ADDR_LEN = UCG_BIT(1), /** < Length of Context address. */
+    UCG_PLANC_CONTEXT_ATTR_FIELD_THREAD_MODE = UCG_BIT(2), /** < Thread mode of Context. */
 } ucg_planc_context_attr_field_t;
 
 /**

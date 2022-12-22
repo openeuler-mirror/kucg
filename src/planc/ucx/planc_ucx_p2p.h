@@ -19,7 +19,7 @@
             (_op)->super.super.status = _status; \
             goto _label; \
         } \
-    } while(0)
+    } while (0)
 
 /**
  * UCG tag structure:
@@ -140,5 +140,7 @@ static inline void ucg_planc_ucx_p2p_state_reset(ucg_planc_ucx_p2p_state_t *stat
     state->inflight_recv_cnt = 0;
     return;
 }
+
+void ucg_planc_ucx_p2p_close_all_ep(ucg_planc_ucx_context_t *context);
 
 #endif

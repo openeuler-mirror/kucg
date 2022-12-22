@@ -5,12 +5,12 @@
 
 #include "ucg_malloc.h"
 
-ucg_malloc_hook_t           ucg_malloc_hook;
-ucg_calloc_hook_t           ucg_calloc_hook;
-ucg_realloc_hook_t          ucg_realloc_hook;
-ucg_posix_memalign_hook_t   ucg_posix_memalign_hook;
-ucg_free_hook_t             ucg_free_hook;
-ucg_strdup_hook_t           ucg_strdup_hook;
+ucg_malloc_hook_t ucg_malloc_hook;
+ucg_calloc_hook_t ucg_calloc_hook;
+ucg_realloc_hook_t ucg_realloc_hook;
+ucg_posix_memalign_hook_t ucg_posix_memalign_hook;
+ucg_free_hook_t ucg_free_hook;
+ucg_strdup_hook_t ucg_strdup_hook;
 
 #define UCG_MEM_ALLOC_WRAPPER(_name, _func, ...) \
     do { \
@@ -18,7 +18,7 @@ ucg_strdup_hook_t           ucg_strdup_hook;
             return ucg_ ## _func ## _hook(__VA_ARGS__, _name); \
         } \
         return _func(__VA_ARGS__); \
-    } while(0)
+    } while (0)
 
 void *ucg_malloc(size_t size, const char *name)
 {

@@ -185,7 +185,7 @@ static inline ucg_status_t ucg_op_reduce(ucg_op_t *op,
     if (source == NULL || target == NULL || count == 0) {
         return UCG_OK;
     }
-
+    
     if (ucg_op_is_predefined(op)) {
         return op->func(op, source, target, count, dt);
     }

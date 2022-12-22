@@ -127,7 +127,7 @@ out:
 
 static ucg_status_t ucg_planc_ucx_bcast_van_de_geijn_allgatherv_op_progress(ucg_plan_op_t *ucg_op)
 {
-    ucg_status_t status;
+    ucg_status_t status = UCG_OK;
     ucg_planc_ucx_op_t *op = ucg_derived_of(ucg_op, ucg_planc_ucx_op_t);
     ucg_planc_ucx_group_t *ucx_group = op->ucx_group;
     ucg_coll_bcast_args_t *args = &ucg_op->super.args.bcast;

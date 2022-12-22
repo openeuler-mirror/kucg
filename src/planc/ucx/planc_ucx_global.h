@@ -9,9 +9,9 @@
 #include "core/ucg_request.h"
 #include "planc/ucg_planc.h"
 
-typedef void* (*ucg_planc_ucx_get_ucp_ep_cb_t)(void *arg, void *group, int rank);
+typedef void* (*ucg_planc_ucx_get_ucp_ep_cb_t)(void* arg, void *group, int rank);
 
-typedef void* (*ucg_planc_ucx_get_ucp_worker_cb_t)(void *arg);
+typedef void* (*ucg_planc_ucx_get_ucp_worker_cb_t)(void* arg);
 
 typedef struct ucg_planc_ucx_oob_resource {
     void *arg;

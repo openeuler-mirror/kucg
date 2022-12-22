@@ -72,7 +72,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_rd_op_base(ucg_planc_ucx_op_t *op)
         ucg_algo_rd_iter_inc(iter);
         op->flags |= UCG_RD_BASE_SEND | UCG_RD_BASE_RECV;
     }
-    if (temp_recvbuf != args->recvbuf) {
+    if (temp_recvbuf != args->recvbuf){
         ucg_dt_memcpy(args->recvbuf, args->count, args->dt, temp_recvbuf, args->count, args->dt);
     }
 out:

@@ -77,8 +77,8 @@ typedef enum ucg_hash_put_status {
 
 /** @brief The begin/end iterator of the hash table */
 #define ucg_hash_begin(_h) kh_begin(_h)
-#define ucg_hash_end(_h) kh_end(_h)
-#define ucg_hash_size(_h) kh_size(_h)
+#define ucg_hash_end(_h)   kh_end(_h)
+#define ucg_hash_size(_h)  kh_size(_h)
 
 /**
  * @brief check whether the iterator has valid data
@@ -98,7 +98,7 @@ typedef enum ucg_hash_put_status {
  * @param [in]  _code   the code need be executed
  */
 #define ucg_hash_foreach(_h, _kvar, _vvar, _code) kh_foreach(_h, _kvar, _vvar, _code)
-#define ucg_hash_foreach_key(_h, _kvar, _code) kh_foreach_key(_h, _kvar, _code)
-#define ucg_hash_foreach_value(_h, _vvar, _code) kh_foreach_value(_h, _vvar, _code)
+#define ucg_hash_foreach_key(_h, _kvar, _code)    kh_foreach_key(_h, _kvar, _code)
+#define ucg_hash_foreach_value(_h, _vvar, _code)  kh_foreach_value(_h, _vvar, _code)
 
 #endif

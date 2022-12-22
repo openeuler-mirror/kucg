@@ -49,8 +49,8 @@ typedef struct ucg_planc_ucx_scatterv_config {
     int kntree_degree;
 } ucg_planc_ucx_scatterv_config_t;
 
-void ucg_planc_ucx_scatterv_set_plan_attr(ucg_vgroup_t *vgroup,
-                                          ucg_plan_attr_t *default_plan_attr);
+const ucg_plan_policy_t *ucg_planc_ucx_get_scatterv_plan_policy(ucg_planc_ucx_node_level_t node_level,
+                                                                ucg_planc_ucx_ppn_level_t ppn_level);
 
 ucg_planc_ucx_op_t *ucg_planc_ucx_scatterv_kntree_op_new(ucg_planc_ucx_group_t *ucx_group,
                                                          ucg_vgroup_t *vgroup,

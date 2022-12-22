@@ -24,7 +24,7 @@
         new_array->length = 0; \
         new_array->capacity = capacity; \
         *array = new_array; \
-        return UCG_OK; \
+        return UCG_OK;\
     } \
     \
     static inline ucg_status_t ucg_array_##_type##_extend(UCG_ARRAY_TYPE(_type) **array, int32_t grow) \
@@ -48,8 +48,8 @@
         *array = ucg_malloc(size, "ucg arrayx init"); \
         if (*array == NULL) { \
             return UCG_ERR_NO_MEMORY; \
-        } \
-        return UCG_OK; \
+        }\
+        return UCG_OK;\
     } \
     \
     static inline ucg_status_t ucg_arrayx_##_type##_extend(_type **array, int32_t *capacity, int32_t grow) \

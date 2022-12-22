@@ -408,8 +408,8 @@ err:
 }
 
 ucg_status_t ucg_planc_ucx_scatterv_kntree_prepare(ucg_vgroup_t *vgroup,
-                                                 const ucg_coll_args_t *args,
-                                                 ucg_plan_op_t **op)
+                                                   const ucg_coll_args_t *args,
+                                                   ucg_plan_op_t **op)
 {
     UCG_CHECK_NULL_INVALID(vgroup, args, op);
 

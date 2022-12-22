@@ -18,22 +18,21 @@
 #include <stdio.h>
 
 
+#define UCG_PLAN_SCORE_MAX (UINT_MAX)
 #define UCG_PLAN_RANGE_MAX (ULONG_MAX)
 #define UCG_PLAN_OPS_MAX 8
 
 #define UCG_PLAN_ATTR_DESC \
     "Plan attribute that determines when to use the plan.\n" \
     "Syntax: <id>[<attributes>][<id>[<attributes>][...]]\n" \
-    " - <id> : plan id(also called algorithm id), start with 'I:' followed by a\n" \
-    "          non-negative integer\n" \
+    " - <id>: plan id(also called algorithm id), start with 'I:' followed by a\n" \
+    "         non-negative integer\n" \
     " - <attributes> can be\n" \
     " - - score: plan priority, start with 'S:' followed by a non-negative integer\n" \
     "            larger number indicates a higher priority.\n" \
     " - - range: message size range, start with 'R:' followed by 'start-end'\n" \
     "            if there is no '-end', it means no upper limit.\n" \
-    " - - group: applicable group size, start with 'G:' followed by 'start-end'\n" \
-    "            if there is no '-end', it means no upper limit.\n" \
-    "Example: I:1S:10R:0-G:0-40I:2S:9R:0-1024G:0-\n"
+    "Example: I:1S:10R:0-I:2S:9R:0-1024\n"
 
 /* Define a plan attribute table */
 #define UCG_PLAN_ATTR_TABLE_DEFINE(_scope) \
@@ -60,6 +59,11 @@
 #define UCG_PLAN_ATTR_IS_LAST(_plan_attr) \
     ((_plan_attr)->prepare == NULL)
 
+#define UCG_PLAN_INVALID_POLICY_ID -1
+#define UCG_PLAN_LAST_POLICY {UCG_PLAN_INVALID_POLICY_ID}
+
+#define UCG_PLAN_POLICY_IS_LAST(_plan_policy) \
+    ((_plan_policy)->id == UCG_PLAN_INVALID_POLICY_ID)
 
 typedef enum ucg_plan_type {
     UCG_PLAN_TYPE_FIRST_CLASS,
@@ -123,6 +127,18 @@ typedef struct ucg_plan_range {
     uint64_t start;
     uint64_t end;
 } ucg_plan_range_t;
+
+/**
+ * @brief Plan policy.
+ */
+typedef struct ucg_plan_policy {
+    /** Algo id */
+    int32_t id;
+    /** Supported range of message size. */
+    ucg_plan_range_t range;
+    /** Plan score, larger value indicate higher priority. */
+    uint32_t score;
+} ucg_plan_policy_t;
 
 /**
  * @brief Plan attributes.
@@ -257,32 +273,29 @@ ucg_status_t ucg_plans_prepare(const ucg_plans_t *plans,
  * @retval UCG_OK                   Updated successfully; the update is NULL
  *                                  or empty string; No matching ID exists in
  *                                  the update.
- * @retval UCG_ERR_INVALID_PARAMS   The format of update is incorrect.
+ * @retval UCG_ERR_INVALID_PARAM    The format of update is incorrect.
  */
 ucg_status_t ucg_plan_attr_update(ucg_plan_attr_t *attr, const char *update);
 
 /**
- * @brief Update the i-th plan attribute by range and score
+ * @brief Create plan policies
  *
- * @param [inout] attr              Plan attribute array
- * @param [in]    id                Algorithm id
- * @param [in]    start             Start range
- * @param [in]    end               End range
- * @param [in]    score             Plan score
+ * @param [inout] policy            Plan policy array
+ * @param [in]    desc              Description of creating plan policy
+ *                                  @ref UCG_PLAN_ATTR_DESC
+ * 
+ * @retval UCG_OK                   Translate successfully.
+ * @retval UCG_ERR_INVALID_PARAM    The format of update is incorrect.
+ * @retval UCG_ERR_NO_MEMORY        Insufficient memory.
  */
-static inline
-void ucg_plan_attr_array_update(ucg_plan_attr_t *attr, int32_t id,
-                                uint64_t start, uint64_t end, int32_t score)
-{
-    UCG_CHECK_NULL_VOID(attr);
-    for (ucg_plan_attr_t *tmp_attr = attr; !UCG_PLAN_ATTR_IS_LAST(tmp_attr); ++tmp_attr) {
-        if (tmp_attr->id == id) {
-            tmp_attr->range = (ucg_plan_range_t){start, end};
-            tmp_attr->score = score;
-        }
-    }
-    return;
-}
+ucg_status_t ucg_plan_policy_create(ucg_plan_policy_t **policy, const char *desc);
+
+/**
+ * @brief Destory plan policy
+ * 
+ * @param [in]    policy             Plan policy array
+ */
+void ucg_plan_policy_destroy(ucg_plan_policy_t **policy);
 
 /**
  * @brief Create one meta op

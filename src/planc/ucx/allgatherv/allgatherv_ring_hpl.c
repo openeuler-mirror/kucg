@@ -121,7 +121,7 @@ static inline ucg_status_t ucg_planc_ucx_allgatherv_ring_hpl_init(ucg_plan_op_t 
     uint32_t rtype_size = ucg_dt_size(recvtype);
     ucg_vgroup_t *vgroup = op->super.vgroup;
     ucg_rank_t my_rank = vgroup->myrank;
-    op->flags |=  UCG_ALLGATHERV_RING_HPL_FLAGS;
+    op->flags |= UCG_ALLGATHERV_RING_HPL_FLAGS;
 
     if (UCG_IN_PLACE != sendbuf) {
         UCG_PLANC_UCX_CHECK_GOTO(ucg_dt_memcpy((char *)recvbuf + args->displs[my_rank] * rtype_size,

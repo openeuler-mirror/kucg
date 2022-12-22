@@ -13,6 +13,7 @@
 #include "planc/ucg_planm.h"
 #include "core/ucg_context.h"
 #include "core/ucg_request.h"
+#include "core/ucg_plan.h"
 #include "util/ucg_mpool.h"
 
 typedef enum {
@@ -46,6 +47,9 @@ typedef struct ucg_planc_ucx_resource_planm {
 typedef struct ucg_planc_ucx_context {
     ucg_context_t *ucg_context;
     ucg_planc_ucx_config_t config;
+    
+    /* Policies of collective operation plans */
+    ucg_plan_policy_t *user_policy[UCG_COLL_TYPE_LAST];
 
     /* something related UCP */
     ucp_context_h ucp_context;

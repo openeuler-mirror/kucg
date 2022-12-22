@@ -28,14 +28,15 @@ static ucg_config_field_t reduce_config_table[] = {
 UCG_PLANC_UCX_BUILTIN_ALGO_REGISTER(UCG_COLL_TYPE_REDUCE, reduce_config_table,
                                     sizeof(ucg_planc_ucx_reduce_config_t))
 
-void ucg_planc_ucx_reduce_set_plan_attr(ucg_vgroup_t *vgroup,
-                                        ucg_plan_attr_t *default_plan_attr)
+static ucg_plan_policy_t reduce_plan_policy[] = {
+    {1, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    UCG_PLAN_LAST_POLICY,
+};
+
+const ucg_plan_policy_t *ucg_planc_ucx_get_reduce_plan_policy(ucg_planc_ucx_node_level_t node_level,
+                                                              ucg_planc_ucx_ppn_level_t ppn_level)
 {
-    ucg_plan_attr_t *attr;
-    for (attr = default_plan_attr; !UCG_PLAN_ATTR_IS_LAST(attr); ++attr) {
-        ucg_plan_range_t range = {0, UCG_PLAN_RANGE_MAX};
-        attr->range = range;
-        attr->score = UCG_PLANC_UCX_DEFAULT_SCORE;
-    }
-    return;
+    UCG_UNUSED(node_level, ppn_level);
+    ucg_plan_policy_t *policy = reduce_plan_policy;
+    return policy;
 }

@@ -11,7 +11,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/planc_fake.c
       };
       ucg_planc_t UCG_PLANC_OBJNAME(fake2) = {
         .super.name = \"fake2\",
-    };")
+      };")
 
 add_library(ucg_planc_fake SHARED planc_fake.c)
 add_library(ucg_planc_fake2 SHARED planc_fake.c)

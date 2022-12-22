@@ -24,8 +24,8 @@ typedef struct ucg_planc_ucx_allgatherv {
     };
 } ucg_planc_ucx_allgatherv_t;
 
-void ucg_planc_ucx_allgatherv_set_plan_attr(ucg_vgroup_t *vgroup,
-                                            ucg_plan_attr_t *default_plan_attr);
+const ucg_plan_policy_t *ucg_planc_ucx_get_allgatherv_plan_policy(ucg_planc_ucx_node_level_t node_level,
+                                                                  ucg_planc_ucx_ppn_level_t ppn_level);
 
 ucg_status_t ucg_planc_ucx_allgatherv_neighbor_prepare(ucg_vgroup_t *vgroup,
                                                        const ucg_coll_args_t *args,

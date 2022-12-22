@@ -33,21 +33,21 @@ static ucg_status_t ucg_components_load_one(const char *lib_path,
     char *libname = basename(lib_path_dup) + UCG_PATTERN_PREFIX_LEN;
     /* ingore suffix*/
     int objname_len = strlen(libname) - UCG_PATTERN_SUFFIX_LEN;
-    char objname[UCG_COMPONENT_OBJNAME_MAX_LEN + 1] = {0};
+    char objname[UCG_COMPONENT_OBJNAME_MAX_LEN+1] = {0};
     if (objname_len > UCG_COMPONENT_OBJNAME_MAX_LEN) {
         ucg_error("Length of object name exceed %d", UCG_COMPONENT_OBJNAME_MAX_LEN);
         goto err;
     }
     strncpy(objname, libname, objname_len);
 
-    dlerror(); /* Clear any existing error*/
+    dlerror(); /* Clear any existing error */
     void *handle = dlopen(lib_path, RTLD_LAZY | RTLD_GLOBAL);
     if (handle == NULL) {
         ucg_error("Failed to load library, %s", dlerror());
         goto err;
     }
 
-    *component = (ucg_component_t *)dlsym(handle, objname);
+    *component = (ucg_component_t*)dlsym(handle, objname);
     if (*component == NULL) {
         ucg_error("Failed to find the object by %s, %s", objname, dlerror());
         goto err_dlclose;
@@ -102,9 +102,9 @@ ucg_status_t ucg_components_load(const char *path, const char *pattern,
         goto out_free_pattern;
     }
 
-    ucg_component_t **comps;
-    comps = (ucg_component_t **)ucg_malloc(globbuf.gl_pathc * sizeof(ucg_component_t *),
-                                           "components");
+    ucg_component_t** comps;
+    comps = (ucg_component_t**)ucg_malloc(globbuf.gl_pathc * sizeof(ucg_component_t*),
+                                          "components");
     if (comps == NULL) {
         ucg_error("Failed to allocate %u bytes", full_pattern_len);
         goto out_free_globbuf;
@@ -141,7 +141,7 @@ void ucg_components_unload(ucg_components_t *components)
         return;
     }
 
-    ucg_component_t **comps = components->components;
+    ucg_component_t** comps = components->components;
     int num = components->num;
     for (int i = 0; i < num; ++i) {
         dlclose(comps[i]->handle);

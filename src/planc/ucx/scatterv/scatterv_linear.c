@@ -30,7 +30,7 @@ static ucg_status_t ucg_planc_ucx_scatterv_linear_op_root(ucg_planc_ucx_op_t *op
 
     while (*idx < group_size) {
         if (ucg_test_and_clear_flags(&op->flags, UCG_SCATTERV_LINEAR_SEND)) {
-            void *sbuf = (char *)args->sendbuf + (int64_t)args->displs[*idx] * sendtype_extent;
+            void *sbuf = (char*)args->sendbuf + (int64_t)args->displs[*idx] * sendtype_extent;
             int32_t scount = args->sendcounts[*idx];
             if (*idx == args->root) {
                 if (scount > 0 && args->recvbuf != UCG_IN_PLACE) {
@@ -133,8 +133,8 @@ err:
 }
 
 ucg_status_t ucg_planc_ucx_scatterv_linear_prepare(ucg_vgroup_t *vgroup,
-                                                  const ucg_coll_args_t *args,
-                                                  ucg_plan_op_t **op)
+                                                   const ucg_coll_args_t *args,
+                                                   ucg_plan_op_t **op)
 {
     UCG_CHECK_NULL_INVALID(vgroup, args, op);
 

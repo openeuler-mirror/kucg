@@ -8,6 +8,16 @@
 #include "core/ucg_group.h"
 #include "barrier_meta.h"
 
+static ucg_status_t ucg_planc_ucx_barrier_na_rd_and_kntree_check(ucg_vgroup_t *vgroup,
+                                                                 const ucg_coll_args_t *args)
+{
+    if (vgroup->group->topo->ppn == UCG_TOPO_PPX_UNKNOWN) {
+        ucg_info("Barrier na_rd_and_kntree don't support unknown ppn");
+        return UCG_ERR_UNSUPPORTED;
+    }
+    return UCG_OK;
+}
+
 ucg_plan_meta_op_t *ucg_planc_ucx_barrier_na_rd_and_kntree_op_new(ucg_planc_ucx_group_t *ucx_group,
                                                                   ucg_vgroup_t *vgroup,
                                                                   const ucg_coll_args_t *args,
@@ -51,6 +61,12 @@ ucg_status_t ucg_planc_ucx_barrier_na_rd_and_kntree_prepare(ucg_vgroup_t *vgroup
                                                             ucg_plan_op_t **op)
 {
     UCG_CHECK_NULL_INVALID(vgroup, args, op);
+
+    ucg_status_t status;
+    status = ucg_planc_ucx_barrier_na_rd_and_kntree_check(vgroup, args);
+    if (status != UCG_OK) {
+        return UCG_ERR_UNSUPPORTED;
+    }
 
     ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
     ucg_planc_ucx_barrier_config_t *config;

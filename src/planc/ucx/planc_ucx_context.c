@@ -259,7 +259,8 @@ static void ucg_planc_ucx_context_free_config(ucg_planc_ucx_context_t *ctx)
 }
 
 static ucg_status_t ucg_planc_ucx_context_fill_config(ucg_planc_ucx_context_t *ctx,
-                                                      ucg_planc_ucx_config_t *cfg)
+                                                      const ucg_planc_ucx_config_t *cfg,
+                                                      const ucg_planc_params_t *params)
 {
     ucg_status_t status;
     status = ucg_config_parser_clone_opts(cfg, &ctx->config, ucg_planc_ucx_config_table);
@@ -287,12 +288,40 @@ static ucg_status_t ucg_planc_ucx_context_fill_config(ucg_planc_ucx_context_t *c
             ctx->config.config_bundle[coll_type][module_type]->table = cfg->config_bundle[coll_type][module_type]->table;
         }
     }
+    
+    /* Use oob resources may not be safe under multi-threads mode */
+    if (params->thread_mode == UCG_THREAD_MODE_MULTI) {
+        ctx->config.use_oob = UCG_NO;
+    }
 
     return UCG_OK;
 
 err_free_cfg:
     ucg_planc_ucx_context_free_config(ctx);
     return status;
+}
+
+static void ucg_planc_ucx_context_free_policy(ucg_planc_ucx_context_t *ctx)
+{
+    for (ucg_coll_type_t coll_type = 0; coll_type < UCG_COLL_TYPE_LAST; ++coll_type) {
+        if (ctx->user_policy[coll_type] != NULL) {
+            ucg_plan_policy_destroy(&ctx->user_policy[coll_type]);
+        }
+    }
+    return;
+}
+
+static ucg_status_t ucg_planc_ucx_context_fill_policy(ucg_planc_ucx_context_t *ctx,
+                                                      ucg_planc_ucx_config_t *cfg)
+{
+    ucg_status_t status;
+    for (ucg_coll_type_t coll_type = 0; coll_type < UCG_COLL_TYPE_LAST; ++coll_type) {
+        status = ucg_plan_policy_create(&ctx->user_policy[coll_type], cfg->plan_attr[coll_type]);
+        if (status != UCG_OK) {
+            return status;
+        }
+    }
+    return UCG_OK;
 }
 
 static ucg_status_t ucg_planc_ucx_context_init_ucp_context(ucg_planc_ucx_context_t *ctx)
@@ -386,9 +415,7 @@ ucg_status_t ucg_planc_ucx_context_init(const ucg_planc_params_t *params,
     UCG_CHECK_NULL_INVALID(params, config, context);
 
     ucg_status_t status;
-    ucg_planc_ucx_config_t *cfg = (ucg_planc_ucx_config_t *)config;
     ucg_planc_ucx_context_t *ctx;
-
     ctx = ucg_calloc(1, sizeof(ucg_planc_ucx_context_t), "planc ucx context");
     if (ctx == NULL) {
         return UCG_ERR_NO_MEMORY;
@@ -396,38 +423,35 @@ ucg_status_t ucg_planc_ucx_context_init(const ucg_planc_params_t *params,
 
     ctx->ucg_context = params->context;
 
-    status = ucg_planc_ucx_context_fill_config(ctx, cfg);
+    ucg_planc_ucx_config_t *cfg = (ucg_planc_ucx_config_t *)config;
+    status = ucg_planc_ucx_context_fill_config(ctx, cfg, params);
     if (status != UCG_OK) {
         goto err_free_ctx;
     }
-
-    /* Use oob resources may not be safe under multi-threads mode */
-    if (params->thread_mode == UCG_THREAD_MODE_MULTI) {
-        ctx->config.use_oob = UCG_NO;
+    
+    status = ucg_planc_ucx_context_fill_policy(ctx, cfg);
+    if (status != UCG_OK) {
+        goto err_free_config;
     }
 
-    int max_op_size = sizeof(ucg_planc_ucx_op_t);
     int count = ucg_planm_count(&ucg_planc_ucx_planm);
-    ctx->num_planm_rscs = 0;
-    ctx->planm_rscs = NULL;
     if (count > 0) {
         ctx->planm_rscs = ucg_calloc(count, sizeof(ucg_planc_ucx_resource_planm_t),
                                      "ucg planc ucx resource planm");
         if (ctx->planm_rscs == NULL) {
             status = UCG_ERR_NO_MEMORY;
-            goto err_free_config;
+            goto err_free_policy;
         }
     }
 
+    int max_op_size = sizeof(ucg_planc_ucx_op_t);
     for (int i = 0; i < count; ++i) {
         ucg_planm_t *planm = ucg_planm_get_by_idx(i, &ucg_planc_ucx_planm);
         if (!ucg_planc_ucx_ctx_is_required_planm(planm, cfg->planm)) {
             ucg_debug("planm %s is not required", planm->super.name);
             continue;
         }
-        ucg_planc_ucx_resource_planm_t *planm_rscs = &ctx->planm_rscs[ctx->num_planm_rscs];
-        planm_rscs->planm = planm;
-        ++ctx->num_planm_rscs;
+        ctx->planm_rscs[ctx->num_planm_rscs++].planm = planm;
         max_op_size = (planm->op_size > max_op_size) ? planm->op_size : max_op_size;
     }
 
@@ -464,17 +488,19 @@ ucg_status_t ucg_planc_ucx_context_init(const ucg_planc_params_t *params,
         if (status != UCG_OK) {
             goto err_cleanup_context;
         }
+    }
 
-        ctx->eps = ucg_calloc(ctx->ucg_context->oob_group.size, sizeof(ucp_ep_h), "ucp eps");
-        if (ctx->eps == NULL) {
-            ucg_error("Failed to allocate %zd bytes for ucp_eps",
-                      ctx->ucg_context->oob_group.size * sizeof(ucp_ep_h));
-            status = UCG_ERR_NO_MEMORY;
-            goto err_destroy_worker;
-        }
+    ctx->eps = ucg_calloc(ctx->ucg_context->oob_group.size, sizeof(ucp_ep_h), "ucp eps");
+    if (ctx->eps == NULL) {
+        ucg_error("Failed to allocate %zd bytes for ucp_eps",
+                  ctx->ucg_context->oob_group.size * sizeof(ucp_ep_h));
+        status = UCG_ERR_NO_MEMORY;
+        goto err_destroy_worker;
     }
 
     *context = (ucg_planc_context_h)ctx;
+    ucg_info("Initialized planc ucx context, oob ucp is %s, max op size is %d",
+             ctx->config.use_oob == UCG_NO ? "disabled" : "enabled", max_op_size);
     return UCG_OK;
 
 err_destroy_worker:
@@ -485,6 +511,8 @@ err_free_mpool:
     ucg_mpool_cleanup(&ctx->op_mp, 1);
 err_free_planm_rscs:
     ucg_free(ctx->planm_rscs);
+err_free_policy:
+    ucg_planc_ucx_context_free_policy(ctx);
 err_free_config:
     ucg_planc_ucx_context_free_config(ctx);
 err_free_ctx:
@@ -501,17 +529,16 @@ void ucg_planc_ucx_context_cleanup(ucg_planc_context_h context)
     if (ctx->worker_address != NULL) {
         ucp_worker_release_address(ctx->ucp_worker, ctx->worker_address);
     }
-    ucg_free(ctx->planm_rscs);
-    ucg_mpool_cleanup(&ctx->op_mp, 1);
-    ucg_free(ctx->eps);
-
     if (ctx->config.use_oob == UCG_NO) {
+        ucg_planc_ucx_p2p_close_all_ep(ctx);
         ucp_worker_destroy(ctx->ucp_worker);
         ucp_cleanup(ctx->ucp_context);
     }
-
+    ucg_free(ctx->eps);
+    ucg_mpool_cleanup(&ctx->op_mp, 1);
+    ucg_free(ctx->planm_rscs);
+    ucg_planc_ucx_context_free_policy(ctx);
     ucg_planc_ucx_context_free_config(ctx);
-
     ucg_free(ctx);
     return;
 }

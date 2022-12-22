@@ -10,7 +10,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/component_fake.c
           .name = \"fake\",
       };
       ucg_component_t ucg_component_fake_looooooooooooooooong = {
-          .name = \"fake_looooooooooooooooong\",
+            .name = \"fake_looooooooooooooooong\",
       };")
 # library name is same as object name
 add_library(ucg_component_fake SHARED component_fake.c)

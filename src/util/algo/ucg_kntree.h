@@ -32,7 +32,7 @@ typedef struct ucg_algo_kntree_iter {
  *     9 6 5 3           4 5 7 8          5 6 7 9
  *       |
  *       7
- * The right-most kntree is a mirror flip of left-most kntree. Take rank0 as an
+ * The right-most kntree is a mirror flip of left-most kntree. Take rank 0 as an
  * example, its left-most children in each iteration are {8,4,2,1}, and its
  * right-most children in each iteration are {1,2,4,8}.
  *
