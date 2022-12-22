@@ -151,6 +151,10 @@ static ucg_status_t ucg_planc_ucx_barrier_add_bcast_topo_group_op(ucg_plan_meta_
 {
     ucg_topo_group_t *topo_group;
     topo_group = ucg_topo_get_group(vgroup->group->topo, type);
+    if (topo_group == NULL) {
+        return UCG_ERR_UNSUPPORTED;
+    }
+
     if (topo_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
         /* I'm not in the topo group. */
         return ucg_planc_ucx_add_empty_op(meta_op, ucx_group, vgroup);
@@ -180,6 +184,10 @@ static ucg_status_t ucg_planc_ucx_barrier_add_fanin_topo_group_op(ucg_plan_meta_
 {
     ucg_topo_group_t *topo_group;
     topo_group = ucg_topo_get_group(vgroup->group->topo, type);
+    if (topo_group == NULL) {
+        return UCG_ERR_UNSUPPORTED;
+    }
+    
     if (topo_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
         /* I'm not in the topo group. */
         return ucg_planc_ucx_add_empty_op(meta_op, ucx_group, vgroup);
@@ -229,6 +237,10 @@ ucg_status_t ucg_planc_ucx_barrier_add_barrier_rd_op(ucg_plan_meta_op_t *meta_op
 {
     ucg_topo_group_t *topo_group;
     topo_group = ucg_topo_get_group(vgroup->group->topo, group_type);
+    if (topo_group == NULL) {
+        return UCG_ERR_UNSUPPORTED;
+    }
+    
     if (topo_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
         /* I'm not in the topo group. */
         return ucg_planc_ucx_add_empty_op(meta_op, ucx_group, vgroup);
@@ -239,7 +251,7 @@ ucg_status_t ucg_planc_ucx_barrier_add_barrier_rd_op(ucg_plan_meta_op_t *meta_op
         return UCG_ERR_NO_RESOURCE;
     }
 
-    ucg_planc_ucx_op_t *ucx_op;
+    ucg_planc_ucx_op_t* ucx_op;
     ucx_op = ucg_planc_ucx_barrier_rd_op_new(ucx_group, &topo_group->super, args);
     if (ucx_op == NULL) {
         return UCG_ERR_NO_MEMORY;

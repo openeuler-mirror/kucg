@@ -72,7 +72,7 @@ out:
 
 static ucg_status_t ucg_planc_ucx_allgatherv_neighbor_op_loop(ucg_plan_op_t *ucg_op)
 {
-    ucg_status_t status;
+    ucg_status_t status = UCG_OK;
     ucg_planc_ucx_op_t *op = ucg_derived_of(ucg_op, ucg_planc_ucx_op_t);
     ucg_vgroup_t *vgroup = op->super.vgroup;
     ucg_coll_allgatherv_args_t *args = &ucg_op->super.args.allgatherv;
@@ -226,7 +226,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_neighbor_op_trigger(ucg_plan_op_t *
 {
     ucg_status_t status;
     ucg_planc_ucx_op_t *op = ucg_derived_of(ucg_op, ucg_planc_ucx_op_t);
-    ucg_coll_allgatherv_args_t *args =  &ucg_op->super.args.allgatherv;
+    ucg_coll_allgatherv_args_t *args = &ucg_op->super.args.allgatherv;
     ucg_rank_t my_rank = op->super.vgroup->myrank;
 
     ucg_planc_ucx_allgatherv_neighbor_op_reset(op);

@@ -62,9 +62,9 @@ typedef struct ucg_proc_info {
 } ucg_proc_info_t;
 
 typedef struct ucg_proc_info_array {
-    uint32_t count;  /* number of process information */
+    uint32_t count; /* number of process information */
     uint32_t stride; /* size of process information */
-    uint8_t *info;   /* point to process information array */
+    uint8_t *info; /* point to process information array */
 } ucg_proc_info_array_t;
 
 typedef struct ucg_context {

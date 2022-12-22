@@ -8,6 +8,7 @@
 #include "ucg/api/ucg.h"
 
 #include "ucg_vgroup.h"
+#include "util/ucg_hash.h"
 
 /**
  * @brief vgroup rank of leader in the topo-group
@@ -20,6 +21,7 @@
 #define UCG_TOPO_GROUP_LEADER 0
 
 #define UCG_TOPO_PPX_UNBALANCED -1
+#define UCG_TOPO_PPX_UNKNOWN    -2
 
 /**
  * @brief Get location.
@@ -67,14 +69,24 @@ typedef struct ucg_topo_params {
     ucg_topo_get_location_cb_t get_location;
 } ucg_topo_params_t;
 
+
+UCG_HASH_MAP_INIT_INT(ID, int);
+typedef enum {
+    UCG_TOPO_LOC_NODE_ID = UCG_BIT(0),
+    UCG_TOPO_LOC_SOCKET_ID = UCG_BIT(1),
+} ucg_topo_loc_flag_t;
+
 typedef struct ucg_topo_location {
+    /** node id that starts from 0 in the current topology domain */
     int32_t node_id;
+    /** socket id that starts from 0 in the current topology domain */
     int32_t socket_id;
 } ucg_topo_location_t;
 
 typedef struct ucg_topo_detail {
     int32_t nnode;
     int32_t nsocket;
+    int32_t nrank_continuous;
     /* The length of the locations array is determined by @ref ucg_group_t::size */
     ucg_topo_location_t *locations;
 } ucg_topo_detail_t;
@@ -150,5 +162,19 @@ void ucg_topo_cleanup(ucg_topo_t *topo);
  * @note Caller needs to check whether the group is enabled.
  */
 ucg_topo_group_t* ucg_topo_get_group(ucg_topo_t *topo, ucg_topo_group_type_t type);
+
+/**
+ * @brief Get my node/socket id in the current topology domain.
+ */
+static inline int32_t ucg_topo_get_location_id(ucg_topo_t *topo, ucg_rank_t myrank,
+                                               ucg_topo_loc_flag_t flags)
+{
+    if (topo == NULL || myrank == UCG_INVALID_RANK) {
+        return -1;
+    }
+    return flags & UCG_TOPO_LOC_NODE_ID ?
+           topo->detail.locations[myrank].node_id :
+           topo->detail.locations[myrank].socket_id;
+}
 
 #endif

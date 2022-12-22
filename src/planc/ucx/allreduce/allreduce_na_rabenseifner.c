@@ -14,9 +14,19 @@
 static ucg_status_t ucg_planc_ucx_allreduce_na_rabenseifner_check(ucg_vgroup_t *vgroup,
                                                                   const ucg_coll_args_t *args)
 {
+    uint32_t group_size = vgroup->size;
+    int32_t count = args->allreduce.count;
+    if (count < group_size) {
+        ucg_info("Allreduce na_rabenseifner don't support count < group_size");
+        return UCG_ERR_UNSUPPORTED;
+    }
     ucg_op_flag_t flags = args->allreduce.op->flags;
     if (!(flags & UCG_OP_FLAG_IS_COMMUTATIVE)) {
         ucg_info("Allreduce na_rabenseifner don't support non-commutative op");
+        return UCG_ERR_UNSUPPORTED;
+    }
+    if (vgroup->group->topo->ppn == UCG_TOPO_PPX_UNKNOWN) {
+        ucg_info("Allreduce na_rabenseifner don't support unknown ppn");
         return UCG_ERR_UNSUPPORTED;
     }
     if (vgroup->group->topo->ppn == UCG_TOPO_PPX_UNBALANCED) {
@@ -27,7 +37,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_na_rabenseifner_check(ucg_vgroup_t *
 }
 
 ucg_plan_meta_op_t* ucg_planc_ucx_allreduce_na_rabenseifner_op_new(ucg_planc_ucx_group_t* ucx_group,
-                                                                   ucg_vgroup_t *vgroup,
+                                                                   ucg_vgroup_t* vgroup,
                                                                    const ucg_coll_args_t* args)
 {
     UCG_CHECK_NULL(NULL, ucx_group, vgroup, args);
@@ -45,12 +55,21 @@ ucg_plan_meta_op_t* ucg_planc_ucx_allreduce_na_rabenseifner_op_new(ucg_planc_ucx
                                                            UCG_TOPO_GROUP_TYPE_NODE);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
+    int32_t offset, count;
+    status = ucg_planc_ucx_allreduce_get_rd_args(vgroup, args, UCG_TOPO_GROUP_TYPE_NODE,
+                                                 &offset, &count);
+    UCG_CHECK_GOTO(status, err_free_meta_op);
+    ucg_coll_args_t rd_args = *meta_args;
+    if (count > 0) { // has added reduce_scatter op
+        rd_args.allreduce.sendbuf = args->allreduce.recvbuf + offset;
+        rd_args.allreduce.recvbuf = args->allreduce.recvbuf + offset;
+        rd_args.allreduce.count = count;
+    }
     status = ucg_planc_ucx_create_node_leader_algo_group(ucx_group, vgroup);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     status = ucg_planc_ucx_allreduce_add_allreduce_op(meta_op, ucx_group,
-                                                      vgroup, meta_args,
-                                                      UCG_TOPO_GROUP_TYPE_NODE,
+                                                      vgroup, &rd_args,
                                                       UCG_ALGO_GROUP_TYPE_NODE_LEADER);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
@@ -79,8 +98,8 @@ ucg_status_t ucg_planc_ucx_allreduce_na_rabenseifner_prepare(ucg_vgroup_t *vgrou
         return UCG_ERR_UNSUPPORTED;
     }
 
-    ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
-    ucg_plan_meta_op_t *meta_op;
+    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
+    ucg_plan_meta_op_t* meta_op;
     meta_op = ucg_planc_ucx_allreduce_na_rabenseifner_op_new(ucx_group, vgroup, args);
     if (meta_op == NULL) {
         return UCG_ERR_NO_MEMORY;

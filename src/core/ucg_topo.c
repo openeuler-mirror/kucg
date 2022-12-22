@@ -14,7 +14,7 @@
 
 /* Array of ucg rank. */
 UCG_ARRAYX_DECLARE(ucg_rank_t);
-/* Array for storing IDs (e.g. node id) to filter leader. */
+/* Array for storing IDs (e.g. node id) to filter leader .*/
 UCG_ARRAY_DECLARE(int32_t);
 
 /* The rank_map is a vgroup rank to group rank mapping table. */
@@ -38,7 +38,7 @@ static ucg_status_t ucg_topo_get_location(const ucg_topo_t *topo,
     ucg_assert(group_rank != UCG_INVALID_RANK);
 
     ucg_status_t status = topo->get_location(topo->group, group_rank, location);
-    if(status != UCG_OK) {
+    if (status != UCG_OK) {
         ucg_error("Failed to get location of group rank %d", group_rank);
     }
 
@@ -454,33 +454,96 @@ static ucg_status_t ucg_topo_create_socket_leader_group(ucg_topo_t *topo)
     return ucg_topo_create_group(topo, &node_group->super.rank_map, UCG_TOPO_GROUP_TYPE_SOCKET_LEADER);
 }
 
+static ucg_status_t ucg_topo_fill_id_hash(ucg_topo_t *topo,
+                                          ucg_hash_t(ID) *hash,
+                                          ucg_topo_loc_flag_t flags)
+{
+    ucg_status_t status;
+    uint32_t size = topo->group->size;
+    for (int i = 0; i < size; ++i) {
+        ucg_location_t location;
+        status = topo->get_location(topo->group, i, &location);
+        if (status != UCG_OK) {
+            return status;
+        }
+        int ret;
+        int key = flags & UCG_TOPO_LOC_NODE_ID ? location.node_id : location.socket_id;
+        ucg_hiter_t iter = ucg_hash_put(ID, hash, key, &ret);
+        if (ret == UCG_HASH_PUT_BUCKET_EMPTY || ret == UCG_HASH_PUT_BUCKET_CLEAR) {
+            /* do not override previous values */
+            ucg_hash_value(hash, iter) = ucg_hash_size(hash) - 1;
+        }
+    }
+    return UCG_OK;
+}
+
 static ucg_status_t ucg_topo_init_detail(ucg_topo_t *topo)
 {
     ucg_status_t status = UCG_OK;
     ucg_group_t *group = topo->group;
+    ucg_assert(group != NULL);
     ucg_topo_detail_t *detail = &topo->detail;
+
+    ucg_hash_t(ID) *node_hash = ucg_hash_init(ID);
+    status = ucg_topo_fill_id_hash(topo, node_hash, UCG_TOPO_LOC_NODE_ID);
+    if (status != UCG_OK) {
+        return status;
+    }
+    detail->nnode = ucg_hash_size(node_hash);
+
+    ucg_hash_t(ID) *socket_hash = ucg_hash_init(ID);
+    status = ucg_topo_fill_id_hash(topo, socket_hash, UCG_TOPO_LOC_SOCKET_ID);
+    if (status != UCG_OK) {
+        return status;
+    }
+    detail->nsocket = ucg_hash_size(socket_hash);
+    ucg_debug("total number of node is %d, total number of socket in a node is %d",
+              detail->nnode, detail->nsocket);
+
     int32_t group_size = group->size;
     ucg_topo_location_t *locations;
     locations = ucg_malloc(group_size * sizeof(ucg_topo_location_t), "topo detail locations");
     if (locations == NULL) {
         return UCG_ERR_NO_MEMORY;
     }
-    int32_t nnode = 0;
-    int32_t nsocket = 0;
-    ucg_location_t location;
+    ucg_hiter_t iter;
     for (int i = 0; i < group_size; ++i) {
-        status = ucg_group_get_location(group, i, &location);
+        ucg_location_t location;
+        status = topo->get_location(group, i, &location);
         if (status != UCG_OK) {
             goto err_free_locations;
         }
-        nnode = ucg_max(nnode, location.node_id + 1);
-        nsocket = ucg_max(nsocket, location.socket_id + 1);
-        locations[i].node_id = location.node_id;
-        locations[i].socket_id = location.socket_id;
+        iter = ucg_hash_get(ID, node_hash, location.node_id);
+        locations[i].node_id = ucg_hash_value(node_hash, iter);
+        iter = ucg_hash_get(ID, socket_hash, location.socket_id);
+        locations[i].socket_id = ucg_hash_value(socket_hash, iter);
     }
-    detail->nnode = nnode;
-    detail->nsocket = nsocket;
     detail->locations = locations;
+
+    ucg_hash_t(ID) *tmp_node_hash = ucg_hash_init(ID);
+    int last_node_id = -1;
+    detail->nrank_continuous = 1;
+    for (int i = 0; i < group_size; ++i) {
+        ucg_location_t location;
+        status = topo->get_location(group, i, &location);
+        if (status != UCG_OK) {
+            goto err_free_locations;
+        }
+        int ret;
+        int key = location.node_id;
+        iter = ucg_hash_get(ID, tmp_node_hash, key);
+        if (iter == ucg_hash_end(tmp_node_hash)) {
+            iter = ucg_hash_put(ID, tmp_node_hash, key, &ret);
+        } else if (key != last_node_id) {
+            detail->nrank_continuous = 0;
+            break;
+        }
+        last_node_id = key;
+    }
+
+    ucg_hash_cleanup(ID, tmp_node_hash);
+    ucg_hash_cleanup(ID, node_hash);
+    ucg_hash_cleanup(ID, socket_hash);
     return UCG_OK;
 
 err_free_locations:
@@ -503,6 +566,12 @@ static ucg_status_t ucg_topo_calc_ppn(ucg_topo_t *topo)
     ucg_topo_detail_t *detail = &topo->detail;
     int32_t nnode = detail->nnode;
     ucg_topo_location_t *locations = detail->locations;
+
+    if (nnode == 0) {
+        topo->ppn = UCG_TOPO_PPX_UNKNOWN;
+        return UCG_OK;
+    }
+
     int32_t *process_cnt = ucg_calloc(nnode, sizeof(int32_t), "topo process cnt");
     if (process_cnt == NULL) {
         return UCG_ERR_NO_MEMORY;
@@ -534,6 +603,12 @@ static ucg_status_t ucg_topo_calc_pps(ucg_topo_t *topo)
     ucg_topo_detail_t *detail = &topo->detail;
     int32_t nnode = detail->nnode;
     int32_t nsocket = detail->nsocket;
+
+    if (nsocket == 0) {
+        topo->pps = UCG_TOPO_PPX_UNKNOWN;
+        return UCG_OK;
+    }
+
     ucg_topo_location_t *locations = detail->locations;
     int32_t size = nnode * nsocket;
     int32_t *process_cnt = ucg_calloc(size, sizeof(int32_t), "topo process cnt");
@@ -615,7 +690,6 @@ ucg_status_t ucg_topo_init(const ucg_topo_params_t *params, ucg_topo_t **topo)
         goto err_free_rank_map;
     }
 
-    ucg_topo_cleanup_detail(new_topo);
     *topo = new_topo;
     return UCG_OK;
 
@@ -630,6 +704,7 @@ void ucg_topo_cleanup(ucg_topo_t *topo)
 {
     UCG_CHECK_NULL_VOID(topo);
 
+    ucg_topo_cleanup_detail(topo);
     for (int i = 0; i < UCG_TOPO_GROUP_TYPE_LAST; ++i) {
         ucg_topo_group_cleanup(&topo->groups[i]);
     }
@@ -674,7 +749,7 @@ ucg_topo_group_t* ucg_topo_get_group(ucg_topo_t *topo, ucg_topo_group_type_t typ
             }
 
             /* Directly return to avoid program interruption caused by assertions taking effect. */
-            if (topo->groups[UCG_TOPO_GROUP_TYPE_NODE].state == UCG_TOPO_GROUP_STATE_DISABLE) {
+            if(topo->groups[UCG_TOPO_GROUP_TYPE_NODE].state == UCG_TOPO_GROUP_STATE_DISABLE) {
                 group->state = UCG_TOPO_GROUP_STATE_DISABLE;
                 return group;
             }

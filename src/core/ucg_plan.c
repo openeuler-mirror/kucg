@@ -12,6 +12,7 @@
 #include "util/ucg_malloc.h"
 #include "util/ucg_mpool.h"
 
+static ucg_plan_policy_t invalid_policy = {.id = UCG_PLAN_INVALID_POLICY_ID};
 
 static ucg_status_t ucg_plan_op_ctor(ucg_plan_op_t *self,
                                      ucg_vgroup_t *vgroup,
@@ -170,13 +171,13 @@ static void ucg_plan_print(const ucg_plan_t *plan, FILE *stream)
         fprintf(stream, "# fallback plan\n");
     }
     const ucg_plan_attr_t *attr = &plan->attr;
-    fprintf(stream, "#    domain    : %s\n", attr->domain);
-    fprintf(stream, "#    id        : %d\n", attr->id);
-    fprintf(stream, "#    name      : %s\n", attr->name);
-    fprintf(stream, "#    score     : %u\n", attr->score);
-    fprintf(stream, "#    range     : [%lu, %lu)\n", attr->range.start, attr->range.end);
-    fprintf(stream, "#    group     : %p\n", attr->vgroup);
-    fprintf(stream, "#    prepare   : %p\n", attr->prepare);
+    fprintf(stream, "#   domain     : %s\n", attr->domain);
+    fprintf(stream, "#   id         : %d\n", attr->id);
+    fprintf(stream, "#   name       : %s\n", attr->name);
+    fprintf(stream, "#   score      : %u\n", attr->score);
+    fprintf(stream, "#   range      : [%lu, %lu)\n", attr->range.start, attr->range.end);
+    fprintf(stream, "#   group      : %p\n", attr->vgroup);
+    fprintf(stream, "#   prepare    : %p\n", attr->prepare);
 
     if (plan->type == UCG_PLAN_TYPE_FIRST_CLASS) {
         fprintf(stream, "#   n_fallback : %lu\n",
@@ -323,7 +324,7 @@ static ucg_plan_t* ucg_plan_dup(const ucg_plan_t *plan)
     if (new_plan->type == UCG_PLAN_TYPE_FIRST_CLASS) {
         ucg_list_head_init(&new_plan->fallback);
         ucg_plan_t *plan_fb = NULL;
-        ucg_list_for_each(plan_fb, &plan->fallback, fallback) {
+        ucg_list_for_each(plan_fb, &plan->fallback, fallback){
             ucg_plan_t *new_plan_fb = ucg_plan_dup(plan_fb);
             if (new_plan_fb == NULL) {
                 goto err;
@@ -366,7 +367,7 @@ static int ucg_plan_need_split(ucg_plan_t *plan1,
 static ucg_plan_t* ucg_plan_split(ucg_plan_t *plan, uint64_t middle)
 {
     ucg_plan_t *new_plan = ucg_plan_dup(plan);
-    if (new_plan == NULL) {
+    if (new_plan == NULL){
         return NULL;
     }
 
@@ -542,7 +543,7 @@ err:
         if (new_plan != plan) {
             ucg_plan_destroy(new_plan);
         }
-        // the input plan will be destroyed out side.
+        // the input plan will be destroyed outside.
     }
     return UCG_ERR_NO_MEMORY;
 }
@@ -833,7 +834,7 @@ ucg_status_t ucg_plan_attr_update(ucg_plan_attr_t *attr, const char *update)
     }
 
     uint32_t min_group_size = 0;
-    uint32_t max_group_size = (uint32_t) - 1;
+    uint32_t max_group_size = (uint32_t)-1;
     ucg_plan_range_t range = attr->range;
     uint32_t score = attr->score;
     while (attr_str[0] != 'I' && attr_str[0] != '\0') {
@@ -849,15 +850,7 @@ ucg_status_t ucg_plan_attr_update(ucg_plan_attr_t *attr, const char *update)
             }
             if (rc == 1) {
                 range.end = UCG_PLAN_RANGE_MAX;
-            } else if (range.start >= range.end) {
-                return UCG_ERR_INVALID_PARAM;
-            }
-        } else if (attr_str[0] == 'G') {
-            int rc = sscanf(attr_str, "G:%u-%u%n", &min_group_size, &max_group_size, &skip);
-            if (rc != 1 && rc != 2) {
-                return UCG_ERR_INVALID_PARAM;
-            }
-            if (rc == 2 && min_group_size >= max_group_size) {
+            } else if (range.start >= range.end){
                 return UCG_ERR_INVALID_PARAM;
             }
         }
@@ -872,4 +865,108 @@ ucg_status_t ucg_plan_attr_update(ucg_plan_attr_t *attr, const char *update)
     attr->range = range;
     attr->score = score;
     return UCG_OK;
+}
+
+static ucg_status_t ucg_plan_desc_to_policy(ucg_plan_policy_t *policy,
+                                            const char *desc)
+{
+    ucg_assert(desc != NULL);
+    ucg_assert(desc[0] == 'I' && desc[1] == ':');
+
+    int skip = 0;
+    int32_t id;
+    const char *desc_str = desc;
+    if (sscanf(desc_str, "I:%d%n", &id, &skip) != 1) {
+        return UCG_ERR_INVALID_PARAM;
+    }
+    desc_str += skip;
+
+    uint32_t score = UCG_PLAN_SCORE_MAX;
+    ucg_plan_range_t range = {0, UCG_PLAN_RANGE_MAX};
+    while (desc_str[0] != 'I' && desc_str[0] != '\0') {
+        skip = 1;
+        if (desc_str[0] == 'S') {
+            if (sscanf(desc_str, "S:%u%n", &score, &skip) != 1) {
+                return UCG_ERR_INVALID_PARAM;
+            }
+        } else if (desc_str[0] == 'R') {
+            int rc = sscanf(desc_str, "R:%lu-%lu%n", &range.start, &range.end, &skip);
+            if (rc != 1 && rc != 2) {
+                return UCG_ERR_INVALID_PARAM;
+            }
+            if (rc == 1) {
+                range.end = UCG_PLAN_RANGE_MAX;
+            } else if (range.start >= range.end){
+                return UCG_ERR_INVALID_PARAM;
+            }
+        }
+        desc_str += skip;
+    }
+
+    policy->id = id;
+    policy->range = range;
+    policy->score = score;
+    return UCG_OK;
+}
+
+static int ucg_plan_is_valid_policy_desc(const char *desc)
+{
+    // a valid description is start with "I:"
+    if (desc == NULL || desc[0] == '\0' || desc[1] == '\0') {
+        return 0;
+    }
+    return desc[0] == 'I' && desc[1] == ':';
+}
+
+static int ucg_plan_get_num_policy(const char *desc)
+{
+    if (desc == NULL || desc[0] == '\0') {
+        return 0;
+    }
+    int count = 0;
+    for (int i = 0; desc[i] != '\0'; ++i) {
+        if (ucg_plan_is_valid_policy_desc(desc + i)) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+ucg_status_t ucg_plan_policy_create(ucg_plan_policy_t **policy, const char *desc)
+{
+    int32_t num_policies = ucg_plan_get_num_policy(desc);
+    if (num_policies == 0) {
+        *policy = &invalid_policy;
+        return UCG_OK;
+    }
+    num_policies += 1; // extra one invalid policy represents end
+    ucg_plan_policy_t *policy_ptr;
+    policy_ptr = ucg_malloc(num_policies * sizeof(ucg_plan_policy_t), "user policy");
+    if (policy_ptr == NULL) {
+        return UCG_ERR_NO_MEMORY;
+    }
+    *policy = policy_ptr;
+    for (int i = 0; desc[i] != '\0'; ++i) {
+        if (ucg_plan_is_valid_policy_desc(desc + i)) {
+            ucg_status_t status = ucg_plan_desc_to_policy(policy_ptr, desc + i);
+            if (status != UCG_OK) {
+                ucg_error("Failed to parse user plan desc %s", desc);
+                ucg_free(*policy);
+                *policy = &invalid_policy;
+                return status;
+            }
+            ++policy_ptr;
+        }
+    }
+    *policy_ptr = invalid_policy;
+    return UCG_OK;
+}
+
+void ucg_plan_policy_destroy(ucg_plan_policy_t **policy)
+{
+    if (*policy != &invalid_policy) {
+        ucg_free(*policy);
+    }
+    *policy = NULL;
+    return;
 }

@@ -53,7 +53,7 @@ static ucg_status_t ucg_global_init_planc(const ucg_global_params_t *params)
             continue;
         }
         status = planc->global_init(params);
-        if (status != UCG_OK) {
+        if(status != UCG_OK) {
             ucg_global_cleanup_planc(i);
             return status;
         }
@@ -88,7 +88,7 @@ ucg_status_t ucg_global_init(const ucg_global_params_t *params)
         ucg_error("Failed to load plan component");
         goto out;
     }
-
+    
     status = ucg_global_init_planc(params);
     if (status != UCG_OK) {
         ucg_error("Failed to initialize planc");

@@ -78,113 +78,235 @@ static ucg_config_field_t bcast_config_table[] = {
 UCG_PLANC_UCX_BUILTIN_ALGO_REGISTER(UCG_COLL_TYPE_BCAST, bcast_config_table,
                                     sizeof(ucg_planc_ucx_bcast_config_t))
 
-void ucg_planc_ucx_bcast_set_plan_attr(ucg_vgroup_t *vgroup,
-                                       ucg_plan_attr_t *default_plan_attr)
-{
-    ucg_plan_attr_t *attr;
-    for (attr = default_plan_attr; !UCG_PLAN_ATTR_IS_LAST(attr); ++attr) {
-        ucg_plan_range_t range = {0, UCG_PLAN_RANGE_MAX};
-        attr->range = range;
-        attr->score = UCG_PLANC_UCX_DEFAULT_SCORE;
-    }
+static ucg_plan_policy_t bcast_4_4[] = {
+    {4,  {0, 64}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {64, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
 
-    ucg_group_t *group = vgroup->group;
-    int32_t ppn = group->topo->ppn;
-    int32_t node_cnt = group->size / ppn;
-    if (ppn == UCG_TOPO_PPX_UNBALANCED) {
-        return;
-    }
-    const int32_t score = UCG_PLANC_UCX_DEFAULT_SCORE + 1;
-    if (node_cnt <= 4) {
-        if (ppn <= 4) {
-            ucg_plan_attr_array_update(default_plan_attr, 4, 0, 64, score);
-            ucg_plan_attr_array_update(default_plan_attr, 3, 64, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 1048576, score);
-            ucg_plan_attr_array_update(default_plan_attr, 1, 1048576, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 8) {
-            ucg_plan_attr_array_update(default_plan_attr, 4, 0, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 32768, score);
-            ucg_plan_attr_array_update(default_plan_attr, 4, 32768, 131072, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 131072, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 16) {
-            ucg_plan_attr_array_update(default_plan_attr, 4, 0, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 131072, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 131072, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 32) {
-            ucg_plan_attr_array_update(default_plan_attr, 3, 0, 256, score);
-            ucg_plan_attr_array_update(default_plan_attr, 4, 256, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 262144, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 262144, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 64) {
-            ucg_plan_attr_array_update(default_plan_attr, 4, 0, 8, score);
-            ucg_plan_attr_array_update(default_plan_attr, 3, 8, 1024, score);
-            ucg_plan_attr_array_update(default_plan_attr, 4, 1024, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 32768, score);
-            ucg_plan_attr_array_update(default_plan_attr, 4, 32768, 262144, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 262144, UCG_PLAN_RANGE_MAX, score);
-        } else {
-            ucg_plan_attr_array_update(default_plan_attr, 3, 0, 128, score);
-            ucg_plan_attr_array_update(default_plan_attr, 4, 128, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, UCG_PLAN_RANGE_MAX, score);
-        }
-    } else if (node_cnt <= 8) {
-        if (ppn <= 4) {
-            ucg_plan_attr_array_update(default_plan_attr, 3, 0, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 1048576, score);
-            ucg_plan_attr_array_update(default_plan_attr, 1, 1048576, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 8) {
-            ucg_plan_attr_array_update(default_plan_attr, 3, 8, 2048, score);
-            ucg_plan_attr_array_update(default_plan_attr, 4, 2048, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 32768, score);
-            ucg_plan_attr_array_update(default_plan_attr, 3, 32768, 262144, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 262144, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 32) {
-            ucg_plan_attr_array_update(default_plan_attr, 3, 0, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 262144, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 262144, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 64) {
-            ucg_plan_attr_array_update(default_plan_attr, 4, 0, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 32768, score);
-            ucg_plan_attr_array_update(default_plan_attr, 3, 32768, 131072, score);
-            ucg_plan_attr_array_update(default_plan_attr, 1, 131072, 262144, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 262144, UCG_PLAN_RANGE_MAX, score);
-        } else {
-            ucg_plan_attr_array_update(default_plan_attr, 3, 0, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, UCG_PLAN_RANGE_MAX, score);
-        }
-    } else {
-        if (ppn <= 4) {
-            ucg_plan_attr_array_update(default_plan_attr, 3, 0, 2048, score);
-            ucg_plan_attr_array_update(default_plan_attr, 4, 2048, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 262144, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 262144, 1048576, score);
-            ucg_plan_attr_array_update(default_plan_attr, 1, 1048576, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 8) {
-            ucg_plan_attr_array_update(default_plan_attr, 4, 0, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 32768, score);
-            ucg_plan_attr_array_update(default_plan_attr, 4, 32768, 262144, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 262144, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 16) {
-            ucg_plan_attr_array_update(default_plan_attr, 4, 0, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 262144, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 262144, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 32) {
-            ucg_plan_attr_array_update(default_plan_attr, 4, 0, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 262144, score);
-            ucg_plan_attr_array_update(default_plan_attr, 1, 262144, 524288, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 524288, UCG_PLAN_RANGE_MAX, score);
-        } else if (ppn <= 64) {
-            ucg_plan_attr_array_update(default_plan_attr, 3, 0, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, 32768, score);
-            ucg_plan_attr_array_update(default_plan_attr, 3, 32768, 131072, score);
-            ucg_plan_attr_array_update(default_plan_attr, 1, 131072, 524288, score);
-            ucg_plan_attr_array_update(default_plan_attr, 8, 524288, UCG_PLAN_RANGE_MAX, score);
-        } else {
-            ucg_plan_attr_array_update(default_plan_attr, 3, 0, 8, score);
-            ucg_plan_attr_array_update(default_plan_attr, 4, 8, 128, score);
-            ucg_plan_attr_array_update(default_plan_attr, 3, 128, 16384, score);
-            ucg_plan_attr_array_update(default_plan_attr, 10, 16384, UCG_PLAN_RANGE_MAX, score);
-        }
-    }
-    return;
+    {10, {0, 64}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_4_8[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_4_16[] = {
+    {4,  {0, 64}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {3,  {64, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {64, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_4_32[] = {
+    {3,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_4_64[] = {
+    {4,  {0, 64}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {3,  {64, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_4_LG[] = {
+    {4,  {0, 32}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {3,  {32, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_8_4[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_8_8[] = {
+    {3,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_8_16[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 262144}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {262144, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_8_32[] = {
+    {3,  {0, 128}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {4,  {128, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_8_64[] = {
+    {4,  {0, 32}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {3,  {32, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_8_LG[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_16_4[] = {
+    {3,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 262144}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {8,  {262144, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {10, {262144, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_16_8[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 524288}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {524288, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {8,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {1,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_16_16[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 524288}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {524288, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {8,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {1,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_16_32[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 262144}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {262144, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_16_64[] = {
+    {3,  {0, 512}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {4,  {512, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_16_LG[] = {
+    {1,  {0, 8}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {3,  {8, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_LG_4[] = {
+    {3,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 524288}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {8,  {524288, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {10, {524288, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {1,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_LG_8[] = {
+    {3,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {8,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {1,  {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_LG_16[] = {
+    {3,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 524288}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {524288, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_LG_32[] = {
+    {4,  {0, 128}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {3,  {128, 65536}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {65536, 262144}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {262144, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 65536}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_LG_64[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, 524288}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1,  {524288, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+static ucg_plan_policy_t bcast_LG_LG[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {10, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    UCG_PLAN_LAST_POLICY,
+};
+
+static ucg_plan_policy_t* bcast_plan_policy[] = {
+    bcast_4_4,
+    bcast_4_8,
+    bcast_4_16,
+    bcast_4_32,
+    bcast_4_64,
+    bcast_4_LG,
+    bcast_8_4,
+    bcast_8_8,
+    bcast_8_16,
+    bcast_8_32,
+    bcast_8_64,
+    bcast_8_LG,
+    bcast_16_4,
+    bcast_16_8,
+    bcast_16_16,
+    bcast_16_32,
+    bcast_16_64,
+    bcast_16_LG,
+    bcast_LG_4,
+    bcast_LG_8,
+    bcast_LG_16,
+    bcast_LG_32,
+    bcast_LG_64,
+    bcast_LG_LG,
+};
+
+const ucg_plan_policy_t *ucg_planc_ucx_get_bcast_plan_policy(ucg_planc_ucx_node_level_t node_level,
+                                                             ucg_planc_ucx_ppn_level_t ppn_level)
+{
+    int idx = node_level * PPN_LEVEL_NUMS + ppn_level;
+    ucg_assert(idx < NODE_LEVEL_NUMS * PPN_LEVEL_NUMS);
+    ucg_plan_policy_t *policy = bcast_plan_policy[idx];
+    return policy;
 }

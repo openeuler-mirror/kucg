@@ -62,16 +62,28 @@ ucg_status_t ucg_planc_ucx_create_node_leader_algo_group(ucg_planc_ucx_group_t *
         return algo_group->state == UCG_ALGO_GROUP_STATE_ERROR ? UCG_ERR_NO_MEMORY : UCG_OK;
     }
 
-    ucg_topo_group_t *topo_group;
-    topo_group = ucg_topo_get_group(vgroup->group->topo, UCG_TOPO_GROUP_TYPE_NODE);
-    if (topo_group->state == UCG_TOPO_GROUP_STATE_ERROR) {
+    ucg_topo_group_t *socket_group = ucg_topo_get_group(vgroup->group->topo,
+                                                        UCG_TOPO_GROUP_TYPE_SOCKET);
+    ucg_topo_group_t *node_group = ucg_topo_get_group(vgroup->group->topo,
+                                                      UCG_TOPO_GROUP_TYPE_NODE);
+    if (node_group == NULL || node_group->state == UCG_TOPO_GROUP_STATE_ERROR ||
+        socket_group == NULL || socket_group->state == UCG_TOPO_GROUP_STATE_ERROR ||
+        socket_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
         return UCG_ERR_UNSUPPORTED;
     }
-    int32_t myoffset = topo_group->super.myrank;
+
+    int32_t socket_id = ucg_topo_get_location_id(vgroup->group->topo, vgroup->myrank,
+                                                 UCG_TOPO_LOC_SOCKET_ID);
+    if (socket_id < 0) {
+        return UCG_ERR_UNSUPPORTED;
+    }
+    uint32_t pps = socket_group->super.size;
+    int32_t myoffset = socket_group->super.myrank + socket_id * pps;
     uint32_t size = vgroup->size;
-    int32_t node_num = size / topo_group->super.size;
+    uint32_t ppn = node_group->super.size;
+    int32_t num_node = size / ppn;
     ucg_rank_t *ranks = NULL;
-    ranks = ucg_malloc(node_num * sizeof(ucg_rank_t), "ucg rabenseifner ranks");
+    ranks = ucg_malloc(num_node * sizeof(ucg_rank_t), "ucg rabenseifner ranks");
     if (ranks == NULL) {
         goto err;
     }
@@ -80,24 +92,45 @@ ucg_status_t ucg_planc_ucx_create_node_leader_algo_group(ucg_planc_ucx_group_t *
     if (offsets == NULL) {
         goto err_free_ranks;
     }
+    ucg_rank_t *global_ranks = NULL;
+    global_ranks = ucg_calloc(size, sizeof(ucg_rank_t), "ucg rabenseifner global_ranks");
+    if (global_ranks == NULL) {
+        goto err_free_offsets;
+    }
+
+    for (int i = 0; i < size; ++i) {
+        int32_t node_id = ucg_topo_get_location_id(vgroup->group->topo, i,
+                                                   UCG_TOPO_LOC_NODE_ID);
+        int32_t socket_id = ucg_topo_get_location_id(vgroup->group->topo, i,
+                                                     UCG_TOPO_LOC_SOCKET_ID);
+        if (node_id < 0 || socket_id < 0) {
+            return UCG_ERR_UNSUPPORTED;
+        }
+        int inner_offset_idx = node_id * ppn + socket_id;
+        ucg_assert(inner_offset_idx < size);
+        int inner_offset = offsets[inner_offset_idx]++;
+        int outter_offset = node_id * ppn + socket_id * pps;
+        ucg_assert(outter_offset + inner_offset < size);
+        global_ranks[outter_offset + inner_offset] = i;
+    }
+    memset(offsets, 0, size * sizeof(ucg_rank_t));
 
     ucg_rank_t myrank = vgroup->myrank;
     uint32_t vsize = 0;
-    for (int i = 0; i < size; ++i) {
-        ucg_location_t location;
-        status = ucg_group_get_location(ucx_group->super.super.group, i, &location);
-        if (status != UCG_OK) {
-            ucg_error("Failed to get location of rank %d", i);
-            goto err_free_offsets;
+    for (int j = 0; j < size; ++j) {
+        int i = global_ranks[j];
+        int32_t node_id = ucg_topo_get_location_id(vgroup->group->topo, i,
+                                                   UCG_TOPO_LOC_NODE_ID);
+        if (node_id < 0) {
+            return UCG_ERR_UNSUPPORTED;
         }
-        int32_t node_id = location.node_id;
         if (offsets[node_id] == myoffset) {
             ranks[vsize++] = i;
         }
         ++offsets[node_id];
     }
     ucg_rank_t vrank = 0;
-    for (int i = 0; i < node_num; ++i) {
+    for (int i = 0; i < num_node; ++i) {
         if (ranks[i] == myrank) {
             vrank = i;
             break;
@@ -114,10 +147,12 @@ ucg_status_t ucg_planc_ucx_create_node_leader_algo_group(ucg_planc_ucx_group_t *
         status = ucg_rank_map_init_by_array(&algo_group->super.rank_map,
                                             &ranks, vsize, 0);
         if (status != UCG_OK) {
-            goto err_free_offsets;
+            goto err_free_global_ranks;
         }
     }
 
+err_free_global_ranks:
+    ucg_free(global_ranks);
 err_free_offsets:
     ucg_free(offsets);
 err_free_ranks:
@@ -138,31 +173,31 @@ ucg_status_t ucg_planc_ucx_create_socket_leader_algo_group(ucg_planc_ucx_group_t
     ucg_topo_group_t *socket_group = ucg_topo_get_group(vgroup->group->topo,
                                                         UCG_TOPO_GROUP_TYPE_SOCKET);
     ucg_topo_group_t *node_group = ucg_topo_get_group(vgroup->group->topo,
-                                                        UCG_TOPO_GROUP_TYPE_NODE);
-    if (node_group->state == UCG_TOPO_GROUP_STATE_ERROR ||
-        socket_group->state == UCG_TOPO_GROUP_STATE_ERROR) {
+                                                      UCG_TOPO_GROUP_TYPE_NODE);
+    if (node_group == NULL || node_group->state == UCG_TOPO_GROUP_STATE_ERROR ||
+        socket_group == NULL || socket_group->state == UCG_TOPO_GROUP_STATE_ERROR ||
+        socket_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
         return UCG_ERR_UNSUPPORTED;
     }
     int32_t myoffset = socket_group->super.myrank;
     uint32_t size = vgroup->size;
-    uint32_t node_size = node_group->super.size;
-    uint32_t socket_size = socket_group->super.size;
-    int32_t socket_num = node_size / socket_size;
+    uint32_t ppn = node_group->super.size;
+    uint32_t pps = socket_group->super.size;
+    int32_t num_socket = ppn / pps;
     ucg_rank_t *ranks = NULL;
-    ranks = ucg_malloc(socket_num * sizeof(ucg_rank_t), "ucg rabenseifner ranks");
+    ranks = ucg_malloc(num_socket * sizeof(ucg_rank_t), "ucg rabenseifner ranks");
     if (ranks == NULL) {
         goto err;
     }
     ucg_rank_t *offsets = NULL;
-    offsets = ucg_calloc(socket_num + 1, sizeof(ucg_rank_t), "ucg rabenseifner offsets");
+    offsets = ucg_calloc(num_socket + 1, sizeof(ucg_rank_t), "ucg rabenseifner offsets");
     if (offsets == NULL) {
         goto err_free_ranks;
     }
 
     ucg_location_t location;
-    ucg_group_t *group = ucx_group->super.super.group;
     ucg_rank_t myrank = vgroup->myrank;
-    status = ucg_group_get_location(group, myrank, &location);
+    status = ucg_group_get_location(vgroup->group, myrank, &location);
     if (status != UCG_OK) {
         ucg_error("Failed to get location of rank %d", myrank);
         goto err_free_offsets;
@@ -171,7 +206,7 @@ ucg_status_t ucg_planc_ucx_create_socket_leader_algo_group(ucg_planc_ucx_group_t
     int32_t mysocket_id = location.socket_id;
     uint32_t vsize = 0;
     for (int i = 0; i < size; ++i) {
-        status = ucg_group_get_location(group, i, &location);
+        status = ucg_group_get_location(vgroup->group, i, &location);
         if (status != UCG_OK) {
             ucg_error("Failed to get location of rank %d", i);
             goto err_free_offsets;
@@ -183,9 +218,16 @@ ucg_status_t ucg_planc_ucx_create_socket_leader_algo_group(ucg_planc_ucx_group_t
             ++offsets[location.socket_id];
         }
     }
+    if (ucg_unlikely(ranks[mysocket_id] != myrank)) {
+        for (int i = 0; i < vsize; ++i) {
+            if (ranks[i] == myrank) {
+                mysocket_id = i;
+                break;
+            }
+        }
+    }
     algo_group->super.myrank = mysocket_id;
     algo_group->super.size = vsize;
-    ucg_assert(algo_group->super.myrank < algo_group->super.size);
 
     if (vsize <= 1) { // Group is meaningless when it has one or less member
         algo_group->state = UCG_ALGO_GROUP_STATE_DISABLE;
