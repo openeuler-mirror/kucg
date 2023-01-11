@@ -811,6 +811,9 @@ ucg_status_t ucg_plans_prepare(const ucg_plans_t *plans, const ucg_coll_args_t *
     ucg_assert(plan->type == UCG_PLAN_TYPE_FIRST_CLASS);
     ucg_plan_t *plan_fb = NULL;
     ucg_list_for_each(plan_fb, &plan->fallback, fallback) {
+        if (plan_fb->attr.prepare == plan->attr.prepare) {
+            continue;
+        }
         status = plan_fb->attr.prepare(plan_fb->attr.vgroup, args, op);
         if (status == UCG_OK) {
             ucg_info("select fallback plan '%s' in '%s', origin plan '%s'",

@@ -467,7 +467,14 @@ static ucg_status_t ucg_topo_fill_id_hash(ucg_topo_t *topo,
             return status;
         }
         int ret;
-        int key = flags & UCG_TOPO_LOC_NODE_ID ? location.node_id : location.socket_id;
+        int key;
+        if (flags & UCG_TOPO_LOC_NODE_ID && location.field_mask & UCG_LOCATION_FIELD_NODE_ID) {
+            key = location.node_id;
+        } else if (flags & UCG_TOPO_LOC_SOCKET_ID && location.field_mask & UCG_LOCATION_FIELD_SOCKET_ID) {
+            key = location.socket_id;
+        } else {
+            continue;
+        }
         ucg_hiter_t iter = ucg_hash_put(ID, hash, key, &ret);
         if (ret == UCG_HASH_PUT_BUCKET_EMPTY || ret == UCG_HASH_PUT_BUCKET_CLEAR) {
             /* do not override previous values */
@@ -513,10 +520,14 @@ static ucg_status_t ucg_topo_init_detail(ucg_topo_t *topo)
         if (status != UCG_OK) {
             goto err_free_locations;
         }
-        iter = ucg_hash_get(ID, node_hash, location.node_id);
-        locations[i].node_id = ucg_hash_value(node_hash, iter);
-        iter = ucg_hash_get(ID, socket_hash, location.socket_id);
-        locations[i].socket_id = ucg_hash_value(socket_hash, iter);
+        if (location.field_mask & UCG_LOCATION_FIELD_NODE_ID) {
+            iter = ucg_hash_get(ID, node_hash, location.node_id);
+            locations[i].node_id = ucg_hash_value(node_hash, iter);
+        }
+        if (location.field_mask & UCG_LOCATION_FIELD_SOCKET_ID) {
+            iter = ucg_hash_get(ID, socket_hash, location.socket_id);
+            locations[i].socket_id = ucg_hash_value(socket_hash, iter);
+        }
     }
     detail->locations = locations;
 
