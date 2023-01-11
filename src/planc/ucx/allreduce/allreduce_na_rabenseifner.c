@@ -25,12 +25,30 @@ static ucg_status_t ucg_planc_ucx_allreduce_na_rabenseifner_check(ucg_vgroup_t *
         ucg_info("Allreduce na_rabenseifner don't support non-commutative op");
         return UCG_ERR_UNSUPPORTED;
     }
-    if (vgroup->group->topo->ppn == UCG_TOPO_PPX_UNKNOWN) {
+    int32_t ppn = vgroup->group->topo->ppn;
+    int32_t pps = vgroup->group->topo->pps;
+    if (ppn == UCG_TOPO_PPX_UNKNOWN) {
         ucg_info("Allreduce na_rabenseifner don't support unknown ppn");
         return UCG_ERR_UNSUPPORTED;
     }
-    if (vgroup->group->topo->ppn == UCG_TOPO_PPX_UNBALANCED) {
+    if (pps == UCG_TOPO_PPX_UNKNOWN) {
+        ucg_info("Allreduce na_rabenseifner don't support unknown pps");
+        return UCG_ERR_UNSUPPORTED;
+    }
+    if (ppn == 1) {
+        ucg_info("Allreduce na_rabenseifner don't support ppn==1");
+        return UCG_ERR_UNSUPPORTED;
+    }
+    if (ppn == UCG_TOPO_PPX_UNBALANCED) {
         ucg_info("Allreduce na_rabenseifner don't support unbalanced ppn");
+        return UCG_ERR_UNSUPPORTED;
+    }
+    if (pps == UCG_TOPO_PPX_UNBALANCED) {
+        ucg_info("Allreduce na_rabenseifner don't support unbalanced pps");
+        return UCG_ERR_UNSUPPORTED;
+    }
+    if (count % ppn != 0) {
+        ucg_info("Allreduce na_rabenseifner don't support count%%ppn!=0");
         return UCG_ERR_UNSUPPORTED;
     }
     return UCG_OK;
