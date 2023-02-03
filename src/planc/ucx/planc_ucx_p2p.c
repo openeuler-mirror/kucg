@@ -150,7 +150,13 @@ static ucp_ep_h ucg_planc_ucx_p2p_get_ucp_ep(ucg_vgroup_t *vgroup, ucg_rank_t vr
 static void ucg_planc_ucx_p2p_close_ep(ucp_ep_h ep, ucp_worker_h ucp_worker)
 {
     ucs_status_t status;
-    ucs_status_ptr_t close_req = ucp_ep_close_nb(ep, UCP_EP_CLOSE_MODE_FLUSH);
+    // ucs_status_ptr_t close_req = ucp_ep_close_nb(ep, UCP_EP_CLOSE_MODE_FLUSH);
+    /**
+     * The peer process may have exited when sending the disconnection request.
+     * Therefore, the process is hung in @ref ucp_worker_progress.
+     * In this example, @ref ucp_ep_close_nb is not performed.
+     */
+    ucs_status_ptr_t close_req = NULL; 
     if (UCS_PTR_IS_PTR(close_req)) {
         do {
             ucp_worker_progress(ucp_worker);

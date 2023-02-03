@@ -17,7 +17,12 @@ enum {
 
 #define UCG_SCATTERV_LINEAR_FLAGS UCG_SCATTERV_LINEAR_RECV | UCG_SCATTERV_LINEAR_SEND
 
-static ucg_status_t ucg_planc_ucx_scatterv_linear_op_root(ucg_planc_ucx_op_t *op)
+enum {
+    UCG_SCATTERV_SEND_TYPE_ONE_BY_ONE,
+    UCG_SCATTERV_SEND_TYPE_TOGETHER,
+};
+
+static ucg_status_t ucg_planc_ucx_scatterv_linear_op_root_send_one_by_one(ucg_planc_ucx_op_t *op)
 {
     ucg_status_t status = UCG_OK;
     ucg_coll_scatterv_args_t *args = &op->super.super.args.scatterv;
@@ -54,7 +59,44 @@ out:
     return status;
 }
 
-static ucg_status_t ucg_planc_ucx_scatterv_linear_op_non_root(ucg_planc_ucx_op_t *op)
+static ucg_status_t ucg_planc_ucx_scatterv_linear_op_root_send_together(ucg_planc_ucx_op_t *op)
+{
+    ucg_status_t status = UCG_OK;
+    ucg_coll_scatterv_args_t *args = &op->super.super.args.scatterv;
+    ucg_vgroup_t *vgroup = op->super.vgroup;
+    uint32_t group_size = vgroup->size;
+    uint32_t sendtype_extent = ucg_dt_extent(args->sendtype);
+    ucg_planc_ucx_p2p_params_t params;
+    ucg_planc_ucx_op_set_p2p_params(op, &params);
+
+    if (ucg_test_and_clear_flags(&op->flags, UCG_SCATTERV_LINEAR_SEND)) {
+        for (int i = 0; i < group_size; ++i) {
+            void *sbuf = (char*)args->sendbuf + (int64_t)args->displs[i] * sendtype_extent;
+            int32_t scount = args->sendcounts[i];
+            if (i == args->root) {
+                if (scount > 0 && args->recvbuf != UCG_IN_PLACE) {
+                    status = ucg_dt_memcpy(args->recvbuf, args->recvcount, args->recvtype,
+                                           sbuf, scount, args->sendtype);
+                }
+            } else {
+                if (scount > 0) {
+                    status = ucg_planc_ucx_p2p_isend(sbuf, scount, args->sendtype, i,
+                                                     op->tag, vgroup, &params);
+                }
+            }
+            if (status != UCG_OK && status != UCG_INPROGRESS) {
+                goto out;
+            }
+        }
+    }
+    status = ucg_planc_ucx_p2p_testall(op->ucx_group, params.state);
+    UCG_CHECK_GOTO(status, out);
+
+out:
+    return status;
+}
+
+static ucg_status_t ucg_planc_ucx_scatterv_linear_op_non_root_recv(ucg_planc_ucx_op_t *op)
 {
     ucg_status_t status = UCG_OK;
     ucg_coll_scatterv_args_t *args = &op->super.super.args.scatterv;
@@ -82,9 +124,11 @@ ucg_status_t ucg_planc_ucx_scatterv_linear_op_progress(ucg_plan_op_t *ucg_op)
     ucg_coll_scatterv_args_t *args = &op->super.super.args.scatterv;
     ucg_rank_t myrank = op->super.vgroup->myrank;
     if (myrank == args->root) {
-        status = ucg_planc_ucx_scatterv_linear_op_root(op);
+        status = (op->scatterv.linear.send_type == UCG_SCATTERV_SEND_TYPE_ONE_BY_ONE) ?
+        ucg_planc_ucx_scatterv_linear_op_root_send_one_by_one(op) :
+        ucg_planc_ucx_scatterv_linear_op_root_send_together(op);
     } else {
-        status = ucg_planc_ucx_scatterv_linear_op_non_root(op);
+        status = ucg_planc_ucx_scatterv_linear_op_non_root_recv(op);
     }
     op->super.super.status = status;
     return status;
@@ -101,9 +145,33 @@ static ucg_status_t ucg_planc_ucx_scatterv_linear_op_trigger(ucg_plan_op_t *ucg_
     return status == UCG_INPROGRESS ? UCG_OK : status;
 }
 
+static void ucg_planc_ucx_scatterv_linear_op_init(ucg_planc_ucx_op_t *op,
+                                                  const ucg_planc_ucx_scatterv_config_t *config)
+{
+    ucg_coll_scatterv_args_t *args = &op->super.super.args.scatterv;
+    ucg_vgroup_t *vgroup = op->super.vgroup;
+    ucg_rank_t myrank = vgroup->myrank;
+    if (myrank == args->root) {
+        uint32_t group_size = vgroup->size;
+        uint64_t dt_size = ucg_dt_extent(args->sendtype);
+        uint64_t total_msg_size = 0;
+        for (int i = 0; i < group_size; ++i) {
+            total_msg_size += dt_size * args->sendcounts[i];
+        }
+        uint64_t avg_size = total_msg_size / group_size;
+        if (avg_size < config->send_together_thresh) {
+            op->scatterv.linear.send_type = UCG_SCATTERV_SEND_TYPE_ONE_BY_ONE;
+        } else {
+            op->scatterv.linear.send_type = UCG_SCATTERV_SEND_TYPE_TOGETHER;
+        }
+    }
+    return;
+}
+
 ucg_planc_ucx_op_t *ucg_planc_ucx_scatterv_linear_op_new(ucg_planc_ucx_group_t *ucx_group,
                                                          ucg_vgroup_t *vgroup,
-                                                         const ucg_coll_args_t *args)
+                                                         const ucg_coll_args_t *args,
+                                                         const ucg_planc_ucx_scatterv_config_t *config)
 {
     UCG_CHECK_NULL(NULL, ucx_group, vgroup, args);
 
@@ -124,6 +192,7 @@ ucg_planc_ucx_op_t *ucg_planc_ucx_scatterv_linear_op_new(ucg_planc_ucx_group_t *
     }
 
     ucg_planc_ucx_op_init(ucx_op, ucx_group);
+    ucg_planc_ucx_scatterv_linear_op_init (ucx_op, config);
     return ucx_op;
 
 err_free_op:
@@ -139,7 +208,11 @@ ucg_status_t ucg_planc_ucx_scatterv_linear_prepare(ucg_vgroup_t *vgroup,
     UCG_CHECK_NULL_INVALID(vgroup, args, op);
 
     ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
-    ucg_planc_ucx_op_t *linear_op = ucg_planc_ucx_scatterv_linear_op_new(ucx_group, vgroup, args);
+    ucg_planc_ucx_scatterv_config_t *config;
+    config = UCG_PLANC_UCX_CONTEXT_BUILTIN_CONFIG_BUNDLE(ucx_group->context, scatterv,
+                                                         UCG_COLL_TYPE_SCATTERV);
+    ucg_planc_ucx_op_t *linear_op;
+    linear_op = ucg_planc_ucx_scatterv_linear_op_new(ucx_group, vgroup, args, config);
     if (linear_op == NULL) {
         return UCG_ERR_NO_MEMORY;
     }
