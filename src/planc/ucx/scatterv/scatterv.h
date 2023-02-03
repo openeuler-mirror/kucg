@@ -15,6 +15,7 @@ typedef struct ucg_planc_ucx_scatterv {
     union {
         struct {
             int32_t idx;
+            uint8_t send_type;
         } linear;
         struct {
             ucg_algo_kntree_iter_t kntree_iter;
@@ -45,8 +46,8 @@ typedef struct ucg_planc_ucx_scatterv {
 } ucg_planc_ucx_scatterv_t;
 
 typedef struct ucg_planc_ucx_scatterv_config {
-    /* configuration of kntree scatterv */
-    int kntree_degree;
+    int send_together_thresh;   /* for linear */
+    int kntree_degree;   /* for kntree */
 } ucg_planc_ucx_scatterv_config_t;
 
 const ucg_plan_policy_t *ucg_planc_ucx_get_scatterv_plan_policy(ucg_planc_ucx_node_level_t node_level,
@@ -65,7 +66,8 @@ ucg_status_t ucg_planc_ucx_scatterv_linear_op_progress(ucg_plan_op_t *ucg_op);
 
 ucg_planc_ucx_op_t *ucg_planc_ucx_scatterv_linear_op_new(ucg_planc_ucx_group_t *ucx_group,
                                                          ucg_vgroup_t *vgroup,
-                                                         const ucg_coll_args_t *args);
+                                                         const ucg_coll_args_t *args,
+                                                         const ucg_planc_ucx_scatterv_config_t *config);
 
 ucg_status_t ucg_planc_ucx_scatterv_linear_prepare(ucg_vgroup_t *vgroup,
                                                    const ucg_coll_args_t *args,
