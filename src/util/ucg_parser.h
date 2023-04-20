@@ -11,6 +11,7 @@
 
 #include <ucs/sys/preprocessor.h>
 #include <ucs/sys/compiler_def.h>
+#include <ucs/sys/string.h>
 #include <ucs/config/types.h>
 #include <ucs/config/parser.h>
 
@@ -32,9 +33,13 @@
 #define UCG_CONFIG_TYPE_MEMUNITS        UCS_CONFIG_TYPE_MEMUNITS
 #define UCG_ULUNITS_AUTO                UCS_ULUNITS_AUTO
 #define UCG_CONFIG_TYPE_BITMAP          UCS_CONFIG_TYPE_BITMAP
-#define UCG_CONFIG_TYPE_MEMUNITS        UCS_CONFIG_TYPE_MEMUNITS
 #define UCG_CONFIG_TYPE_BOOL            UCS_CONFIG_TYPE_BOOL
 #define UCG_CONFIG_TYPE_TERNARY         UCS_CONFIG_TYPE_TERNARY
+
+#define UCG_MEMUNITS_INF                UCS_MEMUNITS_INF
+#define UCG_ULUNITS_INF                 UCS_ULUNITS_INF
+#define UCG_MEMUNITS_AUTO               UCS_MEMUNITS_AUTO
+#define UCG_ULUNITS_AUTO                UCS_ULUNITS_AUTO
 
 static inline ucg_status_t
 ucg_config_parser_fill_opts(void *opts, ucg_config_field_t *fields,

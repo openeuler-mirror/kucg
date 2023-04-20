@@ -31,7 +31,7 @@ TEST_F(test_planc_ucx_config, read_default_config)
     ASSERT_EQ(ucg_planc_ucx_config_read(NULL, NULL, &config), UCG_OK);
 
     ucg_planc_ucx_config_t *cfg = (ucg_planc_ucx_config_t *)config;
-    ASSERT_EQ(*cfg->config_bundle[UCG_COLL_TYPE_BCAST][UCX_BUILTIN]->data, 8);
+    ASSERT_EQ(*cfg->config_bundle[UCG_COLL_TYPE_BCAST][UCX_BUILTIN]->data, 4);
     ASSERT_EQ(*cfg->config_bundle[UCG_COLL_TYPE_ALLREDUCE][UCX_BUILTIN]->data, 8);
     ASSERT_EQ(*cfg->config_bundle[UCG_COLL_TYPE_BARRIER][UCX_BUILTIN]->data, 8);
     ASSERT_STREQ(cfg->plan_attr[UCG_COLL_TYPE_BCAST], "");

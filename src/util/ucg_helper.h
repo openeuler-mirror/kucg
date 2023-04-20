@@ -134,6 +134,13 @@
         } \
     } while (0)
 
+#define UCG_CHECK_ERR_GOTO(_stmt, _label) \
+    do { \
+        if (_stmt < 0) {\
+            goto _label; \
+        } \
+    } while (0)
+
 #define UCG_STATIC_ASSERT(_cond) do{switch(0) case 0: case(_cond):;}while(0)
 
 /**

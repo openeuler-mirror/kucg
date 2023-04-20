@@ -67,6 +67,7 @@ TEST_F(test_ucg_planc_load, wrong_path)
 {
     setenv("UCG_PLANC_PATH", "/path_not_exist", 1);
     ASSERT_NE(ucg_planc_load(), UCG_OK);
+    unsetenv("UCG_PLANC_PATH");
 }
 
 #ifdef UCG_ENABLE_DEBUG

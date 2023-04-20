@@ -195,7 +195,7 @@ static void ucg_planc_ucx_p2p_isend_done(void *request, ucs_status_t status,
     --state->inflight_send_cnt;
     ucg_planc_ucx_p2p_req_t *req = (ucg_planc_ucx_p2p_req_t*)request;
     if (req->free_in_cb) {
-        ucp_request_free(request);
+        ucg_planc_ucx_p2p_req_free(request);
     }
     return;
 }
@@ -212,7 +212,7 @@ static void ucg_planc_ucx_p2p_irecv_done(void *request, ucs_status_t status,
     --state->inflight_recv_cnt;
     ucg_planc_ucx_p2p_req_t *req = (ucg_planc_ucx_p2p_req_t*)request;
     if (req->free_in_cb) {
-        ucp_request_free(request);
+        ucg_planc_ucx_p2p_req_free(request);
     }
     return;
 }
@@ -263,10 +263,23 @@ ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
     /* Send is not finished. */
     ((ucg_planc_ucx_p2p_req_t*)ucp_req)->free_in_cb = 1;
     ++state->inflight_send_cnt;
+    /**
+     * In some cases, ucp_tag_send_nbx() may return ucp_request pointer
+     * instead of UCS_OK when the request is completed.
+     * Here the status of ucp_request should be checked again.
+     */
+    ucs_status_t req_status = ucp_request_check_status(ucp_req);
+    if (req_status != UCS_INPROGRESS) {
+        ucg_planc_ucx_p2p_req_free(ucp_req);
+    }
     if (params->request != NULL) {
         ucg_planc_ucx_p2p_req_t **req = params->request;
-        *req = (ucg_planc_ucx_p2p_req_t*)ucp_req;
-        (*req)->free_in_cb = 0;
+        if (req_status == UCS_INPROGRESS) {
+            *req = (ucg_planc_ucx_p2p_req_t*)ucp_req;
+            (*req)->free_in_cb = 0;
+        } else {
+            *req = NULL;
+        }
     }
     return UCG_OK;
 }
@@ -320,10 +333,23 @@ ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
     /* Receive is not finished. */
     ++state->inflight_recv_cnt;
     ((ucg_planc_ucx_p2p_req_t*)ucp_req)->free_in_cb = 1;
+    /**
+     * In some cases, ucp_tag_recv_nbx() may return ucp_request pointer
+     * instead of UCS_OK when the request is completed.
+     * Here the status of ucp_request should be checked again.
+     */
+    ucs_status_t req_status = ucp_request_check_status(ucp_req);
+    if (req_status != UCS_INPROGRESS) {
+        ucg_planc_ucx_p2p_req_free(ucp_req);
+    }
     if (params->request != NULL) {
         ucg_planc_ucx_p2p_req_t **req = params->request;
-        *req = (ucg_planc_ucx_p2p_req_t*)ucp_req;
-        (*req)->free_in_cb = 0;
+        if (req_status == UCS_INPROGRESS) {
+            *req = (ucg_planc_ucx_p2p_req_t*)ucp_req;
+            (*req)->free_in_cb = 0;
+        } else {
+            *req = NULL;
+        }
     }
 
     return UCG_OK;
@@ -343,8 +369,7 @@ ucg_status_t ucg_planc_ucx_p2p_test(ucg_planc_ucx_group_t *ucx_group,
     while (polls++ < n_polls) {
         ucs_status_t status = ucp_request_check_status(*req);
         if (status != UCS_INPROGRESS) {
-            (*req)->free_in_cb = 1;
-            ucp_request_free(*req);
+            ucg_planc_ucx_p2p_req_free(*req);
             *req = NULL;
             return ucg_status_s2g(status);
         }
@@ -376,6 +401,6 @@ ucg_status_t ucg_planc_ucx_p2p_testall(ucg_planc_ucx_group_t *ucx_group,
 void ucg_planc_ucx_p2p_req_init(void *request)
 {
     ucg_planc_ucx_p2p_req_t *req = (ucg_planc_ucx_p2p_req_t*)request;
-    req->free_in_cb = 1;
+    req->free_in_cb = 0;
     return;
 }
