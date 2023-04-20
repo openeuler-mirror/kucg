@@ -68,7 +68,7 @@ ucg_status_t ucg_planc_ucx_create_node_leader_algo_group(ucg_planc_ucx_group_t *
                                                       UCG_TOPO_GROUP_TYPE_NODE);
     if (node_group == NULL || node_group->state == UCG_TOPO_GROUP_STATE_ERROR ||
         socket_group == NULL || socket_group->state == UCG_TOPO_GROUP_STATE_ERROR ||
-        socket_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
+        node_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
         return UCG_ERR_UNSUPPORTED;
     }
 

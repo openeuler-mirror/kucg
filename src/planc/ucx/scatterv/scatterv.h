@@ -46,7 +46,8 @@ typedef struct ucg_planc_ucx_scatterv {
 } ucg_planc_ucx_scatterv_t;
 
 typedef struct ucg_planc_ucx_scatterv_config {
-    int send_together_thresh;   /* for linear */
+    size_t min_bsend;    /* for linear, closed boundary */
+    size_t max_bsend;    /* for linear, closed boundary */
     int kntree_degree;   /* for kntree */
 } ucg_planc_ucx_scatterv_config_t;
 

@@ -133,13 +133,15 @@ static inline ucg_planc_ucx_ppn_level_t ucg_planc_ucx_get_ppn_level(int32_t ppn)
 {
     const int ppn_lev_small = 4;
     const int ppn_lev_large = 64;
+    if (ppn == 1) {
+        return PPN_LEVEL_1;
+    }
     if (ppn <= ppn_lev_small) {
         return PPN_LEVEL_4;
     }
     if (ppn > ppn_lev_large) {
         return PPN_LEVEL_LG;
     }
-    --ppn;
     return (ucg_planc_ucx_ppn_level_t)log2_n(ppn, ppn_lev_small);
 }
 
@@ -153,8 +155,7 @@ static inline ucg_planc_ucx_node_level_t ucg_planc_ucx_get_node_level(int32_t no
     if (node_cnt > node_lev_large) {
         return NODE_LEVEL_LG;
     }
-    --node_cnt;
-    return (ucg_planc_ucx_node_level_t)log2_n(node_cnt, node_lev_small);
+    return (ucg_planc_ucx_node_level_t)log2_n(node_cnt - 1, node_lev_small);
 }
 
 #endif

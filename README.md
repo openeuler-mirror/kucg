@@ -18,7 +18,7 @@ Group-based Collective Operations for UCX
 
 - UCG_ENABLE_PROFILE: Enable profiling, default OFF
 - UCG_ENABLE_GCOV: Enable code coverage, default OFF
-- UCG_ENABLE_CHECK_PARAMS: Enable checking parameters, default ON
+- UCG_ENABLE_CHECK_PARAMS: Enable checking parameters, default OFF in release and ON in debug
 - UCG_ENABLE_MT: Enable thread-safe support, default OFF
 
 ## PlanC UCX Build Options

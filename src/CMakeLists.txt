@@ -8,7 +8,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ucg/api/ucg_version.h.in"
 
 option(UCG_ENABLE_PROFILE "Enable profiling" OFF)
 option(UCG_ENABLE_GCOV "Enable code coverage" OFF)
-option(UCG_ENABLE_CHECK_PARAMS "Enable checking parameter" ON)
+option(UCG_ENABLE_CHECK_PARAMS "Enable checking parameter" OFF)
 option(UCG_ENABLE_MT "Enable thread-safe support" OFF)
 
 add_compile_options(-fPIC)
@@ -25,6 +25,7 @@ endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions(-DUCG_ENABLE_DEBUG)
+    set(UCG_ENABLE_CHECK_PARAMS "ON" CACHE STRING "" FORCE)
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
     message("-- Set CMAKE_C_FLAGS: '${CMAKE_C_FLAGS_DEBUG}'")
@@ -44,9 +45,8 @@ if (UCG_ENABLE_GCOV MATCHES "ON")
     link_libraries(gcov)
 endif()
 
-add_definitions(-DUCG_ENABLE_CHECK_PARAMS)
-if (UCG_ENABLE_CHECK_PARAMS MATCHES "OFF")
-    remove_definitions(-DUCG_ENABLE_CHECK_PARAMS)
+if (UCG_ENABLE_CHECK_PARAMS MATCHES "ON")
+    add_definitions(-DUCG_ENABLE_CHECK_PARAMS)
 endif()
 
 if (UCG_ENABLE_MT MATCHES "ON")
