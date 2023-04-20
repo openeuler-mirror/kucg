@@ -22,10 +22,15 @@ UCG_PLAN_ATTR_REGISTER_TABLE(ucg_planc_ucx, UCG_COLL_TYPE_SCATTERV,
                              ucg_planc_ucx_scatterv_plan_attr);
 
 static ucg_config_field_t scatterv_config_table[] = {
-    {"SCATTERV_SEND_TOGETHER_THRESH", "65536",
-     "Configure the send together threshold in linear algo for scatterv",
-     ucg_offsetof(ucg_planc_ucx_scatterv_config_t, send_together_thresh),
-     UCG_CONFIG_TYPE_INT},
+    {"SCATTERV_MIN_SEND_BATCH", "auto",
+     "Configure the send batch mode minimum boundary in linear algo for scatterv",
+     ucg_offsetof(ucg_planc_ucx_scatterv_config_t, min_bsend),
+     UCG_CONFIG_TYPE_MEMUNITS},
+
+    {"SCATTERV_MAX_SEND_BATCH", "auto",
+     "Configure the send batch mode maximum boundary in linear algo for scatterv",
+     ucg_offsetof(ucg_planc_ucx_scatterv_config_t, max_bsend),
+     UCG_CONFIG_TYPE_MEMUNITS},
 
     {"SCATTERV_KNTREE_DEGREE", "2",
      "Configure the k value in kntree algo for scatterv",

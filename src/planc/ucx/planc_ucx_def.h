@@ -10,7 +10,8 @@ typedef struct ucg_planc_ucx_op ucg_planc_ucx_op_t;
 typedef struct ucg_planc_ucx_context ucg_planc_ucx_context_t;
 
 typedef enum ucg_planc_ucx_ppn_level {
-    PPN_LEVEL_4,        /* 1-4 */
+    PPN_LEVEL_1,        /* 1 */
+    PPN_LEVEL_4,        /* 2-4 */
     PPN_LEVEL_8,        /* 5-8 */
     PPN_LEVEL_16,       /* 9-16 */
     PPN_LEVEL_32,       /* 17-32 */

@@ -48,18 +48,18 @@ static ucg_status_t ucg_planc_ucx_allgatherv_neighbor_op_init(ucg_plan_op_t *ucg
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
 
-    if (ucg_test_and_clear_flags(&op->flags, UCG_NEIGHBOR_INIT_RECV)) {
-        void *tmprecv = (char *)args->recvbuf + (int64_t)args->displs[neighbor] * rtype_ext;
-        int32_t rcount = args->recvcounts[neighbor];
-        status = ucg_planc_ucx_p2p_irecv(tmprecv, rcount, args->recvtype,
-                                         neighbor, op->tag, vgroup, &params);
-        UCG_CHECK_GOTO(status, out);
-    }
-
     if (ucg_test_and_clear_flags(&op->flags, UCG_NEIGHBOR_INIT_SEND)) {
         void *tmpsend = (char *)args->recvbuf + (int64_t)args->displs[my_rank] * rtype_ext;
         int32_t scount = args->recvcounts[my_rank];
         status = ucg_planc_ucx_p2p_isend(tmpsend, scount, args->recvtype,
+                                         neighbor, op->tag, vgroup, &params);
+        UCG_CHECK_GOTO(status, out);
+    }
+
+    if (ucg_test_and_clear_flags(&op->flags, UCG_NEIGHBOR_INIT_RECV)) {
+        void *tmprecv = (char *)args->recvbuf + (int64_t)args->displs[neighbor] * rtype_ext;
+        int32_t rcount = args->recvcounts[neighbor];
+        status = ucg_planc_ucx_p2p_irecv(tmprecv, rcount, args->recvtype,
                                          neighbor, op->tag, vgroup, &params);
         UCG_CHECK_GOTO(status, out);
     }
@@ -93,20 +93,6 @@ static ucg_status_t ucg_planc_ucx_allgatherv_neighbor_op_loop(ucg_plan_op_t *ucg
 
     while (op->allgatherv.neighbor.loop_count < op->allgatherv.neighbor.loop_max) {
         const int i_parity = op->allgatherv.neighbor.loop_count % 2;
-        if (ucg_test_and_clear_flags(&op->flags, UCG_NEIGHBOR_LOOP_RECV)) {
-            *recv_data_from[i_parity] = (*recv_data_from[i_parity] + offset_at_step[i_parity] + group_size) % group_size;
-            void *tmprecv = (char *)args->recvbuf + (int64_t)args->displs[*recv_data_from[i_parity]] * rtype_ext;
-            int32_t rcount = args->recvcounts[*recv_data_from[i_parity]];
-            status = ucg_planc_ucx_p2p_irecv(tmprecv, rcount, args->recvtype,
-                                             neighbor[i_parity], op->tag, vgroup, &params);
-            UCG_CHECK_GOTO(status, out);
-            tmprecv = (char *)args->recvbuf + (int64_t)args->displs[*recv_data_from[i_parity] + 1] * rtype_ext;
-            rcount = args->recvcounts[*recv_data_from[i_parity] + 1];
-            status = ucg_planc_ucx_p2p_irecv(tmprecv, rcount, args->recvtype,
-                                             neighbor[i_parity], op->tag, vgroup, &params);
-            UCG_CHECK_GOTO(status, out);
-        }
-
         if (ucg_test_and_clear_flags(&op->flags, UCG_NEIGHBOR_LOOP_SEND)) {
             void *tmpsend = (char *)args->recvbuf + (int64_t)args->displs[*send_data_from] * rtype_ext;
             int32_t scount = args->recvcounts[*send_data_from];
@@ -120,6 +106,20 @@ static ucg_status_t ucg_planc_ucx_allgatherv_neighbor_op_loop(ucg_plan_op_t *ucg
             UCG_CHECK_GOTO(status, out);
         }
 
+        if (ucg_test_and_clear_flags(&op->flags, UCG_NEIGHBOR_LOOP_RECV)) {
+            *recv_data_from[i_parity] = (*recv_data_from[i_parity] + offset_at_step[i_parity] + group_size) % group_size;
+            void *tmprecv = (char *)args->recvbuf + (int64_t)args->displs[*recv_data_from[i_parity]] * rtype_ext;
+            int32_t rcount = args->recvcounts[*recv_data_from[i_parity]];
+            status = ucg_planc_ucx_p2p_irecv(tmprecv, rcount, args->recvtype,
+                                             neighbor[i_parity], op->tag, vgroup, &params);
+            UCG_CHECK_GOTO(status, out);
+            tmprecv = (char *)args->recvbuf + (int64_t)args->displs[*recv_data_from[i_parity] + 1] * rtype_ext;
+            rcount = args->recvcounts[*recv_data_from[i_parity] + 1];
+            status = ucg_planc_ucx_p2p_irecv(tmprecv, rcount, args->recvtype,
+                                             neighbor[i_parity], op->tag, vgroup, &params);
+            UCG_CHECK_GOTO(status, out);
+        }
+        
         status = ucg_planc_ucx_p2p_testall(op->ucx_group, params.state);
         UCG_CHECK_GOTO(status, out);
         op->flags |= (UCG_NEIGHBOR_LOOP_RECV | UCG_NEIGHBOR_LOOP_SEND);

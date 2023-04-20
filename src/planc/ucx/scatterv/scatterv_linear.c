@@ -19,8 +19,13 @@ enum {
 
 enum {
     UCG_SCATTERV_SEND_TYPE_ONE_BY_ONE,
-    UCG_SCATTERV_SEND_TYPE_TOGETHER,
+    UCG_SCATTERV_SEND_TYPE_BATCH,
 };
+
+#define SINGLE_PROCESS_SEND_BATCH_LOWER_BOUND 4096
+#define SINGLE_PROCESS_SEND_BATCH_UPPER_BOUND 65536
+#define SINGLE_NODE_SEND_BATCH_LOWER_BOUND    8256
+#define SINGLE_NODE_SEND_BATCH_UPPER_BOUND    SIZE_MAX
 
 static ucg_status_t ucg_planc_ucx_scatterv_linear_op_root_send_one_by_one(ucg_planc_ucx_op_t *op)
 {
@@ -59,7 +64,7 @@ out:
     return status;
 }
 
-static ucg_status_t ucg_planc_ucx_scatterv_linear_op_root_send_together(ucg_planc_ucx_op_t *op)
+static ucg_status_t ucg_planc_ucx_scatterv_linear_op_root_send_batch(ucg_planc_ucx_op_t *op)
 {
     ucg_status_t status = UCG_OK;
     ucg_coll_scatterv_args_t *args = &op->super.super.args.scatterv;
@@ -84,9 +89,7 @@ static ucg_status_t ucg_planc_ucx_scatterv_linear_op_root_send_together(ucg_plan
                                                      op->tag, vgroup, &params);
                 }
             }
-            if (status != UCG_OK && status != UCG_INPROGRESS) {
-                goto out;
-            }
+            UCG_CHECK_ERR_GOTO(status, out);
         }
     }
     status = ucg_planc_ucx_p2p_testall(op->ucx_group, params.state);
@@ -126,7 +129,7 @@ ucg_status_t ucg_planc_ucx_scatterv_linear_op_progress(ucg_plan_op_t *ucg_op)
     if (myrank == args->root) {
         status = (op->scatterv.linear.send_type == UCG_SCATTERV_SEND_TYPE_ONE_BY_ONE) ?
         ucg_planc_ucx_scatterv_linear_op_root_send_one_by_one(op) :
-        ucg_planc_ucx_scatterv_linear_op_root_send_together(op);
+        ucg_planc_ucx_scatterv_linear_op_root_send_batch(op);
     } else {
         status = ucg_planc_ucx_scatterv_linear_op_non_root_recv(op);
     }
@@ -145,26 +148,104 @@ static ucg_status_t ucg_planc_ucx_scatterv_linear_op_trigger(ucg_plan_op_t *ucg_
     return status == UCG_INPROGRESS ? UCG_OK : status;
 }
 
+static void
+ucg_planc_ucx_scatterv_linear_bsend_threshold(const ucg_planc_ucx_scatterv_config_t *config,
+                                              ucg_vgroup_t *vgroup,
+                                              size_t *min, size_t *max)
+{
+    int32_t ppn = vgroup->group->topo->ppn;
+    int32_t nnode = vgroup->group->topo->detail.nnode;
+
+    *min = config->min_bsend;
+    *max = config->max_bsend;
+
+    if (config->min_bsend == UCG_MEMUNITS_INF) {
+        *max = UCG_MEMUNITS_INF;
+    }
+
+    /* Experience test result */
+    if (config->min_bsend == UCG_MEMUNITS_AUTO) {
+        if (nnode == 1) {
+            *min = SINGLE_NODE_SEND_BATCH_LOWER_BOUND;
+        } else if (ppn == 1) {
+            *min = SINGLE_PROCESS_SEND_BATCH_LOWER_BOUND;
+        } else if (ppn > 1) {
+            if (nnode <= 4) {
+                *min = 16384;
+            } else if (nnode <= 8 && ppn <= 32) {
+                *min = 16384;
+            } else if (nnode <= 8) {
+                *min = 65536;
+            } else if (nnode <= 16 && ppn <= 4) {
+                *min = 16384;
+            } else {
+                *min = UCG_MEMUNITS_INF;
+            }
+        } else {
+            *min = UCG_MEMUNITS_INF;
+        }
+    }
+
+    /* Experience test result */
+    if (config->max_bsend == UCG_MEMUNITS_AUTO) {
+        if (nnode == 1) {
+            *max = SINGLE_NODE_SEND_BATCH_UPPER_BOUND;
+        } else if (ppn == 1) {
+            *max = SINGLE_PROCESS_SEND_BATCH_UPPER_BOUND;
+        } else if (ppn > 1) {
+            if (nnode <= 4) {
+                *max = UCG_MEMUNITS_INF;
+            } else if (nnode <= 8 && ppn <= 4) {
+                *max = 32768;
+            } else if (nnode <= 8 && ppn <= 8) {
+                *max = 65536;
+            } else if (nnode <= 8 && ppn <= 32) {
+                *max = 16384;
+            } else if (nnode <= 8) {
+                *max = 131072;
+            } else if (nnode <= 16 && ppn <= 4) {
+                *max = 16384;
+            } else {
+                *max = UCG_MEMUNITS_INF;
+            }
+        } else {
+            *max = UCG_MEMUNITS_INF;
+        }
+    }
+}
+
 static void ucg_planc_ucx_scatterv_linear_op_init(ucg_planc_ucx_op_t *op,
                                                   const ucg_planc_ucx_scatterv_config_t *config)
 {
     ucg_coll_scatterv_args_t *args = &op->super.super.args.scatterv;
     ucg_vgroup_t *vgroup = op->super.vgroup;
     ucg_rank_t myrank = vgroup->myrank;
-    if (myrank == args->root) {
-        uint32_t group_size = vgroup->size;
-        uint64_t dt_size = ucg_dt_extent(args->sendtype);
-        uint64_t total_msg_size = 0;
-        for (int i = 0; i < group_size; ++i) {
-            total_msg_size += dt_size * args->sendcounts[i];
-        }
-        uint64_t avg_size = total_msg_size / group_size;
-        if (avg_size < config->send_together_thresh) {
-            op->scatterv.linear.send_type = UCG_SCATTERV_SEND_TYPE_ONE_BY_ONE;
-        } else {
-            op->scatterv.linear.send_type = UCG_SCATTERV_SEND_TYPE_TOGETHER;
-        }
+    if (myrank != args->root) {
+        return;
     }
+
+    size_t min_bsend;
+    size_t max_bsend;
+    ucg_planc_ucx_scatterv_linear_bsend_threshold(config, vgroup,
+                                                   &min_bsend, &max_bsend);
+    
+    uint8_t send_type;
+    uint32_t group_size = vgroup->size;
+    uint64_t dt_size = ucg_dt_extent(args->sendtype);
+    uint64_t total_msg_size = 0;
+    for (int i = 0; i < group_size; ++i) {
+        total_msg_size += dt_size * args->sendcounts[i];
+    }
+    uint64_t avg_size = total_msg_size / group_size;
+    if (avg_size < min_bsend || avg_size > max_bsend) {
+        send_type = UCG_SCATTERV_SEND_TYPE_ONE_BY_ONE;
+    } else {
+        send_type = UCG_SCATTERV_SEND_TYPE_BATCH;
+    }
+    op->scatterv.linear.send_type = send_type;
+    ucg_info("scatterv linear send type: %s",
+             send_type == UCG_SCATTERV_SEND_TYPE_ONE_BY_ONE ? "one by one" : "batch");
+
     return;
 }
 

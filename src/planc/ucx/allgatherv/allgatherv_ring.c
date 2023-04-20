@@ -65,19 +65,19 @@ static ucg_status_t ucg_planc_ucx_allgatherv_ring_op_progress(ucg_plan_op_t *ucg
 
     while (!ucg_algo_ring_iter_end(iter)) {
         int step_idx = ucg_algo_ring_iter_idx(iter);
-        if (ucg_test_and_clear_flags(&op->flags, UCG_ALLGATHERV_RING_RECV)) {
-            int block_idx = (myrank - step_idx - 1 + group_size) % group_size;
-            void *recvbuf = args->recvbuf + (int64_t)args->displs[block_idx] * recvtype_extent;
-            status = ucg_planc_ucx_p2p_irecv(recvbuf, args->recvcounts[block_idx],
-                                             args->recvtype, left_peer, op->tag,
-                                             vgroup, &params);
-            UCG_CHECK_GOTO(status, out);
-        }
         if (ucg_test_and_clear_flags(&op->flags, UCG_ALLGATHERV_RING_SEND)) {
             int block_idx = (myrank - step_idx + group_size) % group_size;
             void *sendbuf = args->recvbuf + (int64_t)args->displs[block_idx] * recvtype_extent;
             status = ucg_planc_ucx_p2p_isend(sendbuf, args->recvcounts[block_idx],
                                              args->recvtype, right_peer, op->tag,
+                                             vgroup, &params);
+            UCG_CHECK_GOTO(status, out);
+        }
+        if (ucg_test_and_clear_flags(&op->flags, UCG_ALLGATHERV_RING_RECV)) {
+            int block_idx = (myrank - step_idx - 1 + group_size) % group_size;
+            void *recvbuf = args->recvbuf + (int64_t)args->displs[block_idx] * recvtype_extent;
+            status = ucg_planc_ucx_p2p_irecv(recvbuf, args->recvcounts[block_idx],
+                                             args->recvtype, left_peer, op->tag,
                                              vgroup, &params);
             UCG_CHECK_GOTO(status, out);
         }
