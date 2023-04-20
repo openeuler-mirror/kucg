@@ -133,6 +133,17 @@ ucg_status_t ucg_planc_ucx_p2p_testall(ucg_planc_ucx_group_t *ucx_group,
  */
 void ucg_planc_ucx_p2p_req_init(void *request);
 
+/**
+ * @brief Request free function registered with ucp
+ */
+static inline void ucg_planc_ucx_p2p_req_free(void *request)
+{
+    ucg_planc_ucx_p2p_req_t *req = (ucg_planc_ucx_p2p_req_t*)request;
+    req->free_in_cb = 0;
+    ucp_request_free(request);
+    return;
+}
+
 static inline void ucg_planc_ucx_p2p_state_reset(ucg_planc_ucx_p2p_state_t *state)
 {
     state->status = UCG_OK;

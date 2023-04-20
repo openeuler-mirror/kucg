@@ -20,6 +20,11 @@ typedef struct ucg_planc_ucx_allgatherv {
             int32_t neighbor[2];
             int32_t offset_at_step[2];
         } neighbor;
+        struct {
+            int32_t distance;
+            int32_t *new_cnt_displs;
+            int32_t *merged_cnt_displs;
+        } bruck;
         ucg_algo_ring_iter_t ring_iter;
     };
 } ucg_planc_ucx_allgatherv_t;
@@ -38,5 +43,13 @@ ucg_status_t ucg_planc_ucx_allgatherv_ring_prepare(ucg_vgroup_t *vgroup,
 ucg_status_t ucg_planc_ucx_allgatherv_ring_hpl_prepare(ucg_vgroup_t *vgroup,
                                                        const ucg_coll_args_t *args,
                                                        ucg_plan_op_t **op);
+
+ucg_status_t ucg_planc_ucx_allgatherv_linear_prepare(ucg_vgroup_t *vgroup,
+                                                     const ucg_coll_args_t *args,
+                                                     ucg_plan_op_t **op);
+
+ucg_status_t ucg_planc_ucx_allgatherv_bruck_prepare(ucg_vgroup_t *vgroup,
+                                                    const ucg_coll_args_t *args,
+                                                    ucg_plan_op_t **op);
 
 #endif //UCG_PLANC_UCX_ALLGATHERV_H_
