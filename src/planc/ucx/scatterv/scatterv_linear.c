@@ -171,15 +171,15 @@ ucg_planc_ucx_scatterv_linear_bsend_threshold(const ucg_planc_ucx_scatterv_confi
             *min = SINGLE_PROCESS_SEND_BATCH_LOWER_BOUND;
         } else if (ppn > 1) {
             if (nnode <= 4) {
-                *min = 16384;
+                *min = 32768;
             } else if (nnode <= 8 && ppn <= 32) {
                 *min = 16384;
             } else if (nnode <= 8) {
-                *min = 65536;
+                *min = 32768;
             } else if (nnode <= 16 && ppn <= 4) {
                 *min = 16384;
             } else {
-                *min = UCG_MEMUNITS_INF;
+                *min = 32768;
             }
         } else {
             *min = UCG_MEMUNITS_INF;
@@ -202,11 +202,11 @@ ucg_planc_ucx_scatterv_linear_bsend_threshold(const ucg_planc_ucx_scatterv_confi
             } else if (nnode <= 8 && ppn <= 32) {
                 *max = 16384;
             } else if (nnode <= 8) {
-                *max = 131072;
+                *max = UCG_MEMUNITS_INF;
             } else if (nnode <= 16 && ppn <= 4) {
                 *max = 16384;
             } else {
-                *max = UCG_MEMUNITS_INF;
+                *max = 131072;
             }
         } else {
             *max = UCG_MEMUNITS_INF;

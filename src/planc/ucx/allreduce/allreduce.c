@@ -48,8 +48,8 @@ static ucg_plan_attr_t ucg_planc_ucx_allreduce_plan_attr[] = {
     {ucg_planc_ucx_allreduce_sa_rabenseifner_prepare,
      14, "Socket-aware rabenseifner", PLAN_DOMAIN},
 
-    {ucg_planc_ucx_allreduce_nta_kntree_prepare,
-     15, "Net-topo-aware k-nomial tree", PLAN_DOMAIN},
+    // {ucg_planc_ucx_allreduce_nta_kntree_prepare,
+    //  15, "Net-topo-aware k-nomial tree", PLAN_DOMAIN},
 
     {NULL},
 };
