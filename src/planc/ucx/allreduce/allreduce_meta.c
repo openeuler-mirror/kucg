@@ -118,6 +118,7 @@ ucg_status_t ucg_planc_ucx_allreduce_add_reduce_kntree_op(ucg_plan_meta_op_t *me
     }
 
     ucg_coll_args_t reduce_args;
+    reduce_args.type = UCG_COLL_TYPE_REDUCE;
     if (send_in_place) {
         reduce_args.reduce.sendbuf = UCG_IN_PLACE;
     } else {
@@ -142,6 +143,7 @@ ucg_status_t ucg_planc_ucx_allreduce_add_allreduce_rd_op(ucg_plan_meta_op_t *met
                                                          int32_t send_in_place)
 {
     ucg_coll_args_t rd_args = *args;
+    rd_args.type = UCG_COLL_TYPE_ALLREDUCE;
     if (send_in_place) {
         rd_args.allreduce.sendbuf = UCG_IN_PLACE;
     }
@@ -167,6 +169,7 @@ ucg_status_t ucg_planc_ucx_allreduce_add_bcast_kntree_op(ucg_plan_meta_op_t *met
     }
 
     ucg_coll_args_t bcast_args;
+    bcast_args.type = UCG_COLL_TYPE_BCAST;
     bcast_args.bcast.buffer = args->allreduce.recvbuf;
     bcast_args.bcast.count = args->allreduce.count;
     bcast_args.bcast.dt = args->allreduce.dt;

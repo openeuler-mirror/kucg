@@ -56,7 +56,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_ring_hpl_op_progress(ucg_plan_op_t 
     void *recvbuf = args->recvbuf;
     int32_t scount, rcount;
     ucg_dt_t *recvtype = args->recvtype;
-    uint32_t rtype_size = ucg_dt_size(recvtype);
+    uint32_t rtype_extent = ucg_dt_extent(recvtype);
     ucg_rank_t peer;
     ucg_vgroup_t *vgroup = op->super.vgroup;
     ucg_rank_t my_rank = vgroup->myrank;
@@ -78,7 +78,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_ring_hpl_op_progress(ucg_plan_op_t 
             } else {
                 block_idx = (my_rank + step_idx / 2 + group_size) % group_size;
             }
-            senddispls = (int64_t)args->displs[block_idx] * rtype_size;
+            senddispls = (int64_t)args->displs[block_idx] * rtype_extent;
             scount = args->recvcounts[block_idx];
             status = ucg_planc_ucx_p2p_isend(recvbuf + senddispls, scount, args->sendtype,
                                              peer, op->tag, vgroup, &params);
@@ -92,7 +92,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_ring_hpl_op_progress(ucg_plan_op_t 
             } else {
                 block_idx = (peer - step_idx / 2 + group_size) % group_size;
             }
-            recvdispls = (int64_t)args->displs[block_idx] * rtype_size;
+            recvdispls = (int64_t)args->displs[block_idx] * rtype_extent;
             rcount = args->recvcounts[block_idx];
             status = ucg_planc_ucx_p2p_irecv(recvbuf + recvdispls, rcount, args->recvtype,
                                              peer, op->tag, vgroup, &params);
@@ -118,13 +118,13 @@ static inline ucg_status_t ucg_planc_ucx_allgatherv_ring_hpl_init(ucg_plan_op_t 
     const void *sendbuf = args->sendbuf;
     ucg_dt_t *sendtype = args->sendtype;
     ucg_dt_t *recvtype = args->recvtype;
-    uint32_t rtype_size = ucg_dt_size(recvtype);
+    uint32_t rtype_extent = ucg_dt_extent(recvtype);
     ucg_vgroup_t *vgroup = op->super.vgroup;
     ucg_rank_t my_rank = vgroup->myrank;
     op->flags |= UCG_ALLGATHERV_RING_HPL_FLAGS;
 
     if (UCG_IN_PLACE != sendbuf) {
-        UCG_PLANC_UCX_CHECK_GOTO(ucg_dt_memcpy((char *)recvbuf + args->displs[my_rank] * rtype_size,
+        UCG_PLANC_UCX_CHECK_GOTO(ucg_dt_memcpy((char *)recvbuf + args->displs[my_rank] * rtype_extent,
                                                 args->recvcounts[my_rank], recvtype,
                                                 sendbuf, args->sendcount, sendtype),
                                  op,
