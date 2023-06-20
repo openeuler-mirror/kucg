@@ -721,7 +721,7 @@ ucg_status_t ucg_global_init(const ucg_global_params_t *params);
  *
  * This routine is invoked when the UCG is no longer used.
  */
-void ucg_global_cleanup();
+void ucg_global_cleanup(void);
 
 /**
  * @ingroup UCG_REQUEST
