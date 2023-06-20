@@ -224,6 +224,7 @@ ucg_status_t ucg_planc_ucx_barrier_add_fanin_kntree_op(ucg_plan_meta_op_t *meta_
     }
 
     ucg_coll_args_t dummy_args;
+    dummy_args.type = UCG_COLL_TYPE_REDUCE;
 
     return ucg_planc_ucx_barrier_add_fanin_topo_group_op(meta_op, ucx_group, vgroup,
                                                          &dummy_args, &fanin_config, group_type);
@@ -276,6 +277,7 @@ ucg_status_t ucg_planc_ucx_barrier_add_fanout_kntree_op(ucg_plan_meta_op_t *meta
     }
 
     ucg_coll_args_t bcast_args;
+    bcast_args.type = UCG_COLL_TYPE_BCAST;
     bcast_args.bcast.buffer = NULL;
     bcast_args.bcast.count = 0;
     bcast_args.bcast.dt = ucg_dt_get_predefined(UCG_DT_TYPE_UINT8);

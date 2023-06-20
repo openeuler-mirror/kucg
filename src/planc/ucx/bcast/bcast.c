@@ -28,8 +28,8 @@ static ucg_plan_attr_t ucg_planc_ucx_bcast_plan_attr[] = {
     {ucg_planc_ucx_bcast_ring_prepare,
      6, "Ring", PLAN_DOMAIN},
 
-    {ucg_planc_ucx_bcast_nta_kntree_prepare,
-     7, "Net-topo-aware k-nomial tree", PLAN_DOMAIN},
+    // {ucg_planc_ucx_bcast_nta_kntree_prepare,
+    //  7, "Net-topo-aware k-nomial tree", PLAN_DOMAIN},
 
     {ucg_planc_ucx_bcast_van_de_geijn_prepare,
      8, "van de Geijn(scatter+allgather)", PLAN_DOMAIN},
