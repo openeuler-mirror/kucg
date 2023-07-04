@@ -54,7 +54,7 @@ static ucg_config_field_t ucg_planc_ucx_config_table[] = {
      ucg_offsetof(ucg_planc_ucx_config_t, estimated_num_ppn),
      UCG_CONFIG_TYPE_UINT},
 
-    {"USE_OOB", "try",
+    {"USE_OOB", "no",
      "The value can be \n"
      " - yes  : Forcibly use oob. If the oob does not exist, a failure will occur. \n"
      " - no   : Not use oob. \n"
