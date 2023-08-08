@@ -19,47 +19,47 @@ enum {
 
 /**
  * @brief Bruck algorithm for allgatherv with O(log(N)) steps.
- * 
+ *
  * Example on 7 processes:
  *   Initial set up:
- *    #    0       1       2       3       4       5       6
- *        [0]     [ ]     [ ]     [ ]     [ ]     [ ]     [ ]
- *        [ ]     [1]     [ ]     [ ]     [ ]     [ ]     [ ]
- *        [ ]     [ ]     [2]     [ ]     [ ]     [ ]     [ ]
- *        [ ]     [ ]     [ ]     [3]     [ ]     [ ]     [ ]
- *        [ ]     [ ]     [ ]     [ ]     [4]     [ ]     [ ]
- *        [ ]     [ ]     [ ]     [ ]     [ ]     [5]     [ ]
- *        [ ]     [ ]     [ ]     [ ]     [ ]     [ ]     [6]
- *  Step 0: send message to (rank - 2^0), receive message from (rank + 2^0)
- *    #    0       1       2       3       4       5       6
- *        [0]     [ ]     [ ]     [ ]     [ ]     [ ]     [0]
- *        [1]     [1]     [ ]     [ ]     [ ]     [ ]     [ ]
- *        [ ]     [2]     [2]     [ ]     [ ]     [ ]     [ ]
- *        [ ]     [ ]     [3]     [3]     [ ]     [ ]     [ ]
- *        [ ]     [ ]     [ ]     [4]     [4]     [ ]     [ ]
- *        [ ]     [ ]     [ ]     [ ]     [5]     [5]     [ ]
- *        [ ]     [ ]     [ ]     [ ]     [ ]     [6]     [6]
- *  Step 1: send message to (rank - 2^1), receive message from (rank + 2^1) .
- *          message contains all blocks from (rank) .. (rank + 2^2) with
- *          wrap around.
- *    #    0       1       2       3       4       5       6
- *        [0]     [ ]     [ ]     [ ]     [0]     [0]     [0]
- *        [1]     [1]     [ ]     [ ]     [ ]     [1]     [1]
- *        [2]     [2]     [2]     [ ]     [ ]     [ ]     [2]
- *        [3]     [3]     [3]     [3]     [ ]     [ ]     [ ]
- *        [ ]     [4]     [4]     [4]     [4]     [ ]     [ ]
- *        [ ]     [ ]     [5]     [5]     [5]     [5]     [ ]
- *        [ ]     [ ]     [ ]     [6]     [6]     [6]     [6]
- *  Step 2: send message to (rank - 2^2), receive message from (rank + 2^2) .
- *          message size is "all remaining blocks"
- *    #    0       1       2       3       4       5       6
- *        [0]     [0]     [0]     [0]     [0]     [0]     [0]
- *        [1]     [1]     [1]     [1]     [1]     [1]     [1]
- *        [2]     [2]     [2]     [2]     [2]     [2]     [2]
- *        [3]     [3]     [3]     [3]     [3]     [3]     [3]
- *        [4]     [4]     [4]     [4]     [4]     [4]     [4]
- *        [5]     [5]     [5]     [5]     [5]     [5]     [5]
- *        [6]     [6]     [6]     [6]     [6]     [6]     [6]
+ *    #     0      1      2      3      4      5      6
+ *         [0]    [ ]    [ ]    [ ]    [ ]    [ ]    [ ]
+ *         [ ]    [1]    [ ]    [ ]    [ ]    [ ]    [ ]
+ *         [ ]    [ ]    [2]    [ ]    [ ]    [ ]    [ ]
+ *         [ ]    [ ]    [ ]    [3]    [ ]    [ ]    [ ]
+ *         [ ]    [ ]    [ ]    [ ]    [4]    [ ]    [ ]
+ *         [ ]    [ ]    [ ]    [ ]    [ ]    [5]    [ ]
+ *         [ ]    [ ]    [ ]    [ ]    [ ]    [ ]    [6]
+ *   Step 0: send message to (rank - 2^0), receive message from (rank + 2^0)
+ *    #     0      1      2      3      4      5      6
+ *         [0]    [ ]    [ ]    [ ]    [ ]    [ ]    [0]
+ *         [1]    [1]    [ ]    [ ]    [ ]    [ ]    [ ]
+ *         [ ]    [2]    [2]    [ ]    [ ]    [ ]    [ ]
+ *         [ ]    [ ]    [3]    [3]    [ ]    [ ]    [ ]
+ *         [ ]    [ ]    [ ]    [4]    [4]    [ ]    [ ]
+ *         [ ]    [ ]    [ ]    [ ]    [5]    [5]    [ ]
+ *         [ ]    [ ]    [ ]    [ ]    [ ]    [6]    [6]
+ *   Step 1: send message to (rank - 2^1), receive message from (rank + 2^1).
+ *           message contains all blocks from (rank) .. (rank + 2^2) with
+ *           wrap around.
+ *    #     0      1      2      3      4      5      6
+ *         [0]    [ ]    [ ]    [ ]    [0]    [0]    [0]
+ *         [1]    [1]    [ ]    [ ]    [ ]    [1]    [1]
+ *         [2]    [2]    [2]    [ ]    [ ]    [ ]    [2]
+ *         [3]    [3]    [3]    [3]    [ ]    [ ]    [ ]
+ *         [ ]    [4]    [4]    [4]    [4]    [ ]    [ ]
+ *         [ ]    [ ]    [5]    [5]    [5]    [5]    [ ]
+ *         [ ]    [ ]    [ ]    [6]    [6]    [6]    [6]
+ *   Step 2: send message to (rank - 2^2), receive message from (rank + 2^2).
+ *           message size is "all remaining blocks"
+ *    #     0      1      2      3      4      5      6
+ *         [0]    [0]    [0]    [0]    [0]    [0]    [0]
+ *         [1]    [1]    [1]    [1]    [1]    [1]    [1]
+ *         [2]    [2]    [2]    [2]    [2]    [2]    [2]
+ *         [3]    [3]    [3]    [3]    [3]    [3]    [3]
+ *         [4]    [4]    [4]    [4]    [4]    [4]    [4]
+ *         [5]    [5]    [5]    [5]    [5]    [5]    [5]
+ *         [6]    [6]    [6]    [6]    [6]    [6]    [6]
  */
 static ucg_status_t ucg_planc_ucx_allgatherv_bruck_op_progress(ucg_plan_op_t *ucg_op)
 {
@@ -82,7 +82,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_bruck_op_progress(ucg_plan_op_t *uc
 
     int *distance = &op->allgatherv.bruck.distance;
     while (*distance < group_size) {
-        if (ucg_test_and_clear_flags(&op->flags, UCG_ALLGATHERV_BRUCK_FLAGS)) {
+        if (ucg_test_and_clear_flags(&op->flags, UCG_ALLGATHERV_BRUCK_FLAGS))  {
             int blockcount = *distance <= (group_size >> 1) ?
                              *distance : group_size - *distance;
             ucg_rank_t recvfrom = (myrank + *distance) % group_size;
@@ -166,8 +166,8 @@ static ucg_status_t ucg_planc_ucx_allgatherv_bruck_op_trigger(ucg_plan_op_t *ucg
         ucg_rank_t myrank = op->super.vgroup->myrank;
         uint32_t recvtype_extent = ucg_dt_extent(args->recvtype);
         void *recvbuf = args->recvbuf + args->displs[myrank] * recvtype_extent;
-        status =ucg_dt_memcpy(recvbuf, args->recvcounts[myrank], args->recvtype,
-                              sendbuf, args->sendcount, args->sendtype);
+        status = ucg_dt_memcpy(recvbuf, args->recvcounts[myrank], args->recvtype,
+                               sendbuf, args->sendcount, args->sendtype);
         UCG_CHECK_GOTO(status, out);
     }
 

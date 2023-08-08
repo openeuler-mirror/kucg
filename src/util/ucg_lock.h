@@ -11,20 +11,20 @@
 #include <ucs/type/spinlock.h>
 #include <pthread.h>
 
-#define ucg_spinlock_t                  ucs_spinlock_t
-#define ucg_spinlock_init(_lock, _flag) ucg_status_s2g(ucs_spinlock_init(_lock, _flag))
-#define ucg_spinlock_destroy(_lock)     ucs_spinlock_destroy(_lock)
-#define ucg_spin_lock(_lock)            ucs_spin_lock(_lock)
-#define ucg_spin_try_lock(_lock)        ucs_spin_try_lock(_lock) /* 1 for lock success, 0 for failed */
-#define ucg_spin_unlock(_lock)          ucs_spin_unlock(_lock)
+#define ucg_spinlock_t ucs_spinlock_t
+#define ucg_spinlock_init(_lock, _flag)    ucg_status_s2g(ucs_spinlock_init(_lock, _flag))
+#define ucg_spinlock_destroy(_lock) ucs_spinlock_destroy(_lock)
+#define ucg_spin_lock(_lock)        ucs_spin_lock(_lock)
+#define ucg_spin_try_lock(_lock)    ucs_spin_try_lock(_lock) /* 1 for lock success, 0 for failed */
+#define ucg_spin_unlock(_lock)      ucs_spin_unlock(_lock)
 
-#define ucg_recursive_spinlock_t                    ucs_recursive_spinlock_t
-#define ucg_recursive_spinlock_init(_lock, _flag)   ucg_status_s2g(ucs_recursive_spinlock_init(_lock, _flag))
-#define ucg_recursive_spinlock_destroy(_lock)       ucs_recursive_spinlock_destroy(_lock)
-#define ucg_recursive_spin_is_owner(_lock, _thread) ucs_recursive_spin_is_owner(_lock, _thread)
-#define ucg_recursive_spin_lock(_lock)              ucs_recursive_spin_lock(_lock)
-#define ucg_recursive_spin_trylock(_lock)           ucs_recursive_spin_trylock(_lock)
-#define ucg_recursive_spin_unlock(_lock)            ucs_recursive_spin_unlock(_lock)
+#define ucg_recursive_spinlock_t        ucs_recursive_spinlock_t
+#define ucg_recursive_spinlock_init(_lock, _flag) ucg_status_s2g(ucs_recursive_spinlock_init(_lock, _flag))
+#define ucg_recursive_spinlock_destroy(_lock)  ucs_recursive_spinlock_destroy(_lock)
+#define ucg_recursive_spin_is_owner(_lock, _thread)     ucs_recursive_spin_is_owner(_lock, _thread)
+#define ucg_recursive_spin_lock(_lock)         ucs_recursive_spin_lock(_lock)
+#define ucg_recursive_spin_trylock(_lock)      ucs_recursive_spin_trylock(_lock)
+#define ucg_recursive_spin_unlock(_lock)       ucs_recursive_spin_unlock(_lock)
 
 typedef enum {
     UCG_LOCK_TYPE_NONE,
@@ -111,9 +111,9 @@ static inline void ucg_lock_leave(ucg_lock_t *lock)
 }
 #else
 #define ucg_lock_init(_lock, _type) ({UCG_UNUSED(_lock, _type); UCG_OK;})
-#define ucg_lock_destroy(_lock)     UCG_UNUSED(_lock)
-#define ucg_lock_enter(_lock)       UCG_UNUSED(_lock)
-#define ucg_lock_leave(_lock)       UCG_UNUSED(_lock)
+#define ucg_lock_destroy(_lock) UCG_UNUSED(_lock)
+#define ucg_lock_enter(_lock) UCG_UNUSED(_lock)
+#define ucg_lock_leave(_lock) UCG_UNUSED(_lock)
 #endif //UCG_ENABLE_MT
 
 #endif

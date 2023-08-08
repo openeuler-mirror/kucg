@@ -76,7 +76,7 @@ static ucg_status_t ucg_planc_ucx_bcast_kntree_op_recv_from_parent(ucg_planc_ucx
         return UCG_OK;
     }
 
-    if (ucg_test_and_clear_flags(&op->flags, UCG_BCAST_RECV_FROM_PARENT_RECV)) {
+    if (ucg_test_and_clear_flags(&op->flags, UCG_BCAST_RECV_FROM_PARENT_RECV)){
         status = ucg_planc_ucx_p2p_irecv(args->buffer, args->count, args->dt,
                                          peer, op->tag, vgroup, &params);
         UCG_CHECK_GOTO(status, out);
@@ -105,7 +105,7 @@ static ucg_status_t ucg_planc_ucx_bcast_kntree_op_progress(ucg_plan_op_t *ucg_op
         ucg_clear_flags(&op->flags, UCG_BCAST_ADJUST_ROOT);
     }
     /* 2. receive from parent */
-    if (ucg_test_flags(op->flags, UCG_BCAST_RECV_FROM_PARENT)) {
+    if (ucg_test_flags(op->flags, UCG_BCAST_RECV_FROM_PARENT)){
         status = ucg_planc_ucx_bcast_kntree_op_recv_from_parent(op);
         UCG_CHECK_GOTO(status, out);
         ucg_clear_flags(&op->flags, UCG_BCAST_RECV_FROM_PARENT);

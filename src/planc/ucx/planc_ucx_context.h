@@ -47,7 +47,7 @@ typedef struct ucg_planc_ucx_resource_planm {
 typedef struct ucg_planc_ucx_context {
     ucg_context_t *ucg_context;
     ucg_planc_ucx_config_t config;
-    
+
     /* Policies of collective operation plans */
     ucg_plan_policy_t *user_policy[UCG_COLL_TYPE_LAST];
 
@@ -88,5 +88,5 @@ ucg_status_t ucg_planc_ucx_context_init(const ucg_planc_params_t *params,
 void ucg_planc_ucx_context_cleanup(ucg_planc_context_h context);
 ucg_status_t ucg_planc_ucx_context_query(ucg_planc_context_h context,
                                          ucg_planc_context_attr_t *attr);
-
+int ucg_planc_ucx_context_progress(ucg_planc_context_h context);
 #endif

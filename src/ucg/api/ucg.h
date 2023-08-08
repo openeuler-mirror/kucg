@@ -64,7 +64,7 @@ extern "C" {
 
 /*
  *******************************************************************************
- *                           Macro define
+ *                            Macro define
  *******************************************************************************
  */
 /**
@@ -95,7 +95,7 @@ extern "C" {
 
 /*
  *******************************************************************************
- *                           Type define
+ *                            Type define
  *******************************************************************************
  */
 
@@ -303,7 +303,7 @@ typedef enum {
  */
 typedef enum {
     UCG_GROUP_PARAMS_FIELD_ID = UCG_BIT(0), /**< Group ID */
-    UCG_GROUP_PARAMS_FIELD_SIZE = UCG_BIT(1), /**< Group size */
+    UCG_GROUP_PARAMS_FIELD_SIZE = UCG_BIT(1), /**< Group size*/
     UCG_GROUP_PARAMS_FIELD_MYRANK = UCG_BIT(2), /**< My rank in the group */
     UCG_GROUP_PARAMS_FIELD_RANK_MAP = UCG_BIT(3), /**< Rank map */
     UCG_GROUP_PARAMS_FIELD_OOB_GROUP = UCG_BIT(4), /**< Out Of Band communication group */
@@ -425,7 +425,7 @@ typedef struct {
     /**
      * @brief Start to unpack
      * @param [in] buffer       Buffer to be managed by unpacker.
-     * @param [in] user_dt      User datatype of elements in buffer.
+     * @param [in] user_dt      User data type of elements in buffer.
      * @param [in] count        Number of elements in buffer.
      * @return Unpacking state.
      */
@@ -719,7 +719,7 @@ ucg_status_t ucg_global_init(const ucg_global_params_t *params);
  * @ingroup UCG_GLOBAL
  * @brief Cleanup global resources.
  *
- * This routine is invoked when the UCG is no longer used.
+ *This routine is invoked when the UCG is no longer used.
  */
 void ucg_global_cleanup(void);
 
@@ -1158,7 +1158,7 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
  *
  * @param [in]  sendbuf         Starting address of send buffer
  * @param [in]  sendcount       Number of elements in send buffer
- * @param [in]  sendtype        Data type of send buffer elements
+ * @param [in]  sendtype        Datatype of send buffer elements
  * @param [out] recvbuf         Address of receive buffer
  * @param [in]  recvcounts      Integer array (of length group size) containing
  *                              the number of elements that are received from each
@@ -1166,7 +1166,7 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
  * @param [in]  displs          Integer array (of length group size). Entry i specifies
  *                              the displacement (relative to sendbuf) from which to
  *                              take the outgoing data destined for process i
- * @param [in]  recvtype        Data type of receive buffer elements
+ * @param [in]  recvtype        Datatype of receive buffer elements
  * @param [in]  root            Rank of receiving process
  * @param [in]  group           Communication group
  * @param [in]  info            Informations for creating request
@@ -1176,7 +1176,7 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
  */
 ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcount,
                                       ucg_dt_h sendtype, void *recvbuf,
-                                      const int32_t* recvcounts, const int32_t *displs,
+                                      const int32_t* recvcounts, const int32_t* displs,
                                       ucg_dt_h recvtype, ucg_rank_t root,
                                       ucg_group_h group, const ucg_request_info_t *info,
                                       ucg_request_h *request);
@@ -1191,7 +1191,7 @@ ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcou
  * @param [in]  sendbuf         Starting address of send buffer
  * @param [in]  sendcount       Number of elements in send buffer(non-negative
  *                              integer)
- * @param [in]  sendtype        Data type of send buffer elements
+ * @param [in]  sendtype        Datatype of send buffer elements
  * @param [out] recvbuf         Address of receive buffer
  * @param [in]  recvcounts      Non-negative integer array (of length group size)
  *                              containing the number of elements that are received
@@ -1199,7 +1199,7 @@ ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcou
  * @param [in]  displs          Integer array (of length group size). Entry i specifies
  *                              the displacement (relative to recvbuf) at which to
  *                              place the incoming data from process i
- * @param [in]  recvtype        Data type of receive buffer elements
+ * @param [in]  recvtype        Datatype of receive buffer elements
  * @param [in]  group           Communication group
  * @param [in]  info            Informations for creating request
  * @param [out] request         Collective request
@@ -1221,7 +1221,7 @@ ucg_status_t ucg_request_allgatherv_init(const void *sendbuf, int sendcount,
  *
  * @note The request may be completed directly in this routine, which means when
  * the request has a complete_cb, it will be invoked here.
- * @note The same collection op must be performed in the same time sequence in
+ * @note The same collection opmust be performed in the same time sequence in
  * different processes. Otherwise, the collection op requests of different processes
  * cannot be matched.
  *

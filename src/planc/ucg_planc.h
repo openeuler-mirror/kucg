@@ -43,7 +43,7 @@
  * @brief PlanC context attributes field mask.
  */
 typedef enum {
-    UCG_PLANC_CONTEXT_ATTR_FIELD_ADDR = UCG_BIT(0), /** < Context address. */
+    UCG_PLANC_CONTEXT_ATTR_FIELD_ADDR = UCG_BIT(0), /**< Context address. */
     UCG_PLANC_CONTEXT_ATTR_FIELD_ADDR_LEN = UCG_BIT(1), /** < Length of Context address. */
     UCG_PLANC_CONTEXT_ATTR_FIELD_THREAD_MODE = UCG_BIT(2), /** < Thread mode of Context. */
 } ucg_planc_context_attr_field_t;
@@ -139,6 +139,7 @@ typedef struct ucg_planc {
     ucg_planc_context_init_func_t context_init;
     ucg_planc_context_cleanup_func_t context_cleanup;
     ucg_planc_context_query_func_t context_query;
+    ucg_planc_context_progress_func_t context_progress;
 
     /* Group */
     ucg_planc_group_create_func_t group_create;

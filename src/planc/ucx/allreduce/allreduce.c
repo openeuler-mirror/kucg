@@ -8,6 +8,8 @@
 
 #define PLAN_DOMAIN "planc ucx allreduce"
 
+#define UCG_PLAN_UCX_PLAN_ALLREDUCE_SCORE_1ST (UCG_PLAN_UCX_PLAN_SCORE_0TH + 1)
+
 static ucg_plan_attr_t ucg_planc_ucx_allreduce_plan_attr[] = {
     {ucg_planc_ucx_allreduce_rd_prepare,
      1, "Recursive doubling", PLAN_DOMAIN},
@@ -160,7 +162,8 @@ static ucg_plan_policy_t allreduce_4_64[] = {
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allreduce_4_LG[] = {
-    {6,  {0, 4096}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {6,  {0, 16}, UCG_PLAN_UCX_PLAN_ALLREDUCE_SCORE_1ST},
+    {6,  {16, 4096}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {3,  {4096, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {14, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
 
@@ -170,7 +173,8 @@ static ucg_plan_policy_t allreduce_4_LG[] = {
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allreduce_8_1[] = {
-    {7,  {0, 64}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {2,  {0, 16}, UCG_PLAN_UCX_PLAN_ALLREDUCE_SCORE_1ST},
+    {7,  {16, 64}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {1,  {64, 4096}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {2,  {4096, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {12, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
@@ -244,7 +248,8 @@ static ucg_plan_policy_t allreduce_8_64[] = {
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allreduce_8_LG[] = {
-    {14, {0, 512}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {2,  {0, 16}, UCG_PLAN_UCX_PLAN_ALLREDUCE_SCORE_1ST},
+    {14, {16, 512}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {6,  {512, 4096}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {3,  {4096, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {13, {16384, 131072}, UCG_PLAN_UCX_PLAN_SCORE_1ST},

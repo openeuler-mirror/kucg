@@ -115,8 +115,8 @@ typedef struct ucg_request {
     ucg_coll_args_t args;
     ucg_group_t *group;
     ucg_list_link_t list; /* link to progress list */
-    uint16_t id;
-    char pending[32]; /* cacheline pending, `ucg_info -t` check struct size */
+    int id;
+    char pending[16]; /* cacheline pending, `ucg_info -t` check struct size*/
 } ucg_request_t;
 UCG_CLASS_DECLARE(ucg_request_t,
                   UCG_CLASS_CTOR_ARGS(const ucg_coll_args_t *arg));

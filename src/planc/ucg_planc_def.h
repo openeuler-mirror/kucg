@@ -115,6 +115,12 @@ typedef ucg_status_t (*ucg_planc_context_query_func_t)(ucg_planc_context_h conte
 
 /**
  * @ingroup UCG_PLANC
+ * @brief Function that progress PlanC context.
+ */
+typedef int (*ucg_planc_context_progress_func_t)(ucg_planc_context_h context);
+
+/**
+ * @ingroup UCG_PLANC
  * @brief Function that create PlanC group.
  */
 typedef ucg_status_t (*ucg_planc_group_create_func_t)(ucg_planc_context_h context,

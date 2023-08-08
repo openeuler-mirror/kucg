@@ -47,7 +47,7 @@ ucg_status_t ucg_components_load(const char *path, const char *pattern,
 /**
  * @brief Unload components.
  *
- * @param [in] components       Loaded components.
+ * @param [in] components    Loaded components.
  */
 void ucg_components_unload(ucg_components_t *components);
 

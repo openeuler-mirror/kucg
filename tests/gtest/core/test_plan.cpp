@@ -53,7 +53,7 @@ static void dump_plan(ucg_list_link_t *list)
             printf("\tfb score: %u range [%lu %lu)\n", fallback->score, fallback->range.start,
                 fallback->range.end);
         }
-        printf("\n"); 
+        printf("\n");
     }
 #endif
 }

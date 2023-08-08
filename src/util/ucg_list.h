@@ -16,10 +16,10 @@
 #define ucg_list_is_empty(_head)        ucs_list_is_empty(_head)
 #define ucg_list_extract_head(_head, _type, _member) ucs_list_extract_head(_head, _type, _member)
 #define ucg_list_length(_head)          ucs_list_length(_head)
-#define ucg_list_head(_elem, _type, _member)  ucs_list_head(_elem, _type, _member)
-#define ucg_list_next(_elem, _type, _member)  ucs_list_next(_elem, _type, _member)
-#define ucg_list_insert_after(_pos, _item)    ucs_list_insert_after(_pos, _item)
-#define ucg_list_insert_before(_pos, _item)   ucs_list_insert_before(_pos, _item)
+#define ucg_list_head(_elem, _type, _member) ucs_list_head(_elem, _type, _member)
+#define ucg_list_next(_elem, _type, _member) ucs_list_next(_elem, _type, _member)
+#define ucg_list_insert_after(_pos, _item) ucs_list_insert_after(_pos, _item)
+#define ucg_list_insert_before(_pos, _item) ucs_list_insert_before(_pos, _item)
 #define ucg_list_splice_tail(_head, _newlist) ucs_list_splice_tail(_head, _newlist)
 
 #define ucg_list_for_each_safe(_elem, _tmp_elem, _head, _member) \

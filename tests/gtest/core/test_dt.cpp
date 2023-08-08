@@ -193,7 +193,7 @@ ucg_dt_h test_ucg_dt::m_ucg_contig_dt = NULL;
         CHECK(uint16_t, _ucg_op_type, UCG_DT_TYPE_UINT16, source, target, expect, size, _expect_op); \
         CHECK(uint32_t, _ucg_op_type, UCG_DT_TYPE_UINT32, source, target, expect, size, _expect_op); \
         CHECK(uint64_t, _ucg_op_type, UCG_DT_TYPE_UINT64, source, target, expect, size, _expect_op); \
-        CHECK_FP16(_Float16, _ucg_op_type, UCG_DT_TYPE_FP16, source, target, expect, size, _expect_op); \
+        CHECK_FP16(_Float16, _ucg_op_type, UCG_DT_TYPE_FP16, source, target, expect, size, _expect_op);\
         CHECK(float, _ucg_op_type, UCG_DT_TYPE_FP32, source, target, expect, size, _expect_op); \
         CHECK(double, _ucg_op_type, UCG_DT_TYPE_FP64, source, target, expect, size, _expect_op); \
         free(source); \

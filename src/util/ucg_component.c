@@ -19,7 +19,7 @@
 #define UCG_PATTERN_SUFFIX ".so"
 #define UCG_PATTERN_SUFFIX_LEN 3
 /* full pattern need extra space for saving '/' and '\0' */
-#define UCG_PATTERN_EXTRA_LEN  2
+#define UCG_PATTERN_EXTRA_LEN 2
 
 static ucg_status_t ucg_components_load_one(const char *lib_path,
                                             ucg_component_t **component)
@@ -31,7 +31,7 @@ static ucg_status_t ucg_components_load_one(const char *lib_path,
 
     /* skip prefix */
     char *libname = basename(lib_path_dup) + UCG_PATTERN_PREFIX_LEN;
-    /* ingore suffix*/
+    /* ingore suffix */
     int objname_len = strlen(libname) - UCG_PATTERN_SUFFIX_LEN;
     char objname[UCG_COMPONENT_OBJNAME_MAX_LEN+1] = {0};
     if (objname_len > UCG_COMPONENT_OBJNAME_MAX_LEN) {

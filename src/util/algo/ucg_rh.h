@@ -12,7 +12,7 @@
  * @brief Recursive halving algorithm phase
  */
 typedef enum {
-    UCG_RH_PHASE_PRE  = UCG_BIT(0),
+    UCG_RH_PHASE_PRE = UCG_BIT(0),
     UCG_RH_PHASE_LOOP = UCG_BIT(1),
     UCG_RH_PHASE_POST = UCG_BIT(2)
 } ucg_algo_rh_phase_t;
@@ -21,9 +21,9 @@ typedef enum {
  * @brief Recursive halving algorithm rank type
  */
 typedef enum {
-    UCG_ALGO_RH_RANK_BASE  = UCG_BIT(0), /**< quadratic rank that performs the normal rd_algo */
+    UCG_ALGO_RH_RANK_BASE = UCG_BIT(0), /**< quadratic rank that performs the normal rd_algo */
     UCG_ALGO_RH_RANK_PROXY = UCG_BIT(1), /**< "base rank" that interacts with "extra rank" */
-    UCG_ALGO_RH_RANK_EXTRA = UCG_BIT(2)  /**< non-quadratic rank */
+    UCG_ALGO_RH_RANK_EXTRA = UCG_BIT(2) /**< non-quadratic rank */
 } ucg_algo_rh_rank_type_t;
 
 /**

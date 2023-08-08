@@ -47,7 +47,7 @@ ucg_config_parser_fill_opts(void *opts, ucg_config_field_t *fields,
                             int ignore_errors)
 {
     ucs_status_t status = ucs_config_parser_fill_opts(opts, fields, env_prefix,
-                                                      table_prefix, ignore_errors);
+        table_prefix, ignore_errors);
     return ucg_status_s2g(status);
 }
 
@@ -113,8 +113,8 @@ static inline ucs_config_print_flags_t ucg_print_flags_g2s(ucg_config_print_flag
 
 static inline void
 ucg_config_parser_print_opts(FILE *stream, const char *title, const void *opts,
-                             ucg_config_field_t *fields, const char *table_prefix,
-                             const char *prefix, ucg_config_print_flags_t flags)
+    ucg_config_field_t *fields, const char *table_prefix,
+    const char *prefix, ucg_config_print_flags_t flags)
 {
     ucs_config_print_flags_t ucs_flags;
 

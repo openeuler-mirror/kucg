@@ -19,7 +19,7 @@ namespace test {
 class stub {
 public:
     enum routine_type_t {
-        //memory, only availabe when macro UCG_ENABLE_DEBUG is on.
+        // memory, only availabe when macro UCG_ENABLE_DEBUG is on.
         MALLOC,
         CALLOC,
         REALLOC,
@@ -72,7 +72,7 @@ private:
 
 extern "C" {
 /*******************************************************************************
- *                           Parameters to create stub context and group
+ *                          Parameters to create stub context and group
  ******************************************************************************/
 extern ucg_params_t test_stub_context_params;
 extern ucg_group_params_t test_stub_group_params;

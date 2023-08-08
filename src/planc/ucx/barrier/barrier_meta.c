@@ -187,7 +187,7 @@ static ucg_status_t ucg_planc_ucx_barrier_add_fanin_topo_group_op(ucg_plan_meta_
     if (topo_group == NULL) {
         return UCG_ERR_UNSUPPORTED;
     }
-    
+
     if (topo_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
         /* I'm not in the topo group. */
         return ucg_planc_ucx_add_empty_op(meta_op, ucx_group, vgroup);
@@ -208,11 +208,11 @@ static ucg_status_t ucg_planc_ucx_barrier_add_fanin_topo_group_op(ucg_plan_meta_
 }
 
 ucg_status_t ucg_planc_ucx_barrier_add_fanin_kntree_op(ucg_plan_meta_op_t *meta_op,
-                                                       ucg_planc_ucx_group_t *ucx_group,
-                                                       ucg_vgroup_t *vgroup,
-                                                       const ucg_coll_args_t *args,
-                                                       const ucg_planc_ucx_barrier_config_t *config,
-                                                       ucg_topo_group_type_t group_type)
+                                                        ucg_planc_ucx_group_t *ucx_group,
+                                                        ucg_vgroup_t *vgroup,
+                                                        const ucg_coll_args_t *args,
+                                                        const ucg_planc_ucx_barrier_config_t *config,
+                                                        ucg_topo_group_type_t group_type)
 {
     ucg_planc_ucx_fanin_config_t fanin_config;
     if ((group_type == UCG_TOPO_GROUP_TYPE_NODE) ||
@@ -241,7 +241,7 @@ ucg_status_t ucg_planc_ucx_barrier_add_barrier_rd_op(ucg_plan_meta_op_t *meta_op
     if (topo_group == NULL) {
         return UCG_ERR_UNSUPPORTED;
     }
-    
+
     if (topo_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
         /* I'm not in the topo group. */
         return ucg_planc_ucx_add_empty_op(meta_op, ucx_group, vgroup);
@@ -261,11 +261,11 @@ ucg_status_t ucg_planc_ucx_barrier_add_barrier_rd_op(ucg_plan_meta_op_t *meta_op
 }
 
 ucg_status_t ucg_planc_ucx_barrier_add_fanout_kntree_op(ucg_plan_meta_op_t *meta_op,
-                                                        ucg_planc_ucx_group_t *ucx_group,
-                                                        ucg_vgroup_t *vgroup,
-                                                        const ucg_coll_args_t *args,
-                                                        const ucg_planc_ucx_barrier_config_t *config,
-                                                        ucg_topo_group_type_t group_type)
+                                                       ucg_planc_ucx_group_t *ucx_group,
+                                                       ucg_vgroup_t *vgroup,
+                                                       const ucg_coll_args_t *args,
+                                                       const ucg_planc_ucx_barrier_config_t *config,
+                                                       ucg_topo_group_type_t group_type)
 {
     ucg_planc_ucx_bcast_config_t kntree_config;
     if ((group_type == UCG_TOPO_GROUP_TYPE_NODE) ||

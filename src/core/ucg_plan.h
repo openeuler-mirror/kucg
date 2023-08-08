@@ -103,11 +103,11 @@ typedef struct ucg_plan_op {
 } ucg_plan_op_t;
 UCG_CLASS_DECLARE(ucg_plan_op_t,
                   UCG_CLASS_CTOR_ARGS(
-                      ucg_vgroup_t *vgroup,
-                      ucg_plan_op_func_t trigger,
-                      ucg_plan_op_func_t progress,
-                      ucg_plan_op_func_t discard,
-                      const ucg_coll_args_t *args));
+                    ucg_vgroup_t *vgroup,
+                    ucg_plan_op_func_t trigger,
+                    ucg_plan_op_func_t progress,
+                    ucg_plan_op_func_t discard,
+                    const ucg_coll_args_t *args));
 
 /**
  * @brief Meta plan operation.
@@ -283,7 +283,7 @@ ucg_status_t ucg_plan_attr_update(ucg_plan_attr_t *attr, const char *update);
  * @param [inout] policy            Plan policy array
  * @param [in]    desc              Description of creating plan policy
  *                                  @ref UCG_PLAN_ATTR_DESC
- * 
+ *
  * @retval UCG_OK                   Translate successfully.
  * @retval UCG_ERR_INVALID_PARAM    The format of update is incorrect.
  * @retval UCG_ERR_NO_MEMORY        Insufficient memory.
@@ -292,8 +292,8 @@ ucg_status_t ucg_plan_policy_create(ucg_plan_policy_t **policy, const char *desc
 
 /**
  * @brief Destory plan policy
- * 
- * @param [in]    policy             Plan policy array
+ *
+ * @param [in]    policy            Plan policy array
  */
 void ucg_plan_policy_destroy(ucg_plan_policy_t **policy);
 

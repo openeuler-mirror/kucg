@@ -69,8 +69,8 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_reduce_scatter(ucg_plan_op_t
         int32_t step_idx = ucg_algo_ring_iter_idx(iter);
         if (ucg_test_and_clear_flags(&op->flags, UCG_RING_REDUCE_SCATTER_RECV)) {
             status = ucg_planc_ucx_p2p_irecv(temp_staging_area, max_blkcount,
-                                             args->dt, left_peer, op->tag,
-                                             vgroup, &params);
+                                                args->dt, left_peer, op->tag,
+                                                vgroup, &params);
             UCG_CHECK_GOTO(status, out);
         }
         if (ucg_test_and_clear_flags(&op->flags, UCG_RING_REDUCE_SCATTER_SEND)) {
@@ -81,7 +81,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_reduce_scatter(ucg_plan_op_t
                                     large_blkcount : small_blkcount);
             void *tmpsend = args->recvbuf + (int64_t)blockoffset * dt_ext;
             status = ucg_planc_ucx_p2p_isend(tmpsend, blockcount, args->dt,
-                                             right_peer, op->tag, vgroup, &params);
+                                                right_peer, op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
         }
         status = ucg_planc_ucx_p2p_testall(op->ucx_group, params.state);
@@ -130,7 +130,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_allgatherv(ucg_plan_op_t *uc
                                             (recvblock * small_blkcount + spilt_rank));
             void *tmprecv = args->recvbuf + (int64_t)recv_block_offset * dt_ext;
             status = ucg_planc_ucx_p2p_irecv(tmprecv, max_blkcount, args->dt,
-                                             left_peer, op->tag, vgroup, &params);
+                                                left_peer, op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
         }
         if (ucg_test_and_clear_flags(&op->flags, UCG_RING_ALLGATHERV_SEND)) {
@@ -141,7 +141,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_allgatherv(ucg_plan_op_t *uc
             int32_t blockcount = ((sendblock < spilt_rank) ? large_blkcount : small_blkcount);
             void *tmpsend = args->recvbuf + (int64_t)send_block_offset * dt_ext;
             status = ucg_planc_ucx_p2p_isend(tmpsend, blockcount, args->dt,
-                                             right_peer, op->tag, vgroup, &params);
+                                                right_peer, op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
         }
         status = ucg_planc_ucx_p2p_testall(op->ucx_group, params.state);
@@ -158,59 +158,59 @@ out:
 /**
  * @brief Ring algorithm for allreduce operation.
  *
- *          Example on 5 nodes:
- *          Initial state
- *      #       0               1               2               3               4
- *              [00]            [10]            [20]            [30]            [40]
- *              [01]            [11]            [21]            [31]            [41]
- *              [02]            [12]            [22]            [32]            [42]
- *              [03]            [13]            [23]            [33]            [43]
- *              [04]            [14]            [24]            [34]            [44]
+ *         Example on 5 nodes:
+ *         Initial state
+ *   #      0              1             2              3             4
+ *        [00]           [10]          [20]           [30]           [40]
+ *        [01]           [11]          [21]           [31]           [41]
+ *        [02]           [12]          [22]           [32]           [42]
+ *        [03]           [13]          [23]           [33]           [43]
+ *        [04]           [14]          [24]           [34]           [44]
  *
- *          COMPUTATION PHASE
- *          Step 0: rank r sends block r to rank (r+1) and receives bloc (r-1)
- *                  from rank (r-1) [with wraparound].
- *      #       0               1               2               3               4
- *              [00]            [00+10]         [20]            [30]            [40]
- *              [01]            [11]            [11+21]         [31]            [41]
- *              [02]            [12]            [22]            [22+32]         [42]
- *              [03]            [13]            [23]            [33]            [33+43]
- *              [44+04]         [14]            [24]            [34]            [44]
+ *        COMPUTATION PHASE
+ *         Step 0: rank r sends block r to rank (r+1) and receives bloc (r-1)
+ *                 from rank (r-1) [with wraparound].
+ *    #     0              1             2              3             4
+ *        [00]          [00+10]        [20]           [30]           [40]
+ *        [01]           [11]         [11+21]         [31]           [41]
+ *        [02]           [12]          [22]          [22+32]         [42]
+ *        [03]           [13]          [23]           [33]         [33+43]
+ *      [44+04]          [14]          [24]           [34]           [44]
  *
- *          Step 1: rank r sends block (r-1) to rank (r+1) and receives bloc
- *                  (r-2) from rank (r-1) [with wraparound].
- *      #       0               1               2               3               4
- *              [00]            [00+10]         [01+10+20]      [30]            [40]
- *              [01]            [11]            [11+21]         [11+21+31]      [41]
- *              [02]            [12]            [22]            [22+32]         [22+32+42]
- *              [33+43+03]      [13]            [23]            [33]            [33+43]
- *              [44+04]         [44+04+14]      [24]            [34]            [44]
+ *         Step 1: rank r sends block (r-1) to rank (r+1) and receives bloc
+ *                 (r-2) from rank (r-1) [with wraparound].
+ *    #      0              1             2              3             4
+ *         [00]          [00+10]     [01+10+20]        [30]           [40]
+ *         [01]           [11]         [11+21]      [11+21+31]        [41]
+ *         [02]           [12]          [22]          [22+32]      [22+32+42]
+ *      [33+43+03]        [13]          [23]           [33]         [33+43]
+ *        [44+04]       [44+04+14]       [24]           [34]           [44]
  *
- *          Step 2: rank r sends block (r-2) to rank (r+1) and receives bloc
- *                  (r-2) from rank (r-1) [with wraparound].
- *      #       0               1               2               3               4
- *              [00]            [00+10]         [01+10+20]      [01+10+20+30]   [40]
- *              [01]            [11]            [11+21]         [11+21+31]      [11+21+31+41]
- *              [22+32+42+02]   [12]            [22]            [22+32]         [22+32+42]
- *              [33+43+03]      [33+43+03+13]   [23]            [33]            [33+43]
- *              [44+04]         [44+04+14]      [44+04+14+24]   [34]            [44]
+ *         Step 2: rank r sends block (r-2) to rank (r+1) and receives bloc
+ *                 (r-2) from rank (r-1) [with wraparound].
+ *    #      0              1             2              3             4
+ *         [00]          [00+10]     [01+10+20]    [01+10+20+30]      [40]
+ *         [01]           [11]         [11+21]      [11+21+31]    [11+21+31+41]
+ *     [22+32+42+02]      [12]          [22]          [22+32]      [22+32+42]
+ *      [33+43+03]    [33+43+03+13]     [23]           [33]         [33+43]
+ *        [44+04]       [44+04+14]  [44+04+14+24]      [34]           [44]
  *
- *          Step 3: rank r sends block (r-3) to rank (r+1) and receives bloc
- *                  (r-3) from rank (r-1) [with wraparound].
- *      #       0               1               2               3               4
- *              [00]            [00+10]         [01+10+20]      [01+10+20+30]   [FULL]
- *              [FULL]          [11]            [11+21]         [11+21+31]      [11+21+31+41]
- *              [22+32+42+02]   [FULL]          [22]            [22+32]         [22+32+42]
- *              [33+43+03]      [33+43+03+13]   [FULL]          [33]            [33+43]
- *              [44+04]         [44+04+14]      [44+04+14+24]   [FULL]          [44]
+ *         Step 3: rank r sends block (r-3) to rank (r+1) and receives bloc
+ *                 (r-3) from rank (r-1) [with wraparound].
+ *    #      0              1             2              3             4
+ *         [00]          [00+10]     [01+10+20]    [01+10+20+30]     [FULL]
+ *        [FULL]           [11]        [11+21]      [11+21+31]    [11+21+31+41]
+ *     [22+32+42+02]     [FULL]          [22]         [22+32]      [22+32+42]
+ *      [33+43+03]    [33+43+03+13]     [FULL]          [33]         [33+43]
+ *        [44+04]       [44+04+14]  [44+04+14+24]      [FULL]         [44]
  *
- *          DISTRIBUTION PHASE: ring ALLGATHER with ranks shifted by 1.
+ *        DISTRIBUTION PHASE: ring ALLGATHER with ranks shifted by 1.
  *
  * @note Limitations:
- *      - The algorithm DOES NOT preserve order of operations so it
- *        can be used only for commutative operations.
- *      - In addition, algorithm cannot work if the total count is
- *        less than size.
+ *       - The algorithm DOES NOT preserve order of operations so it
+ *         can be used only for commutative operations.
+ *       - In addition, algorithm cannot work if the total count is
+ *         less than size.
  */
 static ucg_status_t ucg_planc_ucx_allreduce_ring_op_progress(ucg_plan_op_t *ucg_op)
 {
@@ -247,7 +247,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_trigger(ucg_plan_op_t *ucg_o
     if (args->sendbuf != UCG_IN_PLACE) {
         status = ucg_dt_memcpy(args->recvbuf, args->count, args->dt,
                                args->sendbuf, args->count, args->dt);
-        /* Special case for group size == 1 */
+        /* Special case for group size == 1*/
         if (op->super.vgroup->size == 1) {
             op->super.super.status = UCG_OK;
             return UCG_OK;

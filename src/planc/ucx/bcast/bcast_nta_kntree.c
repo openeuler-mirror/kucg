@@ -83,7 +83,7 @@ ucg_status_t ucg_planc_ucx_bcast_nta_kntree_prepare(ucg_vgroup_t *vgroup,
     ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
     ucg_planc_ucx_bcast_config_t *config;
     config = UCG_PLANC_UCX_CONTEXT_BUILTIN_CONFIG_BUNDLE(ucx_group->context, bcast,
-                                                         UCG_COLL_TYPE_BCAST);
+                                                 UCG_COLL_TYPE_BCAST);
     ucg_plan_meta_op_t *meta_op;
     meta_op = ucg_planc_ucx_bcast_nta_kntree_op_new(ucx_group, vgroup, args, config);
     if (meta_op == NULL) {

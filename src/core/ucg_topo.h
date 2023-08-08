@@ -155,8 +155,8 @@ void ucg_topo_cleanup(ucg_topo_t *topo);
 /**
  * @brief Get a specific type of topology group.
  *
- * @param [in] topo             Topology
- * @param [in] type             Topo group type
+ * @param [in] topo     Topology
+ * @param [in] type     Topo group type
  * @return NULL if some error happened
  *
  * @note Caller needs to check whether the group is enabled.

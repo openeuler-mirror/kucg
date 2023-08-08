@@ -23,32 +23,32 @@ typedef struct ucg_planc_ucx_scatterv {
             /**
              * staging_count indicates the number of rank data in staging area.
              * For example:
-             *      degree = 2
-             *          0
-             *      / /  \ \
-             *    8  4    2  1
-             *    |  | \  |
-             *    9  6  5 3
+             *      degree=2
+             *         0
+             *      / / \ \
+             *     8 4   2 1
+             *     | |\  |
+             *     9 6 5 3
              *       |
              *       7
              * The staging_count of rank 4 is 3, means staging area stores the data of
              * rank 5,6,7 (sequential increment).
              */
             uint32_t staging_count;
-            /* staging_displs[] indicates the start address of each rank in staging area. */
+            /* staging_displs[] indicates the start address of each rank in staging area.*/
             int32_t *staging_displs;
-            /* sendcounts[] of root rank */
+            /* sendcounts[] of root rank*/
             int32_t *sendcounts;
-            /* sendtype true length of root rank */
+            /* sendtype true length of root rank*/
             int32_t sdtype_size;
         } kntree;
     };
 } ucg_planc_ucx_scatterv_t;
 
 typedef struct ucg_planc_ucx_scatterv_config {
-    size_t min_bsend;    /* for linear, closed boundary */
-    size_t max_bsend;    /* for linear, closed boundary */
-    int kntree_degree;   /* for kntree */
+    size_t min_bsend;   /* for linear, closed boundary */
+    size_t max_bsend;   /* for linear, closed boundary */
+    int kntree_degree;  /* for kntree */
 } ucg_planc_ucx_scatterv_config_t;
 
 const ucg_plan_policy_t *ucg_planc_ucx_get_scatterv_plan_policy(ucg_planc_ucx_node_level_t node_level,

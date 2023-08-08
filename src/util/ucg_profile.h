@@ -70,8 +70,8 @@
  * @param _func     the name of function will be profiled
  * @param ...       the function arguments
  */
-#define UCG_PROFILE_CALL(_func, ...)        UCS_PROFILE_CALL(_func, ## __VA_ARGS__)
-#define UCG_PROFILE_CALL_VOID(_func, ...)   UCS_PROFILE_CALL_VOID(_func, ## __VA_ARGS__)
+#define UCG_PROFILE_CALL(_func, ...)      UCS_PROFILE_CALL(_func, ## __VA_ARGS__)
+#define UCG_PROFILE_CALL_VOID(_func, ...) UCS_PROFILE_CALL_VOID(_func, ## __VA_ARGS__)
 
 /**
  * @brief Profile a function call with name string
@@ -83,7 +83,7 @@
  * @param _func     the name of function will be profiled
  * @param ...       the function arguments
  */
-#define UCG_PROFILE_NAMED_CALL(_name, _func, ...)        UCS_PROFILE_NAMED_CALL(_name, _func, ## __VA_ARGS__)
-#define UCG_PROFILE_NAMED_CALL_VOID(_name, _func, ...)   UCS_PROFILE_NAMED_CALL_VOID(_name, _func, ## __VA_ARGS__)
+#define UCG_PROFILE_NAMED_CALL(_name, _func, ...)      UCS_PROFILE_NAMED_CALL(_name, _func, ## __VA_ARGS__)
+#define UCG_PROFILE_NAMED_CALL_VOID(_name, _func, ...) UCS_PROFILE_NAMED_CALL_VOID(_name, _func, ## __VA_ARGS__)
 
 #endif

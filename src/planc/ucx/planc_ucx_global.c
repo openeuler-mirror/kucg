@@ -13,9 +13,9 @@ ucg_planc_ucx_algo_table_t ucx_algo_global_table[UCG_COLL_TYPE_LAST][UCX_MODULE_
 ucg_components_t ucg_planc_ucx_planm = {0, NULL};
 
 static void ucg_planc_ucx_global_fill_oob_resource(const ucg_global_params_t *params,
-                                                   ucg_planc_ucx_oob_resource_t *ucx_oob_resource)
+                                               ucg_planc_ucx_oob_resource_t *ucx_oob_resource)
 {
-    if (ucg_test_flags(params->field_mask, UCG_GLOBAL_PARAMS_FIELD_OOB_RESOURCE)) {
+    if(ucg_test_flags(params->field_mask, UCG_GLOBAL_PARAMS_FIELD_OOB_RESOURCE)) {
         const ucg_oob_resource_t *ucg_oob_resource = &params->oob_resource;
         ucx_oob_resource->get_ucp_ep = ucg_oob_resource->get_ucp_ep;
         ucx_oob_resource->get_ucp_worker = ucg_oob_resource->get_ucp_worker;
@@ -63,6 +63,7 @@ ucg_planc_ucx_t UCG_PLANC_OBJNAME(ucx) = {
     .super.context_init     = ucg_planc_ucx_context_init,
     .super.context_cleanup  = ucg_planc_ucx_context_cleanup,
     .super.context_query    = ucg_planc_ucx_context_query,
+    .super.context_progress = ucg_planc_ucx_context_progress,
 
     .super.group_create     = ucg_planc_ucx_group_create,
     .super.group_destroy    = ucg_planc_ucx_group_destroy,

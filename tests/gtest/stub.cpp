@@ -23,7 +23,7 @@ void test_stub_free(void *ptr);
 char *test_stub_strdup(const char *s, const char *name);
 
 /*******************************************************************************
- *                      PlanC Stub
+ *                          PlanC Stub
  ******************************************************************************/
 ucg_status_t test_stub_planc_mem_query(const void *ptr, ucg_mem_attr_t *attr);
 ucg_status_t test_stub_planc_config_read(const char *env_prefix,
@@ -47,7 +47,7 @@ ucg_status_t test_stub_planc_get_plans(ucg_planc_group_h planc_group,
                                        ucg_plans_t *plans);
 void *test_stub_acl_buffer = (void*)1;
 /*******************************************************************************
- *                      Plan Stub
+ *                          Plan Stub
  ******************************************************************************/
 ucg_status_t test_stub_plan_prepare(ucg_vgroup_t *vgroup,
                                     const ucg_coll_args_t *args,
@@ -56,7 +56,7 @@ ucg_status_t test_stub_plan_op_trigger(ucg_plan_op_t *op);
 ucg_status_t test_stub_plan_op_progress(ucg_plan_op_t *op);
 ucg_status_t test_stub_plan_op_discard(ucg_plan_op_t *op);
 /*******************************************************************************
- *                      User Callback Stub
+ *                          User Callback Stub
  ******************************************************************************/
 ucg_status_t test_stub_allgather(const void *sendbuf, void *recvbuf, int32_t count, void *group);
 ucg_status_t test_stub_get_location(ucg_rank_t rank, ucg_location_t *location);
@@ -185,7 +185,7 @@ bool stub::call(routine_type_t type, const char *name)
 using namespace test;
 
 /*******************************************************************************
- *                      Memory Hook
+ *                     Memory Hook
  ******************************************************************************/
 void *test_stub_malloc(size_t size, const char *name)
 {
@@ -234,7 +234,7 @@ char *test_stub_strdup(const char *s, const char *name)
 }
 
 /*******************************************************************************
- *                      PlanC API Stub
+ *                          PlanC API Stub
  ******************************************************************************/
 ucg_status_t test_stub_planc_mem_query(const void *ptr, ucg_mem_attr_t *attr)
 {
@@ -430,7 +430,7 @@ ucg_status_t test_stub_plan_op_discard(ucg_plan_op_t *op)
 }
 
 /*******************************************************************************
- *                      User Callback Stub
+ *                          User Callback Stub
  ******************************************************************************/
 ucg_status_t test_stub_allgather(const void *sendbuf, void *recvbuf, int32_t count, void *group)
 {

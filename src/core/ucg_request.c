@@ -99,7 +99,7 @@ static ucg_status_t ucg_request_ctor(ucg_request_t *self, const ucg_coll_args_t 
 {
     self->status = UCG_OK;
     self->args = *args;
-    self->id = UCG_GROUP_INVALID_REQ_ID;
+    self->id = UCG_GROUP_BASE_REQ_ID;
     /** trade-off, get more information from comments of @ref ucg_op_init */
     if (args->type == UCG_COLL_TYPE_ALLREDUCE && args->allreduce.op != NULL) {
         if (!ucg_op_is_persistent(args->allreduce.op)) {
@@ -137,7 +137,7 @@ out:
 static inline void ucg_request_complete(ucg_request_t *request, ucg_status_t status)
 {
     ucg_group_free_req_id(request->group, request->id);
-    request->id = UCG_GROUP_INVALID_REQ_ID;
+    request->id = UCG_GROUP_BASE_REQ_ID;
     ucg_request_info_t *info = &request->args.info;
     if (info->field_mask & UCG_REQUEST_INFO_FIELD_CB) {
         info->complete_cb.cb(info->complete_cb.arg, status);
@@ -277,8 +277,8 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
 }
 
 ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcount,
-                                      ucg_dt_t *sendtype, void *recvbuf, 
-                                      const int32_t* recvcounts, const int32_t *displs,
+                                      ucg_dt_t *sendtype, void *recvbuf,
+                                      const int32_t* recvcounts, const int32_t* displs,
                                       ucg_dt_t *recvtype, ucg_rank_t root,
                                       ucg_group_h group, const ucg_request_info_t *info,
                                       ucg_request_h *request)
@@ -286,9 +286,9 @@ ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcou
 #ifdef UCG_ENABLE_CHECK_PARAMS
     if (group->myrank == root) {
         if (sendbuf == UCG_IN_PLACE) {
-            UCG_CHECK_NULL_INVALID (recvbuf, recvcounts, displs, recvbuf, group, request);
+            UCG_CHECK_NULL_INVALID(recvbuf, recvcounts, displs, recvbuf, group, request);
         } else {
-            UCG_CHECK_NULL_INVALID (sendbuf, sendtype, recvbuf, recvcounts, displs, recvbuf, group, request);
+            UCG_CHECK_NULL_INVALID(sendbuf, sendtype, recvbuf, recvcounts, displs, recvbuf, group, request);
         }
     } else {
         /* sendbuf, sendcounts, displs and sendtype are not significant for non-root process*/
@@ -364,7 +364,7 @@ UCG_PROFILE_FUNC(ucg_status_t, ucg_request_start, (request), ucg_request_h reque
     }
 
     /* Requests with the same ID are combined into a complete collection op. */
-    ucg_assert(request->id == UCG_GROUP_INVALID_REQ_ID);
+    ucg_assert(request->id == UCG_GROUP_BASE_REQ_ID);
     request->id = ucg_group_alloc_req_id(request->group);
 
     ucg_plan_op_t *op = ucg_derived_of(request, ucg_plan_op_t);

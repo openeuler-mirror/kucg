@@ -32,12 +32,12 @@ typedef struct ucg_algo_rd_iter {
  * @brief Initialize iterator of recursive doubling algorithm
  *
  * Depending on the input size, iterators are classified into three types:
- * - BASE:  values of this iterator are {BASE,...,BASE}.
+ * - BASE: values of this iterator are {BASE,...,BASE}.
  * - PROXY: Special BASE, values of this iterator are {EXTRA,BASE,...,BASE,EXTRA}.
  * - EXTRA: values of this iterator are {PROXY,PROXY}.
  * For example, if the input size is 5, the types of each rank are as follows:
- *      rank  0     1     2     3    4
- *      type  E     P     B     B    B
+ *      rank  0     1     2     3     4
+ *      type  E     P     B     B     B
  * The values of iterator of rank 0 are {1, 1} in each iteration.
  * The values of iterator of rank 1 are {0, 2, 3, 0} in each iteration.
  * The values of iterator of rank 2 are {1, 4} in each iteration.

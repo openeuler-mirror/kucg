@@ -19,33 +19,33 @@ enum {
 
 /**
  * Ring algorithm for allgatherv with p - 1 steps:
- *  0 -> 1 -> 2 -> 3
+ *      0 -> 1 -> 2 -> 3
  *
  * Example on 4 processes:
  *  Initial state
- *      #    0       1       2       3
- *          [0]     [ ]     [ ]     [ ]
- *          [ ]     [1]     [ ]     [ ]
- *          [ ]     [ ]     [2]     [ ]
- *          [ ]     [ ]     [ ]     [3]
- *  Step 0:
- *      #    0       1       2       3
- *          [0]     [0]     [ ]     [ ]
- *          [ ]     [1]     [1]     [ ]
- *          [ ]     [ ]     [2]     [2]
- *          [3]     [ ]     [ ]     [3]
- *  Step 1:
- *      #    0       1       2       3
- *          [0]     [0]     [0]     [ ]
- *          [ ]     [1]     [1]     [1]
- *          [2]     [ ]     [2]     [2]
- *          [3]     [3]     [ ]     [3]
- *  Step 2:
- *      #    0       1       2       3
- *          [0]     [0]     [0]     [0]
- *          [1]     [1]     [1]     [1]
- *          [2]     [2]     [2]     [2]
- *          [3]     [3]     [3]     [3]
+ *    #     0      1      2      3
+ *         [0]    [ ]    [ ]    [ ]
+ *         [ ]    [1]    [ ]    [ ]
+ *         [ ]    [ ]    [2]    [ ]
+ *         [ ]    [ ]    [ ]    [3]
+ *   Step 0:
+ *    #     0      1      2      3
+ *         [0]    [0]    [ ]    [ ]
+ *         [ ]    [1]    [1]    [ ]
+ *         [ ]    [ ]    [2]    [2]
+ *         [3]    [ ]    [ ]    [3]
+ *   Step 1:
+ *    #     0      1      2      3
+ *         [0]    [0]    [0]    [ ]
+ *         [ ]    [1]    [1]    [1]
+ *         [2]    [ ]    [2]    [2]
+ *         [3]    [3]    [ ]    [3]
+ *   Step 2:
+ *    #     0      1      2      3
+ *         [0]    [0]    [0]    [0]
+ *         [1]    [1]    [1]    [1]
+ *         [2]    [2]    [2]    [2]
+ *         [3]    [3]    [3]    [3]
  *
  */
 static ucg_status_t ucg_planc_ucx_allgatherv_ring_op_progress(ucg_plan_op_t *ucg_op)
@@ -110,8 +110,8 @@ static ucg_status_t ucg_planc_ucx_allgatherv_ring_op_trigger(ucg_plan_op_t *ucg_
         ucg_dt_t *sendtype = args->sendtype;
         uint32_t recvtype_extent = ucg_dt_extent(recvtype);
         status = ucg_dt_memcpy((char *)recvbuf + args->displs[myrank] * recvtype_extent,
-                               args->recvcounts[myrank], recvtype,
-                               sendbuf, args->sendcount, sendtype);
+                                args->recvcounts[myrank], recvtype,
+                                sendbuf, args->sendcount, sendtype);
         UCG_CHECK_GOTO(status, out);
     }
 
