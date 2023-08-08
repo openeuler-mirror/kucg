@@ -709,7 +709,7 @@ err:
 }
 
 ucg_plan_meta_op_t* ucg_planc_ucx_allreduce_rabenseifner_op_new(ucg_planc_ucx_group_t* ucx_group,
-                                                                ucg_vgroup_t *vgroup,
+                                                                ucg_vgroup_t* vgroup,
                                                                 const ucg_coll_args_t* args)
 {
     UCG_CHECK_NULL(NULL, ucx_group, vgroup, args);

@@ -18,10 +18,10 @@ static ucg_plan_attr_t ucg_planc_ucx_allgatherv_plan_attr[] = {
     {ucg_planc_ucx_allgatherv_ring_hpl_prepare,
      3, "Ring-HPL", PLAN_DOMAIN},
 
-     {ucg_planc_ucx_allgatherv_linear_prepare,
+    {ucg_planc_ucx_allgatherv_linear_prepare,
      4, "Linear", PLAN_DOMAIN},
 
-     {ucg_planc_ucx_allgatherv_bruck_prepare,
+    {ucg_planc_ucx_allgatherv_bruck_prepare,
      5, "Bruck", PLAN_DOMAIN},
 
     {NULL},

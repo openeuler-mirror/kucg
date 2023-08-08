@@ -215,7 +215,7 @@ static ucg_plan_policy_t bcast_16_LG[] = {
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t bcast_LG_1[] = {
-    {4,  {0, 32768}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {4, {0, 32768}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {1,  {32768, 65536}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {2,  {65536, 524288}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {8,  {524288, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},

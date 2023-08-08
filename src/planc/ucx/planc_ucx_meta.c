@@ -64,7 +64,7 @@ ucg_status_t ucg_planc_ucx_add_empty_op(ucg_plan_meta_op_t *meta_op,
     };
     ucg_planc_ucx_op_t *ucx_op = NULL;
     ucx_op = ucg_planc_ucx_empty_op_new(ucx_group, vgroup, &args);
-    if (ucx_op == NULL) {
+    if (ucx_op == NULL){
         return UCG_ERR_NO_MEMORY;
     }
     return ucg_plan_meta_op_add(meta_op, &ucx_op->super);

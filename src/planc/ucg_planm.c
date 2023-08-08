@@ -14,7 +14,7 @@
 #include <dlfcn.h>
 #include <libgen.h>
 
-/* Default directory for planm library, same to planc */
+/* Default directory for planm library, same to planc*/
 #ifndef UCG_PLANM_DIR
     #define UCG_PLANM_DIR "planc"
 #endif

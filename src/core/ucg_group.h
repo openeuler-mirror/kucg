@@ -13,7 +13,14 @@
 
 #include "planc/ucg_planc_def.h"
 
-#define UCG_GROUP_INVALID_REQ_ID 0
+#include <limits.h>
+
+/**
+ * Like ompi/coll, a negative value is used to avoid tag conflicts with
+ * point-to-point communication.
+ */
+#define UCG_GROUP_BASE_REQ_ID       (0x800000)
+#define UCG_GROUP_END_REQ_ID        (0xFFFFFF)
 
 typedef struct ucg_group {
     ucg_context_t *context;
@@ -29,8 +36,9 @@ typedef struct ucg_group {
     ucg_rank_t myrank;
     ucg_rank_map_t rank_map; /* convert group rank to context rank */
     ucg_oob_group_t oob_group;
+
     /* collective operation request id */
-    uint16_t unique_req_id;
+    int unique_req_id;
 } ucg_group_t;
 
 /**
@@ -66,8 +74,8 @@ static inline void* ucg_group_get_proc_addr(ucg_group_t *group, ucg_rank_t rank,
 /**
  * @brief Get process location by group rank.
  *
- * @param [in]  group       UCG Group
- * @param [in]  rank        Group rank
+ * @param [in] group        UCG Group
+ * @param [in] rank         Group rank
  * @param [out] location    Location
  */
 static inline ucg_status_t ucg_group_get_location(ucg_group_t *group,
@@ -80,12 +88,13 @@ static inline ucg_status_t ucg_group_get_location(ucg_group_t *group,
 }
 
 /* In the same communication group, different members must obtain the same request
-   ID when executing this function at the same time. */
-static inline uint16_t ucg_group_alloc_req_id(ucg_group_t *ucg_group)
+   ID when executing this function at the same time.*/
+static inline int ucg_group_alloc_req_id(ucg_group_t *ucg_group)
 {
-    uint16_t unique_req_id = ++ucg_group->unique_req_id;
-    if (unique_req_id == UCG_GROUP_INVALID_REQ_ID) {
-        unique_req_id = ++ucg_group->unique_req_id;
+    int unique_req_id = ++ucg_group->unique_req_id;
+    if (unique_req_id == UCG_GROUP_END_REQ_ID) {
+        unique_req_id = UCG_GROUP_BASE_REQ_ID + 1;
+        ucg_group->unique_req_id = unique_req_id;
     }
     return unique_req_id;
 }

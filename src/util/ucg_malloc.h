@@ -12,22 +12,22 @@
 typedef void *(*ucg_malloc_hook_t)(size_t s, const char *name);
 typedef void *(*ucg_calloc_hook_t)(size_t nmemb, size_t size, const char *name);
 typedef void *(*ucg_realloc_hook_t)(void *ptr, size_t size, const char *name);
-typedef int   (*ucg_posix_memalign_hook_t)(void **memptr, size_t alignment, size_t size, const char *name);
-typedef void  (*ucg_free_hook_t)(void *ptr);
+typedef int (*ucg_posix_memalign_hook_t)(void **memptr, size_t alignment, size_t size, const char *name);
+typedef void (*ucg_free_hook_t)(void *ptr);
 typedef char *(*ucg_strdup_hook_t)(const char *s, const char *name);
 /* ucg malloc hook */
-extern ucg_malloc_hook_t           ucg_malloc_hook;
-extern ucg_calloc_hook_t           ucg_calloc_hook;
-extern ucg_realloc_hook_t          ucg_realloc_hook;
-extern ucg_posix_memalign_hook_t   ucg_posix_memalign_hook;
-extern ucg_free_hook_t             ucg_free_hook;
-extern ucg_strdup_hook_t           ucg_strdup_hook;
+extern ucg_malloc_hook_t ucg_malloc_hook;
+extern ucg_calloc_hook_t ucg_calloc_hook;
+extern ucg_realloc_hook_t ucg_realloc_hook;
+extern ucg_posix_memalign_hook_t ucg_posix_memalign_hook;
+extern ucg_free_hook_t ucg_free_hook;
+extern ucg_strdup_hook_t ucg_strdup_hook;
 /* ucg malloc wrapper */
 void *ucg_malloc(size_t size, const char *name);
 void *ucg_calloc(size_t nmemb, size_t size, const char *name);
 void *ucg_realloc(void *ptr, size_t size, const char *name);
-int   ucg_posix_memalign(void **memptr, size_t alignment, size_t size, const char *name);
-void  ucg_free(void *ptr);
+int ucg_posix_memalign(void **memptr, size_t alignment, size_t size, const char *name);
+void ucg_free(void *ptr);
 char *ucg_strdup(const char *s, const char *name);
 #else
 #define ucg_malloc(_s, ...)         malloc(_s)

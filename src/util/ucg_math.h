@@ -10,10 +10,10 @@
 #include <math.h>
 #include "ucg/api/ucg.h"
 
-#define UCG_KBYTE   (1ull << 10)
-#define UCG_MBYTE   (1ull << 20)
-#define UCG_GBYTE   (1ull << 30)
-#define UCG_TBYTE   (1ull << 40)
+#define UCG_KBYTE    (1ull << 10)
+#define UCG_MBYTE    (1ull << 20)
+#define UCG_GBYTE    (1ull << 30)
+#define UCG_TBYTE    (1ull << 40)
 
 #define ucg_min(_a, _b) \
 ({ \
@@ -29,16 +29,16 @@
     (_max_a > _max_b) ? _max_a : _max_b; \
 })
 
-#define DO_OP_MAX(_v1, _v2)     (_v1 > _v2 ? _v1 : _v2)
-#define DO_OP_MIN(_v1, _v2)     (_v1 < _v2 ? _v1 : _v2)
-#define DO_OP_SUM(_v1, _v2)     (_v1 + _v2)
-#define DO_OP_PROD(_v1, _v2)    (_v1 * _v2)
-#define DO_OP_LAND(_v1, _v2)    (_v1 && _v2)
-#define DO_OP_BAND(_v1, _v2)    (_v1 & _v2)
-#define DO_OP_LOR(_v1, _v2)     (_v1 || _v2)
-#define DO_OP_BOR(_v1, _v2)     (_v1 | _v2)
-#define DO_OP_LXOR(_v1, _v2)    ((!_v1) != (!_v2))
-#define DO_OP_BXOR(_v1, _v2)    (_v1 ^ _v2)
+#define DO_OP_MAX(_v1, _v2) (_v1 > _v2 ? _v1 : _v2)
+#define DO_OP_MIN(_v1, _v2) (_v1 < _v2 ? _v1 : _v2)
+#define DO_OP_SUM(_v1, _v2) (_v1 + _v2)
+#define DO_OP_PROD(_v1, _v2) (_v1 * _v2)
+#define DO_OP_LAND(_v1, _v2) (_v1 && _v2)
+#define DO_OP_BAND(_v1, _v2) (_v1 & _v2)
+#define DO_OP_LOR(_v1, _v2) (_v1 || _v2)
+#define DO_OP_BOR(_v1, _v2) (_v1 | _v2)
+#define DO_OP_LXOR(_v1, _v2) ((!_v1) != (!_v2))
+#define DO_OP_BXOR(_v1, _v2) (_v1 ^ _v2)
 
 #define ucg_is_pow2_or_zero(_n) \
     !((_n) & ((_n) - 1))
@@ -179,17 +179,17 @@ static inline double ucg_log2(double x)
  * @brief Compare unsigned numbers which can wrap-around, assuming the wrap-around
  * distance can be at most the maximal value of the signed type.
  *
- * @param __a           First number
- * @param __op          Operator (e.g >=)
- * @param __b           Second number
- * @param __signed_type Signed type of __a/__b (e.g int32_t)
+ * @param __a            First number
+ * @param __op           Operator (e.g >=)
+ * @param __b            Second number
+ * @param __signed_type   Signed type of __a/__b (e.g int32_t)
  *
  * @return value of the expression "__a __op __b".
  */
-#define UCG_CIRCULAR_COMPARE(__a, __op, __b, __signed_type) \
+#define UCG_CIRCULAR_COMPARE(__a, __op, __b, __signed_type)  \
     ((__signed_type)((__a) - (__b)) __op 0)
 
-#define UCG_CIRCULAR_COMPARE8(__a, __op, __b)   UCG_CIRCULAR_COMPARE(__a, __op, __b, int8_t)
+#define UCG_CIRCULAR_COMPARE8(__a, __op, __b)  UCG_CIRCULAR_COMPARE(__a, __op, __b, int8_t)
 #define UCG_CIRCULAR_COMPARE16(__a, __op, __b)  UCG_CIRCULAR_COMPARE(__a, __op, __b, int16_t)
 #define UCG_CIRCULAR_COMPARE32(__a, __op, __b)  UCG_CIRCULAR_COMPARE(__a, __op, __b, int32_t)
 #define UCG_CIRCULAR_COMPARE64(__a, __op, __b)  UCG_CIRCULAR_COMPARE(__a, __op, __b, int64_t)
@@ -197,8 +197,8 @@ static inline double ucg_log2(double x)
 /**
  * @brief Generate all sub-masks of the given mask, from 0 to _mask inclusive.
  *
- * @param _submask  Variable to iterate over the sub-masks
- * @param _mask     Generate sub-masks of this value
+ * @param _submask   Variable to iterate over the sub-masks
+ * @param _mask      Generate sub-masks of this value
  */
 #define ucg_for_each_submask(_submask, _mask) \
     for (/* start with 0 */ \
@@ -213,6 +213,6 @@ static inline double ucg_log2(double x)
           */ \
          (_submask)++, \
          ((_submask) <= (_mask)) ? \
-                 ((_submask) = ((_submask) + ~(_mask)) & (_mask)) : 0)
+                 ((_submask) = ((_submask )+ ~(_mask)) & (_mask)) : 0)
 
 #endif

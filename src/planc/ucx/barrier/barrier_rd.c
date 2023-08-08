@@ -161,8 +161,8 @@ static ucg_status_t ucg_planc_ucx_barrier_rd_op_discard(ucg_plan_op_t *ucg_op)
 }
 
 ucg_planc_ucx_op_t *ucg_planc_ucx_barrier_rd_op_new(ucg_planc_ucx_group_t *ucx_group,
-                                                    ucg_vgroup_t *vgroup,
-                                                    const ucg_coll_args_t *args)
+                                                      ucg_vgroup_t *vgroup,
+                                                      const ucg_coll_args_t *args)
 {
     UCG_CHECK_NULL(NULL, ucx_group, vgroup, args);
 

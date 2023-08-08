@@ -26,7 +26,7 @@ typedef struct ucg_mpool_ops {
      * @param [in] mp           the memory pool
      * @param [in out] psize    the size of chunk want to alloc, this function may
      *                          modify it to actual allocated size (will greater or equal to input)
-     * @param [out]   pchunk    the chunk
+     * @param [out] pchunk      the chunk
      */
     ucg_status_t (*chunk_alloc)(ucg_mpool_t *mp, size_t *psize, void **pchunk);
 
@@ -52,15 +52,15 @@ typedef struct ucg_mpool_ops {
      * @brief Cleanup an object before it is be freed to memory pool
      * @note  If set NULL then will not cleanup the object
      *
-     * @param [in] mp          the memory pool
+     * @param [in] mp           the memory pool
      * @param [out] obj         the object
      */
     void (*obj_cleanup)(ucg_mpool_t *mp, void *obj);
 } ucg_mpool_ops_t;
 
 struct ucg_mpool {
-    ucs_mpool_t super;          /**< UCS memory pool */
-    ucg_mpool_ops_t *ops;       /**< UCG mpool ops */
+    ucs_mpool_t super;      /**< UCS memory pool */
+    ucg_mpool_ops_t *ops;   /**< UCG mpool ops */
     ucg_lock_t lock;
 };
 
@@ -109,8 +109,8 @@ ucg_status_t ucg_mpool_init_mt(ucg_mpool_t *mp, size_t priv_size,
 /**
  * @brief Clean up the memory pool
  *
- * @param [in] mp               the memory pool
- * @param [in] check_leak       0 for not check, 1 for check
+ * @param [in] mp           the memory pool
+ * @param [in] check_leak   0 for not check, 1 for check
  */
 void ucg_mpool_cleanup(ucg_mpool_t *mp, int check_leak);
 

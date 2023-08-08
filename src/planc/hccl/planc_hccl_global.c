@@ -19,6 +19,7 @@ ucg_planc_hccl_t UCG_PLANC_OBJNAME(hccl) = {
     .super.context_init       = ucg_planc_hccl_context_init,
     .super.context_cleanup    = ucg_planc_hccl_context_cleanup,
     .super.context_query      = ucg_planc_hccl_context_query,
+    .super.context_progress   = ucg_planc_hccl_context_progress,
 
     .super.group_create       = ucg_planc_hccl_group_create,
     .super.group_destroy      = ucg_planc_hccl_group_destroy,

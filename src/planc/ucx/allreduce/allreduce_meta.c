@@ -120,9 +120,9 @@ ucg_status_t ucg_planc_ucx_allreduce_add_reduce_kntree_op(ucg_plan_meta_op_t *me
     ucg_coll_args_t reduce_args;
     reduce_args.type = UCG_COLL_TYPE_REDUCE;
     if (send_in_place) {
-        reduce_args.reduce.sendbuf = UCG_IN_PLACE;
+       reduce_args.reduce.sendbuf = UCG_IN_PLACE;
     } else {
-        reduce_args.reduce.sendbuf = args->allreduce.sendbuf;
+       reduce_args.reduce.sendbuf = args->allreduce.sendbuf;
     }
     reduce_args.reduce.recvbuf = args->allreduce.recvbuf;
     reduce_args.reduce.count = args->allreduce.count;
@@ -222,7 +222,7 @@ ucg_status_t ucg_planc_ucx_allreduce_get_rd_args(ucg_vgroup_t *vgroup,
         topo_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
         return UCG_ERR_UNSUPPORTED;
     }
-    
+
     ucg_rank_t myrank = topo_group->super.myrank;
     int32_t size = topo_group->super.size;
 
@@ -355,8 +355,8 @@ ucg_status_t ucg_planc_ucx_allreduce_add_allgatherv_op(ucg_plan_meta_op_t *meta_
 }
 
 void ucg_planc_ucx_allreduce_set_send_in_place_flag(ucg_vgroup_t *vgroup,
-                                                    ucg_topo_group_type_t pre_group_type,
-                                                    int32_t *send_in_place)
+                                                     ucg_topo_group_type_t pre_group_type,
+                                                     int32_t *send_in_place)
 {
     if (vgroup->group->topo->groups[pre_group_type].state == UCG_TOPO_GROUP_STATE_ENABLE) {
         *send_in_place = 1;

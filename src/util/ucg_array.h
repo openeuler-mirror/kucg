@@ -81,9 +81,9 @@
 /**
  * @brief Extend array
  *
- * @param [in] _type        Type of array
- * @param [in] _array       Point to begin address of array
- * @param [in] _grow        Extend size
+ * @param [in] _type    Type of array
+ * @param [in] _array   Point to begin address of array
+ * @param [in] _grow    Extend size
  * @return ucg_status_t
  *
  * @note the extended array can be freed by ucg_free()

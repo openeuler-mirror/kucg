@@ -41,7 +41,7 @@ typedef struct ucg_planc_ucx_op {
     ucg_plan_op_t super;
     ucg_planc_ucx_group_t *ucx_group;
     ucg_planc_ucx_p2p_state_t p2p_state;
-    uint16_t tag;
+    int tag;
     /* Abstracted fields, the concrete op determines how to use these. */
     uint64_t flags;
     void *staging_area;
@@ -102,7 +102,7 @@ static inline void ucg_planc_ucx_op_reset(ucg_planc_ucx_op_t *op)
     ucg_planc_ucx_p2p_state_reset(&op->p2p_state);
     /* The request ID is used as the tag to ensure that the messages
        in the same op can be correctly matched. */
-    ucg_assert(op->super.super.id != UCG_GROUP_INVALID_REQ_ID);
+    ucg_assert(op->super.super.id != UCG_GROUP_BASE_REQ_ID);
     op->tag = op->super.super.id;
     op->flags = 0;
     return;

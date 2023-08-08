@@ -168,7 +168,7 @@ ucg_status_t ucg_group_create(ucg_context_h context, const ucg_group_params_t *p
         goto out;
     }
     grp->context = context;
-    grp->unique_req_id = 0;
+    grp->unique_req_id = UCG_GROUP_BASE_REQ_ID;
 
     status = ucg_group_apply_params(grp, params);
     if (status != UCG_OK) {

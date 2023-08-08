@@ -27,7 +27,7 @@ typedef struct ucg_algo_kntree_iter {
  *      degree=2          degree=3             degree=4
  *         0                 0                    0
  *      / / \ \         / /  |  \ \          /   / \ \ \
- *     8 4   2 1       9 3   6   1 2        4   8   1 2 3
+ *     8 4   2 1       9 3   6   1 2        4   8  1 2 3
  *     | |\  |           |\  |\            /|\  |
  *     9 6 5 3           4 5 7 8          5 6 7 9
  *       |

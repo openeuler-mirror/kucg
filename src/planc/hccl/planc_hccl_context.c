@@ -271,3 +271,8 @@ ucg_status_t ucg_planc_hccl_context_query(ucg_planc_context_h context,
 
     return UCG_OK;
 }
+
+int ucg_planc_hccl_context_progress(ucg_planc_context_h context)
+{
+    return 0;
+}

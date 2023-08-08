@@ -8,23 +8,23 @@
 #include "ucg/api/ucg.h"
 #include "util/ucg_helper.h"
 
-/* NOTE: Only support UCG_MEM_TYPE_HOST. */
+/* NOTE:  Only support UCG_MEM_TYPE_HOST. */
 
 typedef enum {
-    UCG_DT_FLAG_IS_PREDEFINED  = UCG_BIT(0),
-    UCG_DT_FLAG_IS_CONTIGUOUS  = UCG_BIT(1),
+    UCG_DT_FLAG_IS_PREDEFINED = UCG_BIT(0),
+    UCG_DT_FLAG_IS_CONTIGUOUS = UCG_BIT(1),
 } ucg_dt_flag_t;
 
 typedef enum {
-    UCG_OP_FLAG_IS_PREDEFINED  = UCG_BIT(0),
+    UCG_OP_FLAG_IS_PREDEFINED = UCG_BIT(0),
     UCG_OP_FLAG_IS_COMMUTATIVE = UCG_BIT(1),
-    UCG_OP_FLAG_IS_PERSISTENT  = UCG_BIT(2),
+    UCG_OP_FLAG_IS_PERSISTENT = UCG_BIT(2),
 } ucg_op_flag_t;
 
 typedef struct {
     /** opaque object */
     uint64_t obj;
-    /** Callback to destroy opaque object */
+    /** Callback to destroy opaque object*/
     void (*destroy)(uint64_t obj);
 } ucg_dt_opaque_t;
 
@@ -87,7 +87,7 @@ ucg_status_t ucg_dt_global_init();
 void ucg_dt_global_cleanup();
 
 /***************************************************************
- *                      Datatype routines
+ *                     Datatype routines
  ***************************************************************/
 static inline uint32_t ucg_dt_size(const ucg_dt_t *dt)
 {
@@ -154,7 +154,7 @@ ucg_status_t ucg_dt_unpack(ucg_dt_state_t *state, uint64_t offset,
 void ucg_dt_finish(ucg_dt_state_t *state);
 
 /***************************************************************
- *                      Operation routines
+ *                     Operation routines
  ***************************************************************/
 static inline uint8_t ucg_op_is_predefined(const ucg_op_t *op)
 {
@@ -185,7 +185,7 @@ static inline ucg_status_t ucg_op_reduce(ucg_op_t *op,
     if (source == NULL || target == NULL || count == 0) {
         return UCG_OK;
     }
-    
+
     if (ucg_op_is_predefined(op)) {
         return op->func(op, source, target, count, dt);
     }

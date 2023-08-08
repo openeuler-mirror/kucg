@@ -68,17 +68,17 @@
 #define UCG_OP_PREDEFINED(_type, _TYPE) \
     UCG_OP_PREDEFINED_FUNCS(_type, _TYPE) \
     static ucg_op_func_t ucg_op_predefined_funcs_##_type[UCG_DT_TYPE_PREDEFINED_LAST] = { \
-        [UCG_DT_TYPE_INT8]      = ucg_op_func_##_type##_int8_t, \
-        [UCG_DT_TYPE_INT16]     = ucg_op_func_##_type##_int16_t, \
-        [UCG_DT_TYPE_INT32]     = ucg_op_func_##_type##_int32_t, \
-        [UCG_DT_TYPE_INT64]     = ucg_op_func_##_type##_int64_t, \
-        [UCG_DT_TYPE_UINT8]     = ucg_op_func_##_type##_uint8_t, \
-        [UCG_DT_TYPE_UINT16]    = ucg_op_func_##_type##_uint16_t, \
-        [UCG_DT_TYPE_UINT32]    = ucg_op_func_##_type##_uint32_t, \
-        [UCG_DT_TYPE_UINT64]    = ucg_op_func_##_type##_uint64_t, \
-        [UCG_DT_TYPE_FP16]      = ucg_op_func_##_type##__Float16, \
-        [UCG_DT_TYPE_FP32]      = ucg_op_func_##_type##_float, \
-        [UCG_DT_TYPE_FP64]      = ucg_op_func_##_type##_double, \
+        [UCG_DT_TYPE_INT8] = ucg_op_func_##_type##_int8_t, \
+        [UCG_DT_TYPE_INT16] = ucg_op_func_##_type##_int16_t, \
+        [UCG_DT_TYPE_INT32] = ucg_op_func_##_type##_int32_t, \
+        [UCG_DT_TYPE_INT64] = ucg_op_func_##_type##_int64_t, \
+        [UCG_DT_TYPE_UINT8] = ucg_op_func_##_type##_uint8_t, \
+        [UCG_DT_TYPE_UINT16] = ucg_op_func_##_type##_uint16_t, \
+        [UCG_DT_TYPE_UINT32] = ucg_op_func_##_type##_uint32_t, \
+        [UCG_DT_TYPE_UINT64] = ucg_op_func_##_type##_uint64_t, \
+        [UCG_DT_TYPE_FP16] = ucg_op_func_##_type##__Float16, \
+        [UCG_DT_TYPE_FP32] = ucg_op_func_##_type##_float, \
+        [UCG_DT_TYPE_FP64] = ucg_op_func_##_type##_double, \
     }; \
     static ucg_status_t UCG_OP_PREDEFINED_NAME(_type)(void *op, \
                                                       const void *source, \
@@ -155,17 +155,17 @@
 
 static ucg_mpool_t ucg_dt_state_mp;
 static ucg_dt_t ucg_dt_predefined[UCG_DT_TYPE_PREDEFINED_LAST] = {
-    {UCG_DT_TYPE_INT8,   UCG_DT_PREDEFINED_FLAGS, 1, 1, 0, 1},
-    {UCG_DT_TYPE_INT16,  UCG_DT_PREDEFINED_FLAGS, 2, 2, 0, 2},
-    {UCG_DT_TYPE_INT32,  UCG_DT_PREDEFINED_FLAGS, 4, 4, 0, 4},
-    {UCG_DT_TYPE_INT64,  UCG_DT_PREDEFINED_FLAGS, 8, 8, 0, 8},
-    {UCG_DT_TYPE_UINT8,  UCG_DT_PREDEFINED_FLAGS, 1, 1, 0, 1},
+    {UCG_DT_TYPE_INT8, UCG_DT_PREDEFINED_FLAGS, 1, 1, 0, 1},
+    {UCG_DT_TYPE_INT16, UCG_DT_PREDEFINED_FLAGS, 2, 2, 0, 2},
+    {UCG_DT_TYPE_INT32, UCG_DT_PREDEFINED_FLAGS, 4, 4, 0, 4},
+    {UCG_DT_TYPE_INT64, UCG_DT_PREDEFINED_FLAGS, 8, 8, 0, 8},
+    {UCG_DT_TYPE_UINT8, UCG_DT_PREDEFINED_FLAGS, 1, 1, 0, 1},
     {UCG_DT_TYPE_UINT16, UCG_DT_PREDEFINED_FLAGS, 2, 2, 0, 2},
     {UCG_DT_TYPE_UINT32, UCG_DT_PREDEFINED_FLAGS, 4, 4, 0, 4},
     {UCG_DT_TYPE_UINT64, UCG_DT_PREDEFINED_FLAGS, 8, 8, 0, 8},
-    {UCG_DT_TYPE_FP16,   UCG_DT_PREDEFINED_FLAGS, 2, 2, 0, 2},
-    {UCG_DT_TYPE_FP32,   UCG_DT_PREDEFINED_FLAGS, 4, 4, 0, 4},
-    {UCG_DT_TYPE_FP64,   UCG_DT_PREDEFINED_FLAGS, 8, 8, 0, 8},
+    {UCG_DT_TYPE_FP16, UCG_DT_PREDEFINED_FLAGS, 2, 2, 0, 2},
+    {UCG_DT_TYPE_FP32, UCG_DT_PREDEFINED_FLAGS, 4, 4, 0, 4},
+    {UCG_DT_TYPE_FP64, UCG_DT_PREDEFINED_FLAGS, 8, 8, 0, 8},
 };
 
 UCG_OP_PREDEFINED(max, MAX);
@@ -281,7 +281,7 @@ void ucg_dt_destroy(ucg_dt_h dt)
 }
 
 static ucg_status_t ucg_dt_memcpy_contiguous(void *dst, int32_t dcount, ucg_dt_t *dst_dt,
-                                             const void *src, int32_t scount, ucg_dt_t *src_dt)
+                                           const void *src, int32_t scount, ucg_dt_t *src_dt)
 {
     ucg_assert(ucg_dt_is_contiguous(dst_dt));
     ucg_assert(ucg_dt_is_contiguous(src_dt));
@@ -297,7 +297,7 @@ static ucg_status_t ucg_dt_memcpy_contiguous(void *dst, int32_t dcount, ucg_dt_t
 }
 
 static ucg_status_t ucg_dt_memcpy_pack(void *dst, int32_t dcount, ucg_dt_t *dst_dt,
-                                       const void *src, int32_t scount, ucg_dt_t *src_dt)
+                                     const void *src, int32_t scount, ucg_dt_t *src_dt)
 {
     ucg_assert(ucg_dt_is_contiguous(dst_dt));
     ucg_assert(!ucg_dt_is_contiguous(src_dt));
@@ -331,7 +331,7 @@ out_finish_pack:
 }
 
 static ucg_status_t ucg_dt_memcpy_unpack(void *dst, int32_t dcount, ucg_dt_t *dst_dt,
-                                         const void *src, int32_t scount, ucg_dt_t *src_dt)
+                                       const void *src, int32_t scount, ucg_dt_t *src_dt)
 {
     ucg_assert(!ucg_dt_is_contiguous(dst_dt));
     ucg_assert(ucg_dt_is_contiguous(src_dt));
@@ -365,7 +365,7 @@ out_finish_unpack:
 }
 
 static ucg_status_t ucg_dt_memcpy_generic(void *dst, int32_t dcount, ucg_dt_t *dst_dt,
-                                          const void *src, int32_t scount, ucg_dt_t *src_dt)
+                                        const void *src, int32_t scount, ucg_dt_t *src_dt)
 {
     uint64_t buf_len = 16 << 10;
     void *buf = ucg_malloc(buf_len, "copy generic buffer");
@@ -381,7 +381,7 @@ static ucg_status_t ucg_dt_memcpy_generic(void *dst, int32_t dcount, ucg_dt_t *d
 
     ucg_dt_state_t *unpack_state = ucg_dt_start_unpack(dst, dst_dt, dcount);
     if (unpack_state == NULL) {
-        goto out_finish_pack;
+         goto out_finish_pack;
     }
 
     uint64_t max_len;

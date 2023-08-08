@@ -115,9 +115,9 @@ static ucg_status_t ucg_topo_group_aux_check_subnet_id(void **aux, const ucg_loc
 }
 
 static int32_t ucg_topo_group_aux_is_subnet_member(void **aux, const ucg_topo_t *topo,
-                                                   const ucg_rank_map_t *rank_map,
-                                                   ucg_rank_t rank,
-                                                   const ucg_location_t *location)
+                                                      const ucg_rank_map_t *rank_map,
+                                                      ucg_rank_t rank,
+                                                      const ucg_location_t *location)
 {
     UCG_UNUSED(aux, rank_map, rank);
     return location->subnet_id == topo->myloc.subnet_id;
@@ -194,18 +194,18 @@ static ucg_status_t ucg_topo_group_aux_add_leader(void **aux, int32_t id)
 }
 
 static int32_t ucg_topo_group_aux_is_subnet_leader(void **aux, const ucg_topo_t *topo,
-                                                   const ucg_rank_map_t *rank_map,
-                                                   ucg_rank_t rank,
-                                                   const ucg_location_t *location)
+                                                      const ucg_rank_map_t *rank_map,
+                                                      ucg_rank_t rank,
+                                                      const ucg_location_t *location)
 {
     UCG_UNUSED(topo, rank_map, rank);
     return ucg_topo_group_aux_is_leader(aux, location->subnet_id);
 }
 
 static ucg_status_t ucg_topo_group_aux_add_subnet_leader(void **aux, const ucg_topo_t *topo,
-                                                         const ucg_rank_map_t *rank_map,
-                                                         ucg_rank_t rank,
-                                                         const ucg_location_t *location)
+                                                            const ucg_rank_map_t *rank_map,
+                                                            ucg_rank_t rank,
+                                                            const ucg_location_t *location)
 {
     UCG_UNUSED(topo, rank_map, rank);
     return ucg_topo_group_aux_add_leader(aux, location->subnet_id);

@@ -15,11 +15,12 @@
 #include "util/ucg_log.h"
 #include "util/ucg_helper.h"
 
-static ucp_tag_t ucg_planc_ucx_make_tag(uint16_t tag, ucg_rank_t rank,
+static ucp_tag_t ucg_planc_ucx_make_tag(int tag, ucg_rank_t rank,
                                         uint32_t group_id)
 {
     return ((((uint64_t)(tag)) << UCG_PLANC_UCX_SEQ_BITS_OFFSET) |
             (((uint64_t)(rank)) << UCG_PLANC_UCX_RANK_BITS_OFFSET) |
+            (((uint64_t)(1)) << UCG_PLANC_UCX_UCG_BITS_OFFSET) |
             (((uint64_t)(group_id)) << UCG_PLANC_UCX_ID_BITS_OFFSET));
 }
 
@@ -95,7 +96,7 @@ static ucg_status_t ucg_planc_ucx_p2p_get_ucp_dt(ucg_dt_t *dt,
         return UCG_OK;
     }
 
-    ucg_dt_opaque_t opaque;
+     ucg_dt_opaque_t opaque;
     if (ucg_dt_is_contiguous(dt)) {
         *ucp_dt = ucp_dt_make_contig(ucg_dt_size(dt));
         opaque.obj = (uint64_t)*ucp_dt;
@@ -122,7 +123,7 @@ static ucp_ep_h ucg_planc_ucx_p2p_get_ucp_ep(ucg_vgroup_t *vgroup, ucg_rank_t vr
     if (ucx_context->eps[ctx_rank] != NULL) {
         return ucx_context->eps[ctx_rank];
     }
-    
+
     ucp_ep_h ep = NULL;
     if (ucx_context->config.use_oob == UCG_YES) {
         void* group = vgroup->group->oob_group.group;
@@ -156,7 +157,7 @@ static void ucg_planc_ucx_p2p_close_ep(ucp_ep_h ep, ucp_worker_h ucp_worker)
      * Therefore, the process is hung in @ref ucp_worker_progress.
      * In this example, @ref ucp_ep_close_nb is not performed.
      */
-    ucs_status_ptr_t close_req = NULL; 
+    ucs_status_ptr_t close_req = NULL;
     if (UCS_PTR_IS_PTR(close_req)) {
         do {
             ucp_worker_progress(ucp_worker);
@@ -219,7 +220,7 @@ static void ucg_planc_ucx_p2p_irecv_done(void *request, ucs_status_t status,
 
 ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
                                      ucg_dt_t *dt, ucg_rank_t vrank,
-                                     uint16_t tag, ucg_vgroup_t *vgroup,
+                                     int tag, ucg_vgroup_t *vgroup,
                                      ucg_planc_ucx_p2p_params_t *params)
 {
     UCG_CHECK_NULL_INVALID(dt, vgroup, params, params->ucx_group, params->state);
@@ -274,7 +275,7 @@ ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
     }
     if (params->request != NULL) {
         ucg_planc_ucx_p2p_req_t **req = params->request;
-        if (req_status == UCS_INPROGRESS) {
+        if (req_status == UCS_INPROGRESS)  {
             *req = (ucg_planc_ucx_p2p_req_t*)ucp_req;
             (*req)->free_in_cb = 0;
         } else {
@@ -291,7 +292,7 @@ static ucp_worker_h ucg_planc_ucx_p2p_get_ucp_worker(ucg_planc_ucx_p2p_params_t 
 
 ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
                                      ucg_dt_t *dt, ucg_rank_t vrank,
-                                     uint16_t tag, ucg_vgroup_t *vgroup,
+                                     int tag, ucg_vgroup_t *vgroup,
                                      ucg_planc_ucx_p2p_params_t *params)
 {
     UCG_CHECK_NULL_INVALID(dt, vgroup, params, params->ucx_group, params->state);
@@ -344,7 +345,7 @@ ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
     }
     if (params->request != NULL) {
         ucg_planc_ucx_p2p_req_t **req = params->request;
-        if (req_status == UCS_INPROGRESS) {
+        if (req_status == UCS_INPROGRESS)  {
             *req = (ucg_planc_ucx_p2p_req_t*)ucp_req;
             (*req)->free_in_cb = 0;
         } else {

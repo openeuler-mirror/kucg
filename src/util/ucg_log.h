@@ -46,8 +46,8 @@ ucs_log_component_config_t *ucg_log_component();
 
 #define ucg_fatal(_fmt, ...)    ucg_log_detail(UCS_LOG_LEVEL_FATAL, _fmt, ##__VA_ARGS__)
 #define ucg_error(_fmt, ...)    ucg_log_detail(UCS_LOG_LEVEL_ERROR, _fmt, ##__VA_ARGS__)
-#define ucg_warn(_fmt, ...)     ucg_log_detail(UCS_LOG_LEVEL_WARN,  _fmt, ##__VA_ARGS__)
-#define ucg_info(_fmt, ...)     ucg_log_detail(UCS_LOG_LEVEL_INFO,  _fmt, ##__VA_ARGS__)
+#define ucg_warn(_fmt, ...)     ucg_log_detail(UCS_LOG_LEVEL_WARN, _fmt, ##__VA_ARGS__)
+#define ucg_info(_fmt, ...)     ucg_log_detail(UCS_LOG_LEVEL_INFO, _fmt, ##__VA_ARGS__)
 #define ucg_debug(_fmt, ...)    ucg_log_detail(UCS_LOG_LEVEL_DEBUG, _fmt, ##__VA_ARGS__)
 #define ucg_trace(_fmt, ...)    ucg_log_detail(UCS_LOG_LEVEL_TRACE, _fmt, ##__VA_ARGS__)
 

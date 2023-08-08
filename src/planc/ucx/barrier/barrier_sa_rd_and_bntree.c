@@ -38,13 +38,13 @@ ucg_plan_meta_op_t *ucg_planc_ucx_barrier_sa_rd_and_bntree_op_new(ucg_planc_ucx_
     ucg_coll_args_t *meta_args = &meta_op->super.super.args;
 
     status = ucg_planc_ucx_barrier_add_fanin_kntree_op(meta_op, ucx_group,
-                                                       vgroup, meta_args,
-                                                       config, UCG_TOPO_GROUP_TYPE_SOCKET);
+                                                        vgroup, meta_args,
+                                                        config, UCG_TOPO_GROUP_TYPE_SOCKET);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     status = ucg_planc_ucx_barrier_add_fanin_kntree_op(meta_op, ucx_group,
-                                                       vgroup, meta_args,
-                                                       config, UCG_TOPO_GROUP_TYPE_SOCKET_LEADER);
+                                                        vgroup, meta_args,
+                                                        config, UCG_TOPO_GROUP_TYPE_SOCKET_LEADER);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     status = ucg_planc_ucx_barrier_add_barrier_rd_op(meta_op, ucx_group,
@@ -53,13 +53,13 @@ ucg_plan_meta_op_t *ucg_planc_ucx_barrier_sa_rd_and_bntree_op_new(ucg_planc_ucx_
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     status = ucg_planc_ucx_barrier_add_fanout_kntree_op(meta_op, ucx_group,
-                                                        vgroup, meta_args,
-                                                        config, UCG_TOPO_GROUP_TYPE_SOCKET_LEADER);
+                                                       vgroup, meta_args,
+                                                       config, UCG_TOPO_GROUP_TYPE_SOCKET_LEADER);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     status = ucg_planc_ucx_barrier_add_fanout_kntree_op(meta_op, ucx_group,
-                                                        vgroup, meta_args,
-                                                        config, UCG_TOPO_GROUP_TYPE_SOCKET);
+                                                       vgroup, meta_args,
+                                                       config, UCG_TOPO_GROUP_TYPE_SOCKET);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     return meta_op;

@@ -19,33 +19,33 @@ enum {
 
 /**
  * Ring-HPL algorithm for allgatherv with p - 1 steps:
- *  0 -> 1 -> 2 -> 3
+ *      0 -> 1 -> 2 -> 3
  *
  * Example on 4 processes:
  *  Initial state
- *      #    0       1       2       3
- *          [0]     [ ]     [ ]     [ ]
- *          [ ]     [1]     [ ]     [ ]
- *          [ ]     [ ]     [2]     [ ]
- *          [ ]     [ ]     [ ]     [3]
- *  Step 0:
- *      #    0       1       2       3
- *          [0]     [0]     [ ]     [ ]
- *          [1]     [1]     [ ]     [ ]
- *          [ ]     [ ]     [2]     [2]
- *          [ ]     [ ]     [3]     [3]
- *  Step 1:
- *      #    0       1       2       3
- *          [0]     [0]     [ ]     [0]
- *          [1]     [1]     [1]     [ ]
- *          [ ]     [2]     [2]     [2]
- *          [3]     [ ]     [3]     [3]
- *  Step 2:
- *      #    0       1       2       3
- *          [0]     [0]     [0]     [0]
- *          [1]     [1]     [1]     [1]
- *          [2]     [2]     [2]     [2]
- *          [3]     [3]     [3]     [3]
+ *    #     0      1      2      3
+ *         [0]    [ ]    [ ]    [ ]
+ *         [ ]    [1]    [ ]    [ ]
+ *         [ ]    [ ]    [2]    [ ]
+ *         [ ]    [ ]    [ ]    [3]
+ *   Step 0:
+ *    #     0      1      2      3
+ *         [0]    [0]    [ ]    [ ]
+ *         [1]    [1]    [ ]    [ ]
+ *         [ ]    [ ]    [2]    [2]
+ *         [ ]    [ ]    [3]    [3]
+ *   Step 1:
+ *    #     0      1      2      3
+ *         [0]    [0]    [ ]    [0]
+ *         [1]    [1]    [1]    [ ]
+ *         [ ]    [2]    [2]    [2]
+ *         [3]    [ ]    [3]    [3]
+ *   Step 2:
+ *    #     0      1      2      3
+ *         [0]    [0]    [0]    [0]
+ *         [1]    [1]    [1]    [1]
+ *         [2]    [2]    [2]    [2]
+ *         [3]    [3]    [3]    [3]
  *
  */
 static ucg_status_t ucg_planc_ucx_allgatherv_ring_hpl_op_progress(ucg_plan_op_t *ucg_op)
@@ -167,7 +167,7 @@ ucg_status_t ucg_planc_ucx_allgatherv_ring_hpl_prepare(ucg_vgroup_t *vgroup,
         return UCG_ERR_NO_MEMORY;
     }
 
-    status = UCG_CLASS_CONSTRUCT(ucg_plan_op_t, &ucx_op->super, vgroup,
+    status = UCG_CLASS_CONSTRUCT(ucg_plan_op_t, &ucx_op->super,  vgroup,
                                  ucg_planc_ucx_allgatherv_ring_hpl_op_trigger,
                                  ucg_planc_ucx_allgatherv_ring_hpl_op_progress,
                                  ucg_planc_ucx_op_discard,

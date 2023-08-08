@@ -87,19 +87,19 @@ static ucg_status_t ucg_planc_ucx_scatterv_kntree_op_params_send(ucg_planc_ucx_o
     ucg_algo_kntree_iter_t *iter = &op->scatterv.kntree.kntree_iter;
     ucg_rank_t peer;
 
-    if (ucg_test_flags(op->flags, UCG_SCATTERV_KNTREE_PARAMS_SEND)) {
+    if (ucg_test_flags(op->flags, UCG_SCATTERV_KNTREE_PARAMS_SEND)){
         while ((peer = ucg_algo_kntree_iter_child_value(iter)) != UCG_INVALID_RANK) {
             const void *sbuf = op->scatterv.kntree.sendcounts;
             if (op->scatterv.kntree.sendcounts == NULL) {
                 sbuf = args->sendcounts;
             }
             status = ucg_planc_ucx_p2p_isend(sbuf, group_size,
-                                             ucg_dt_get_predefined(UCG_DT_TYPE_INT32),
-                                             peer, op->tag, vgroup, &params);
+                                            ucg_dt_get_predefined(UCG_DT_TYPE_INT32),
+                                            peer, op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
             status = ucg_planc_ucx_p2p_isend(&op->scatterv.kntree.sdtype_size, 1,
-                                             ucg_dt_get_predefined(UCG_DT_TYPE_INT32),
-                                             peer, op->tag, vgroup, &params);
+                                            ucg_dt_get_predefined(UCG_DT_TYPE_INT32),
+                                            peer, op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
             ucg_algo_kntree_iter_child_inc(iter);
         }
@@ -354,12 +354,12 @@ ucg_status_t ucg_planc_ucx_scatterv_kntree_op_init(ucg_planc_ucx_op_t *op,
         op->scatterv.kntree.sdtype_size = ucg_dt_size(args->sendtype);
     } else {
         op->scatterv.kntree.sendcounts = ucg_malloc((int64_t)group_size * sizeof(int32_t),
-                                                    "scatterv sendcounts");
+                                             "scatterv sendcounts");
         if (op->scatterv.kntree.sendcounts == NULL) {
             return UCG_ERR_NO_MEMORY;
         }
         op->scatterv.kntree.staging_displs = ucg_malloc((int64_t)op->scatterv.kntree.staging_count * sizeof(int32_t),
-                                                        "scatterv staging_displs");
+                                                 "scatterv staging_displs");
         if (op->scatterv.kntree.staging_displs == NULL) {
             return UCG_ERR_NO_MEMORY;
         }

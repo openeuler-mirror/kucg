@@ -68,8 +68,8 @@ typedef struct ucg_planm {
  *
  * This routine loads library that match @b UCG_PLANM_LIBNAME_PREFIX(*) in @b UCG_PLANM_PATH.
  *
- * @param [in]    component_name    The name of the component.
- * @param [inout] ucg_planm         Plan modules.
+ * @param [in]    component_name The name of the component.
+ * @param [inout] ucg_planm      Plan modules.
  *
  * @note It can be called only once.
  */
@@ -82,7 +82,7 @@ ucg_status_t ucg_planm_load(const char* component_name, ucg_components_t *ucg_pl
  * This routine is the inverse of @ref ucg_planm_load. Once this routine is
  * invoked, the behaviour of using returned ucg_planm_t* is undefined.
  *
- * @param [inout] ucg_planm         Plan modules.
+ * @param [inout] ucg_planm      Plan modules.
  */
 void ucg_planm_unload(ucg_components_t *ucg_planm);
 
@@ -90,7 +90,7 @@ void ucg_planm_unload(ucg_components_t *ucg_planm);
  * @ingroup UCG_PLANM
  * @brief Get the number of loaded PlanM in a specific component.
  *
- * @param [inout] ucg_planm         Plan modules.
+ * @param [inout] ucg_planm      Plan modules.
  */
 int32_t ucg_planm_count(ucg_components_t *ucg_planm);
 
@@ -100,8 +100,8 @@ int32_t ucg_planm_count(ucg_components_t *ucg_planm);
  *
  * Used together with @ref ucg_planm_count to obtain all PlanM in a specific component.
  *
- * @param [out]   idx               Index, [0, ucg_planm_count)
- * @param [inout] ucg_planm         Plan modules.
+ * @param [out]   idx            Index, [0, ucg_planm_count)
+ * @param [inout] ucg_planm      Plan modules.
  */
 ucg_planm_t* ucg_planm_get_by_idx(int32_t idx, ucg_components_t *ucg_planm);
 
@@ -109,8 +109,8 @@ ucg_planm_t* ucg_planm_get_by_idx(int32_t idx, ucg_components_t *ucg_planm);
  * @ingroup UCG_PLANM
  * @brief Get PlanM by name.
  *
- * @param [in]    name              PlanM name, such as "ucx"
- * @param [inout] ucg_planm         Plan modules.
+ * @param [in]    name           PlanM name, such as "ucx"
+ * @param [inout] ucg_planm      Plan modules.
  */
 ucg_planm_t* ucg_planm_get_by_name(const char *name, ucg_components_t *ucg_planm);
 

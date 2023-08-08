@@ -42,7 +42,7 @@ static ucg_status_t ucg_planc_ucx_gatherv_linear_op_root(ucg_planc_ucx_op_t *op)
                                        args->sendbuf, args->sendcount, args->sendtype);
             } else {
                 status = ucg_planc_ucx_p2p_irecv(rbuf, rcount, args->recvtype, i,
-                                                 op->tag, vgroup, &params);
+                                                op->tag, vgroup, &params);
             }
             UCG_CHECK_GOTO(status, out);
         }

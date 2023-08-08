@@ -52,7 +52,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_neighbor_op_init(ucg_plan_op_t *ucg
         void *tmpsend = (char *)args->recvbuf + (int64_t)args->displs[my_rank] * rtype_ext;
         int32_t scount = args->recvcounts[my_rank];
         status = ucg_planc_ucx_p2p_isend(tmpsend, scount, args->recvtype,
-                                         neighbor, op->tag, vgroup, &params);
+                                            neighbor, op->tag, vgroup, &params);
         UCG_CHECK_GOTO(status, out);
     }
 
@@ -60,7 +60,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_neighbor_op_init(ucg_plan_op_t *ucg
         void *tmprecv = (char *)args->recvbuf + (int64_t)args->displs[neighbor] * rtype_ext;
         int32_t rcount = args->recvcounts[neighbor];
         status = ucg_planc_ucx_p2p_irecv(tmprecv, rcount, args->recvtype,
-                                         neighbor, op->tag, vgroup, &params);
+                                            neighbor, op->tag, vgroup, &params);
         UCG_CHECK_GOTO(status, out);
     }
 
@@ -91,7 +91,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_neighbor_op_loop(ucg_plan_op_t *ucg
     recv_data_from[1] = &op->allgatherv.neighbor.recv_data_from[1];
     send_data_from = &op->allgatherv.neighbor.send_data_from;
 
-    while (op->allgatherv.neighbor.loop_count < op->allgatherv.neighbor.loop_max) {
+    while(op->allgatherv.neighbor.loop_count < op->allgatherv.neighbor.loop_max) {
         const int i_parity = op->allgatherv.neighbor.loop_count % 2;
         if (ucg_test_and_clear_flags(&op->flags, UCG_NEIGHBOR_LOOP_SEND)) {
             void *tmpsend = (char *)args->recvbuf + (int64_t)args->displs[*send_data_from] * rtype_ext;
@@ -119,7 +119,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_neighbor_op_loop(ucg_plan_op_t *ucg
                                              neighbor[i_parity], op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
         }
-        
+
         status = ucg_planc_ucx_p2p_testall(op->ucx_group, params.state);
         UCG_CHECK_GOTO(status, out);
         op->flags |= (UCG_NEIGHBOR_LOOP_RECV | UCG_NEIGHBOR_LOOP_SEND);
@@ -136,40 +136,40 @@ out:
  *
  * Example on 6 nodes:
  *  Initial state
- *      #    0       1       2       3       4       5
- *          [0]     [ ]     [ ]     [ ]     [ ]     [ ]
- *          [ ]     [1]     [ ]     [ ]     [ ]     [ ]
- *          [ ]     [ ]     [2]     [ ]     [ ]     [ ]
- *          [ ]     [ ]     [ ]     [3]     [ ]     [ ]
- *          [ ]     [ ]     [ ]     [ ]     [4]     [ ]
- *          [ ]     [ ]     [ ]     [ ]     [ ]     [5]
- *  Step 0 (label phase_init):
- *      #    0       1       2       3       4       5
- *          [0]     [0]     [ ]     [ ]     [ ]     [ ]
- *          [1]     [1]     [ ]     [ ]     [ ]     [ ]
- *          [ ]     [ ]     [2]     [2]     [ ]     [ ]
- *          [ ]     [ ]     [3]     [3]     [ ]     [ ]
- *          [ ]     [ ]     [ ]     [ ]     [4]     [4]
- *          [ ]     [ ]     [ ]     [ ]     [5]     [5]
- *  Step 1 (label phase_loop):
- *      #    0       1       2       3       4       5
- *          [0]     [0]     [0]     [ ]     [ ]     [0]
- *          [1]     [1]     [1]     [ ]     [ ]     [1]
- *          [ ]     [2]     [2]     [2]     [2]     [ ]
- *          [ ]     [3]     [3]     [3]     [3]     [ ]
- *          [4]     [ ]     [ ]     [4]     [4]     [4]
- *          [5]     [ ]     [ ]     [5]     [5]     [5]
- *  Step 2 (label phase_loop):
- *      #    0       1       2       3       4       5
- *          [0]     [0]     [0]     [0]     [0]     [0]
- *          [1]     [1]     [1]     [1]     [1]     [1]
- *          [2]     [2]     [2]     [2]     [2]     [2]
- *          [3]     [3]     [3]     [3]     [3]     [3]
- *          [4]     [4]     [4]     [4]     [4]     [4]
- *          [5]     [5]     [5]     [5]     [5]     [5]
+ *    #     0      1      2      3      4      5
+ *         [0]    [ ]    [ ]    [ ]    [ ]    [ ]
+ *         [ ]    [1]    [ ]    [ ]    [ ]    [ ]
+ *         [ ]    [ ]    [2]    [ ]    [ ]    [ ]
+ *         [ ]    [ ]    [ ]    [3]    [ ]    [ ]
+ *         [ ]    [ ]    [ ]    [ ]    [4]    [ ]
+ *         [ ]    [ ]    [ ]    [ ]    [ ]    [5]
+ *   Step 0 (label phase_init):
+ *    #     0      1      2      3      4      5
+ *         [0]    [0]    [ ]    [ ]    [ ]    [ ]
+ *         [1]    [1]    [ ]    [ ]    [ ]    [ ]
+ *         [ ]    [ ]    [2]    [2]    [ ]    [ ]
+ *         [ ]    [ ]    [3]    [3]    [ ]    [ ]
+ *         [ ]    [ ]    [ ]    [ ]    [4]    [4]
+ *         [ ]    [ ]    [ ]    [ ]    [5]    [5]
+ *   Step 1 (label phase_loop):
+ *    #     0      1      2      3      4      5
+ *         [0]    [0]    [0]    [ ]    [ ]    [0]
+ *         [1]    [1]    [1]    [ ]    [ ]    [1]
+ *         [ ]    [2]    [2]    [2]    [2]    [ ]
+ *         [ ]    [3]    [3]    [3]    [3]    [ ]
+ *         [4]    [ ]    [ ]    [4]    [4]    [4]
+ *         [5]    [ ]    [ ]    [5]    [5]    [5]
+ *   Step 2 (label phase_loop):
+ *    #     0      1      2      3      4      5
+ *         [0]    [0]    [0]    [0]    [0]    [0]
+ *         [1]    [1]    [1]    [1]    [1]    [1]
+ *         [2]    [2]    [2]    [2]    [2]    [2]
+ *         [3]    [3]    [3]    [3]    [3]    [3]
+ *         [4]    [4]    [4]    [4]    [4]    [4]
+ *         [5]    [5]    [5]    [5]    [5]    [5]
  *
  * @note Limitations:
- *      - Algorithm works only on even number of processes.
+ *       - Algorithm works only on even number of processes.
  */
 static ucg_status_t ucg_planc_ucx_allgatherv_neighbor_op_progress(ucg_plan_op_t *ucg_op)
 {

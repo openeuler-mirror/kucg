@@ -34,23 +34,23 @@ ucg_plan_meta_op_t *ucg_planc_ucx_barrier_na_kntree_op_new(ucg_planc_ucx_group_t
     ucg_coll_args_t *meta_args = &meta_op->super.super.args;
 
     status = ucg_planc_ucx_barrier_add_fanin_kntree_op(meta_op, ucx_group,
-                                                       vgroup, meta_args,
-                                                       config, UCG_TOPO_GROUP_TYPE_NODE);
+                                                        vgroup, meta_args,
+                                                        config, UCG_TOPO_GROUP_TYPE_NODE);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     status = ucg_planc_ucx_barrier_add_fanin_kntree_op(meta_op, ucx_group,
-                                                       vgroup, meta_args,
-                                                       config, UCG_TOPO_GROUP_TYPE_NODE_LEADER);
-    UCG_CHECK_GOTO(status, err_free_meta_op);
-
-    status = ucg_planc_ucx_barrier_add_fanout_kntree_op(meta_op, ucx_group,
                                                         vgroup, meta_args,
                                                         config, UCG_TOPO_GROUP_TYPE_NODE_LEADER);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     status = ucg_planc_ucx_barrier_add_fanout_kntree_op(meta_op, ucx_group,
-                                                        vgroup, meta_args,
-                                                        config, UCG_TOPO_GROUP_TYPE_NODE);
+                                                       vgroup, meta_args,
+                                                       config, UCG_TOPO_GROUP_TYPE_NODE_LEADER);
+    UCG_CHECK_GOTO(status, err_free_meta_op);
+
+    status = ucg_planc_ucx_barrier_add_fanout_kntree_op(meta_op, ucx_group,
+                                                       vgroup, meta_args,
+                                                       config, UCG_TOPO_GROUP_TYPE_NODE);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
     return meta_op;

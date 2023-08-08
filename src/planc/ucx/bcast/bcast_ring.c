@@ -72,7 +72,7 @@ static ucg_status_t ucg_planc_ucx_bcast_ring_op_trigger(ucg_plan_op_t *ucg_op)
     ucg_rank_t right_peer = ucg_algo_ring_iter_right_value(iter);
     if (myrank == args->root) {
         op->flags = UCG_BCAST_RING_SEND;
-    } else if (right_peer == args->root) {
+    } else if (right_peer == args->root){
         op->flags = UCG_BCAST_RING_RECV;
     } else {
         op->flags = UCG_BCAST_RING_RECV | UCG_BCAST_RING_SEND;

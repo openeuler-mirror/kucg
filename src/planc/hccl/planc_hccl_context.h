@@ -46,5 +46,6 @@ ucg_status_t ucg_planc_hccl_context_init(const ucg_planc_params_t *params,
 void ucg_planc_hccl_context_cleanup(ucg_planc_context_h context);
 ucg_status_t ucg_planc_hccl_context_query(ucg_planc_context_h context,
                                           ucg_planc_context_attr_t *attr);
+int ucg_planc_hccl_context_progress(ucg_planc_context_h context);
 
 #endif

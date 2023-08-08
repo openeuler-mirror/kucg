@@ -24,22 +24,24 @@
 /**
  * UCG tag structure:
  *
- * 01234567 01234567 | 01234567 01234567 01234567 | 01234567 01234567 01234567
- *                   |                            |
- *     op seq (16)   |      source rank (24)      |        group id (24)
- *                   |                            |
+ * 01234567 01234567 01234567   01234567 01234567 0123      4      567 01234567 01234567
+ *                            |                        |         |
+ *        op seq (24)         |   source rank (20)     | ucg (1) |     group id (19)
+ *                            |                        |         |
  */
-#define UCG_PLANC_UCX_SEQ_BITS 16
-#define UCG_PLANC_UCX_RANK_BITS 24
-#define UCG_PLANC_UCX_GROUP_BITS 24
+#define UCG_PLANC_UCX_SEQ_BITS 24
+#define UCG_PLANC_UCX_RANK_BITS 20
+#define UCG_PLANC_UCX_UCG_BITS 1
+#define UCG_PLANC_UCX_GROUP_BITS 19
 
-#define UCG_PLANC_UCX_SEQ_BITS_OFFSET   (UCG_PLANC_UCX_RANK_BITS + UCG_PLANC_UCX_GROUP_BITS)
-#define UCG_PLANC_UCX_RANK_BITS_OFFSET  (UCG_PLANC_UCX_GROUP_BITS)
+#define UCG_PLANC_UCX_SEQ_BITS_OFFSET   (UCG_PLANC_UCX_RANK_BITS + UCG_PLANC_UCX_UCG_BITS + UCG_PLANC_UCX_GROUP_BITS)
+#define UCG_PLANC_UCX_RANK_BITS_OFFSET  (UCG_PLANC_UCX_UCG_BITS + UCG_PLANC_UCX_GROUP_BITS)
+#define UCG_PLANC_UCX_UCG_BITS_OFFSET   (UCG_PLANC_UCX_GROUP_BITS)
 #define UCG_PLANC_UCX_ID_BITS_OFFSET    0
 
 #define UCG_PLANC_UCX_TAG_MASK          -1
 
-#define UCG_PLANC_UCX_TAG_SENDER_MASK   UCG_MASK(UCG_PLANC_UCX_RANK_BITS + UCG_PLANC_UCX_GROUP_BITS)
+#define UCG_PLANC_UCX_TAG_SENDER_MASK   UCG_MASK(UCG_PLANC_UCX_RANK_BITS + UCG_PLANC_UCX_UCG_BITS + UCG_PLANC_UCX_GROUP_BITS)
 
 typedef struct ucg_planc_ucx_p2p_req {
     /* trade-off, sizeof(ompi_request_t)=160 */
@@ -66,19 +68,19 @@ typedef struct ucg_planc_ucx_p2p_params {
 /**
  * @brief Send and immediate return
  *
- * @param [in] buffer       The buffer to send.
- * @param [in] count        The number of elements to send.
- * @param [in] dt           The type of one buffer element.
- * @param [in] vrank        The rank of recipient process.
- * @param [in] tag          Message tag.
- * @param [in] vgroup       The vgroup in which the isend takes place.
- * @param [in] params       Additional information.
+ * @param [in] buffer   The buffer to send.
+ * @param [in] count    The number of elements to send.
+ * @param [in] dt       The type of one buffer element.
+ * @param [in] vrank    The rank of recipient process.
+ * @param [in] tag      Message tag.
+ * @param [in] vgroup   The vgroup in which the isend takes place.
+ * @param [in] params   Additional information.
  * @retval UCG_OK Success
  * @retval Otherwise Failed
  */
 ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
                                      ucg_dt_t *dt, ucg_rank_t vrank,
-                                     uint16_t tag, ucg_vgroup_t *vgroup,
+                                     int tag, ucg_vgroup_t *vgroup,
                                      ucg_planc_ucx_p2p_params_t *params);
 
 /**
@@ -96,7 +98,7 @@ ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
  */
 ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
                                      ucg_dt_t *dt, ucg_rank_t vrank,
-                                     uint16_t tag, ucg_vgroup_t *vgroup,
+                                     int tag, ucg_vgroup_t *vgroup,
                                      ucg_planc_ucx_p2p_params_t *params);
 
 /**
@@ -119,8 +121,8 @@ ucg_status_t ucg_planc_ucx_p2p_test(ucg_planc_ucx_group_t *ucx_group,
 /**
  * @brief Check whether all p2p requests are done.
  *
- * @param [in] ucx_group        UCX group in which the p2p take places.
- * @param [in] state            Send/Receive state.
+ * @param [in] ucx_group    UCX group in which the p2p take places.
+ * @param [in] state        Send/Receive state.
  * @retval UCG_INPROGRESS Some requests are in progress.
  * @retval UCG_OK All requests completed successfully.
  * @retval Otherwise Some requests are failed.

@@ -128,8 +128,8 @@ ucg_status_t ucg_planc_ucx_scatterv_linear_op_progress(ucg_plan_op_t *ucg_op)
     ucg_rank_t myrank = op->super.vgroup->myrank;
     if (myrank == args->root) {
         status = (op->scatterv.linear.send_type == UCG_SCATTERV_SEND_TYPE_ONE_BY_ONE) ?
-        ucg_planc_ucx_scatterv_linear_op_root_send_one_by_one(op) :
-        ucg_planc_ucx_scatterv_linear_op_root_send_batch(op);
+                 ucg_planc_ucx_scatterv_linear_op_root_send_one_by_one(op) :
+                 ucg_planc_ucx_scatterv_linear_op_root_send_batch(op);
     } else {
         status = ucg_planc_ucx_scatterv_linear_op_non_root_recv(op);
     }
@@ -227,8 +227,8 @@ static void ucg_planc_ucx_scatterv_linear_op_init(ucg_planc_ucx_op_t *op,
     size_t min_bsend;
     size_t max_bsend;
     ucg_planc_ucx_scatterv_linear_bsend_threshold(config, vgroup,
-                                                   &min_bsend, &max_bsend);
-    
+                                                  &min_bsend, &max_bsend);
+
     uint8_t send_type;
     uint32_t group_size = vgroup->size;
     uint64_t dt_size = ucg_dt_extent(args->sendtype);
@@ -273,7 +273,7 @@ ucg_planc_ucx_op_t *ucg_planc_ucx_scatterv_linear_op_new(ucg_planc_ucx_group_t *
     }
 
     ucg_planc_ucx_op_init(ucx_op, ucx_group);
-    ucg_planc_ucx_scatterv_linear_op_init (ucx_op, config);
+    ucg_planc_ucx_scatterv_linear_op_init(ucx_op, config);
     return ucx_op;
 
 err_free_op:

@@ -17,7 +17,7 @@ UCG_PLAN_ATTR_TABLE_DEFINE(ucg_planc_ucx);
 static const ucg_plan_policy_t* ucg_planc_ucx_get_plan_policy(ucg_coll_type_t coll_type,
                                                               ucg_planc_ucx_node_level_t node_level,
                                                               ucg_planc_ucx_ppn_level_t ppn_level)
-{   
+{
     const ucg_plan_policy_t *policy = NULL;
     switch (coll_type) {
         case UCG_COLL_TYPE_BCAST:

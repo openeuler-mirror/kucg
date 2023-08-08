@@ -19,12 +19,12 @@
 
 #define ucg_offsetof(_type, _member)    ucs_offsetof(_type, _member)
 #define ucg_derived_of(_ptr, _type)     ucs_derived_of(_ptr, _type)
-#define ucg_container_of(_ptr, _type, _member) ucs_container_of(_ptr, _type, _member)
+#define ucg_container_of(_ptr, _type, _member)  ucs_container_of(_ptr, _type, _member)
 
 #define ucg_likely(_cond)       ucs_likely(_cond)
 #define ucg_unlikely(_cond)     ucs_unlikely(_cond)
 
-/* Convert token to string */
+/* Convert token to string*/
 #define UCG_QUOTE(_a) # _a
 
 /* Paste two tokens */

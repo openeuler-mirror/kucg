@@ -515,6 +515,12 @@ static int ucg_context_progress(ucg_context_h context)
             ++count;
         }
     }
+
+    int num_planc_rscs = context->num_planc_rscs;
+    for (int i = 0; i < num_planc_rscs; ++i) {
+        ucg_resource_planc_t *planc_rsc = &context->planc_rscs[i];
+        planc_rsc->planc->context_progress(planc_rsc->ctx);
+    }
     ucg_context_unlock(context);
 
     return count;

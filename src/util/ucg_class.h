@@ -14,7 +14,7 @@
 #define UCG_CLASS_DECLARE(_type, _ctor_args) \
     typedef struct { \
         ucg_status_t (*ctor)(_type *self, _ctor_args); \
-        void (*dtor)(_type *self); \
+        void (*dtor)(_type *self);\
     } ucg_class_##_type##_t; \
     extern ucg_class_##_type##_t UCG_CLASS_NAME(_type);
 

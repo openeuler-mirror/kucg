@@ -16,7 +16,7 @@
 
 static ucg_config_field_t ucg_planc_ucx_config_table[] = {
     {"BCAST_ATTR", "", UCG_PLAN_ATTR_DESC,
-     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_BCAST]),
+     ucg_offsetof(ucg_planc_ucx_config_t,  plan_attr[UCG_COLL_TYPE_BCAST]),
      UCG_CONFIG_TYPE_STRING},
 
     {"ALLREDUCE_ATTR", "", UCG_PLAN_ATTR_DESC,
@@ -39,7 +39,7 @@ static ucg_config_field_t ucg_planc_ucx_config_table[] = {
      ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_ALLGATHERV]),
      UCG_CONFIG_TYPE_STRING},
 
-    {"NPOLLS", "10",
+    {"NPOLLS", "3",
      "Number of ucp progress polling cycles for p2p requests testing",
      ucg_offsetof(ucg_planc_ucx_config_t, n_polls),
      UCG_CONFIG_TYPE_UINT},
@@ -54,7 +54,7 @@ static ucg_config_field_t ucg_planc_ucx_config_table[] = {
      ucg_offsetof(ucg_planc_ucx_config_t, estimated_num_ppn),
      UCG_CONFIG_TYPE_UINT},
 
-    {"USE_OOB", "no",
+    {"USE_OOB", "try",
      "The value can be \n"
      " - yes  : Forcibly use oob. If the oob does not exist, a failure will occur. \n"
      " - no   : Not use oob. \n"
@@ -288,7 +288,7 @@ static ucg_status_t ucg_planc_ucx_context_fill_config(ucg_planc_ucx_context_t *c
             ctx->config.config_bundle[coll_type][module_type]->table = cfg->config_bundle[coll_type][module_type]->table;
         }
     }
-    
+
     /* Use oob resources may not be safe under multi-threads mode */
     if (params->thread_mode == UCG_THREAD_MODE_MULTI) {
         ctx->config.use_oob = UCG_NO;
@@ -428,7 +428,7 @@ ucg_status_t ucg_planc_ucx_context_init(const ucg_planc_params_t *params,
     if (status != UCG_OK) {
         goto err_free_ctx;
     }
-    
+
     status = ucg_planc_ucx_context_fill_policy(ctx, cfg);
     if (status != UCG_OK) {
         goto err_free_config;
@@ -579,4 +579,16 @@ ucg_status_t ucg_planc_ucx_context_query(ucg_planc_context_h context,
 
 out:
     return ucg_status_s2g(ucs_status);
+}
+
+int ucg_planc_ucx_context_progress(ucg_planc_context_h context)
+{
+    UCG_CHECK_NULL_INVALID(context);
+    ucg_planc_ucx_context_t *ctx = (ucg_planc_ucx_context_t *)context;
+    int n_polls = ctx->config.n_polls;
+    int polls = 0;
+    while (polls++ < n_polls) {
+        ucp_worker_progress(ctx->ucp_worker);
+    }
+    return 0;
 }

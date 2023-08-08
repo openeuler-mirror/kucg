@@ -28,7 +28,7 @@
 #define ucg_hash_cleanup(_name, _h) kh_destroy(_name, _h)
 /** @brief init the hash table @a _h */
 #define ucg_hash_init_inplace(_name, _h) kh_init_inplace(_name, _h)
-/** @brief  cleanup a hash table init by ucg_hash_init_inplace()*/
+/** @brief cleanup a hash table init by ucg_hash_init_inplace() */
 #define ucg_hash_cleanup_inplace(_name, _h) kh_destroy_inplace(_name, _h)
 
 /** @brief reset the hash table without deallocating memory */
@@ -46,9 +46,9 @@ typedef enum ucg_hash_put_status {
 /**
  * @brief Put the key into the hash table @a _h
  *
- * @param [in]  _name   the name of hash table, should keep same with UCG_HASH_XXX_INIT_XX [symbol]
- * @param [in]  _h      the pointer to the hash table [ucg_hash_t]
- * @param [in]  _key    the key you want put to hash table
+ * @param [in] _name    the name of hash table, should keep same with UCG_HASH_XXX_INIT_XX [symbol]
+ * @param [in] _h       the pointer to the hash table [ucg_hash_t]
+ * @param [in] _key     the key you want put to hash table
  * @param [out] _result the return code [int *] [ucg_hash_put_status_t]
  *                      -1 if failed;
  *                      0 if the key is present in the hash table;
@@ -92,13 +92,13 @@ typedef enum ucg_hash_put_status {
 /**
  * @brief Iterate over the hash table and get the valid key and value and do code
  *
- * @param [in]  _h      the hash table
+ * @param [in] _h       the hash table
  * @param [out] _kvar   the key variable which will be assigned
  * @param [out] _vvar   the value variable which will be assigned
- * @param [in]  _code   the code need be executed
+ * @param [in] _code    the code need be executed
  */
 #define ucg_hash_foreach(_h, _kvar, _vvar, _code) kh_foreach(_h, _kvar, _vvar, _code)
-#define ucg_hash_foreach_key(_h, _kvar, _code)    kh_foreach_key(_h, _kvar, _code)
-#define ucg_hash_foreach_value(_h, _vvar, _code)  kh_foreach_value(_h, _vvar, _code)
+#define ucg_hash_foreach_key(_h, _kvar,  _code)   kh_foreach_key(_h, _kvar, _code)
+#define ucg_hash_foreach_value(_h, _vvar,  _code) kh_foreach_value(_h, _vvar, _code)
 
 #endif
