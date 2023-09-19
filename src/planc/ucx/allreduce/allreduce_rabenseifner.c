@@ -63,6 +63,11 @@ static ucg_status_t ucg_planc_ucx_allreduce_rabenseifner_check(ucg_vgroup_t *vgr
         ucg_info("Allreduce rabenseifner don't support non-commutative op");
         return UCG_ERR_UNSUPPORTED;
     }
+    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
+    if (ucx_group->context->config.reduce_consistency == 1) {
+        ucg_info("Allreduce rabenseifner don't support reduce calculation results consistency");
+        return UCG_ERR_UNSUPPORTED;
+    }
     return UCG_OK;
 }
 
@@ -76,7 +81,7 @@ ucg_status_t ucg_planc_ucx_allreduce_reduce_scatter_op_base_progress(ucg_planc_u
     ucg_coll_allreduce_args_t *args = &op->super.super.args.allreduce;
     void *staging_area = op->staging_area - args->dt->true_lb;
     void *recvbuf = args->recvbuf;
-    uint32_t extent = ucg_dt_extent(args->dt);
+    int64_t extent = ucg_dt_extent(args->dt);
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
 
@@ -108,14 +113,14 @@ ucg_status_t ucg_planc_ucx_allreduce_reduce_scatter_op_base_progress(ucg_planc_u
         }
 
         if (ucg_test_and_clear_flags(&op->flags, UCG_BASE_REDUCE_SCATTER_SEND)) {
-            status = ucg_planc_ucx_p2p_isend(recvbuf + (int64_t)sindex[step] * extent,
+            status = ucg_planc_ucx_p2p_isend(recvbuf + sindex[step] * extent,
                                              scount[step], args->dt, peer,
                                              op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
         }
 
         if (ucg_test_and_clear_flags(&op->flags, UCG_BASE_REDUCE_SCATTER_RECV)) {
-            status = ucg_planc_ucx_p2p_irecv(staging_area + (int64_t)rindex[step] * extent,
+            status = ucg_planc_ucx_p2p_irecv(staging_area + rindex[step] * extent,
                                              rcount[step], args->dt, peer,
                                              op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
@@ -167,7 +172,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_reduce_scatter_op_proxy(ucg_planc_uc
     void *staging_area = op->staging_area - args->dt->true_lb;
     void *recvbuf = args->recvbuf;
     int32_t count = args->count;
-    uint32_t extent = ucg_dt_extent(args->dt);
+    int64_t extent = ucg_dt_extent(args->dt);
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
 
@@ -175,7 +180,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_reduce_scatter_op_proxy(ucg_planc_uc
     int count_lhalf = count / 2;
     int count_rhalf = count - count_lhalf;
     if (ucg_test_and_clear_flags(&op->flags, UCG_PROXY_SEND)) {
-        status = ucg_planc_ucx_p2p_isend(recvbuf + (int64_t)count_lhalf * extent,
+        status = ucg_planc_ucx_p2p_isend(recvbuf + count_lhalf * extent,
                                          count_rhalf, args->dt, peer,
                                          op->tag, vgroup, &params);
         UCG_CHECK_GOTO(status, out);
@@ -192,7 +197,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_reduce_scatter_op_proxy(ucg_planc_uc
         UCG_CHECK_GOTO(status, out);
     }
     if (ucg_test_and_clear_flags(&op->flags, UCG_PROXY_RECV_RESULT)) {
-        status = ucg_planc_ucx_p2p_irecv(recvbuf + (int64_t)count_lhalf * extent,
+        status = ucg_planc_ucx_p2p_irecv(recvbuf + count_lhalf * extent,
                                          count_rhalf, args->dt, peer,
                                          op->tag, vgroup, &params);
         UCG_CHECK_GOTO(status, out);
@@ -219,7 +224,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_reduce_scatter_op_extra(ucg_planc_uc
     void *staging_area = op->staging_area - args->dt->true_lb;
     void *recvbuf = args->recvbuf;
     int32_t count = args->count;
-    uint32_t extent = ucg_dt_extent(args->dt);
+    int64_t extent = ucg_dt_extent(args->dt);
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
 
@@ -232,7 +237,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_reduce_scatter_op_extra(ucg_planc_uc
         UCG_CHECK_GOTO(status, out);
     }
     if (ucg_test_and_clear_flags(&op->flags, UCG_EXTRA_RECV)) {
-        status = ucg_planc_ucx_p2p_irecv(staging_area + (int64_t)count_lhalf * extent,
+        status = ucg_planc_ucx_p2p_irecv(staging_area + count_lhalf * extent,
                                          count_rhalf, args->dt, peer,
                                          op->tag, vgroup, &params);
         UCG_CHECK_GOTO(status, out);
@@ -245,7 +250,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_reduce_scatter_op_extra(ucg_planc_uc
         UCG_CHECK_GOTO(status, out);
     }
     if (ucg_test_and_clear_flags(&op->flags, UCG_EXTRA_SEND_RESULT)) {
-        status = ucg_planc_ucx_p2p_isend(recvbuf + (int64_t)count_lhalf * extent,
+        status = ucg_planc_ucx_p2p_isend(recvbuf + count_lhalf * extent,
                                          count_rhalf, args->dt, peer,
                                          op->tag, vgroup, &params);
         UCG_CHECK_GOTO(status, out);
@@ -400,7 +405,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_rabenseifner_common_op_init(ucg_plan
     const ucg_coll_allreduce_args_t *coll_args = &ucg_op->super.super.args.allreduce;
     ucg_op->allreduce.rabenseifner.window_size = coll_args->count;
 
-    int64_t data_size = coll_args->dt->true_extent + (int64_t)coll_args->dt->extent * (coll_args->count - 1);
+    int64_t data_size = coll_args->dt->true_extent + coll_args->dt->extent * (coll_args->count - 1);
     ucg_op->staging_area = ucg_malloc(data_size, "allreduce staging area");
     if (ucg_op->staging_area == NULL) {
         goto err_free_recv_count;
@@ -514,7 +519,7 @@ ucg_status_t ucg_planc_ucx_allreduce_allgatherv_op_base_progress(ucg_planc_ucx_o
     uint32_t size = vgroup->size;
     ucg_coll_allreduce_args_t *args = &op->super.super.args.allreduce;
     void *recvbuf = args->recvbuf;
-    uint32_t extent = ucg_dt_extent(args->dt);
+    int64_t extent = ucg_dt_extent(args->dt);
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
 
@@ -534,13 +539,13 @@ ucg_status_t ucg_planc_ucx_allreduce_allgatherv_op_base_progress(ucg_planc_ucx_o
         ucg_rank_t peer = (new_peer < nprocs_rem) ? new_peer * 2 : new_peer + nprocs_rem;
         int32_t step = *step_idx;
         if (ucg_test_and_clear_flags(&op->flags, UCG_BASE_ALLGATHERV_SEND)) {
-            status = ucg_planc_ucx_p2p_isend(recvbuf + (int64_t)rindex[step] * extent,
+            status = ucg_planc_ucx_p2p_isend(recvbuf + rindex[step] * extent,
                                              rcount[step], args->dt, peer,
                                              op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
         }
         if (ucg_test_and_clear_flags(&op->flags, UCG_BASE_ALLGATHERV_RECV)) {
-            status = ucg_planc_ucx_p2p_irecv(recvbuf + (int64_t)sindex[step] * extent,
+            status = ucg_planc_ucx_p2p_irecv(recvbuf + sindex[step] * extent,
                                              scount[step], args->dt, peer,
                                              op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);

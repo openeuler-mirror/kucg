@@ -24,6 +24,8 @@
 #define ucg_likely(_cond)       ucs_likely(_cond)
 #define ucg_unlikely(_cond)     ucs_unlikely(_cond)
 
+#define ucg_is_null(_ptr) (ucg_unlikely((_ptr) == NULL))
+
 /* Convert token to string*/
 #define UCG_QUOTE(_a) # _a
 

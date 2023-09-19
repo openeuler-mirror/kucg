@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 
@@ -72,6 +72,16 @@ static ucg_config_field_t bcast_config_table[] = {
      "Adjustment of non-zero root processes",
      ucg_offsetof(ucg_planc_ucx_bcast_config_t, root_adjust),
      UCG_CONFIG_TYPE_BOOL},
+
+    {"BCAST_MIN_SEND_BATCH", "auto",
+    "Configure the send batch mode minimum boundary in van de geijn algo for bcast",
+    ucg_offsetof(ucg_planc_ucx_bcast_config_t, min_bsend),
+    UCG_CONFIG_TYPE_MEMUNITS},
+
+    {"BCAST_MAX_SEND_BATCH", "auto",
+    "Configure the send batch mode maximum boundary in van de geijn algo for bcast",
+    ucg_offsetof(ucg_planc_ucx_bcast_config_t, max_bsend),
+    UCG_CONFIG_TYPE_MEMUNITS},
 
     {NULL}
 };

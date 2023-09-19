@@ -25,7 +25,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_linear_op_progress(ucg_plan_op_t *u
     ucg_vgroup_t *vgroup = op->super.vgroup;
     uint32_t myrank = vgroup->myrank;
     uint32_t group_size = vgroup->size;
-    uint32_t recvtype_extent = ucg_dt_extent(args->recvtype);
+    int64_t recvtype_extent = ucg_dt_extent(args->recvtype);
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
 
@@ -65,7 +65,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_linear_op_trigger(ucg_plan_op_t *uc
     const void *sendbuf = args->sendbuf;
     if (sendbuf != UCG_IN_PLACE) {
         ucg_rank_t myrank = op->super.vgroup->myrank;
-        uint32_t recvtype_extent = ucg_dt_extent(args->recvtype);
+        int64_t recvtype_extent = ucg_dt_extent(args->recvtype);
         void *recvbuf = args->recvbuf + args->displs[myrank] * recvtype_extent;
         status = ucg_dt_memcpy(recvbuf, args->recvcounts[myrank], args->recvtype,
                                sendbuf, args->sendcount, args->sendtype);

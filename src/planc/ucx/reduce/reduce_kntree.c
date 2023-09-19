@@ -39,7 +39,7 @@ static ucg_status_t ucg_planc_ucx_reduce_kntree_op_recv_and_reduce(ucg_planc_ucx
     ucg_dt_t *dt = args->dt;
     int32_t count = args->count;
     void *staging_area;
-    uint64_t data_size = dt->true_extent + (uint64_t)dt->extent * (count - 1);
+    uint64_t data_size = dt->true_extent + dt->extent * (count - 1);
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
     ucg_algo_kntree_iter_t *iter = &op->reduce.kntree_iter;
@@ -190,7 +190,7 @@ ucg_status_t ucg_planc_ucx_reduce_kntree_op_init(ucg_planc_ucx_op_t *op,
 
     ucg_dt_t *dt = coll_args->dt;
     int32_t count = coll_args->count;
-    int64_t data_size = dt->true_extent + (int64_t)dt->extent * (count - 1);
+    int64_t data_size = dt->true_extent + dt->extent * (count - 1);
     int32_t requests_count = 0;
     while (ucg_algo_kntree_iter_child_value(iter) != UCG_INVALID_RANK) {
         requests_count++;

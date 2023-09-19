@@ -57,7 +57,7 @@ ucg_status_t ucg_planc_ucx_allreduce_add_allgatherv_op(ucg_plan_meta_op_t *meta_
 ucg_status_t ucg_planc_ucx_allreduce_get_rd_args(ucg_vgroup_t *vgroup,
                                                  const ucg_coll_args_t *args,
                                                  ucg_topo_group_type_t topo_type,
-                                                 int32_t *offset, int32_t *count);
+                                                 int64_t *offset, int32_t *count);
 
 /**
  * @brief The send_in_place flag is set to 1 only when the previous op has output.

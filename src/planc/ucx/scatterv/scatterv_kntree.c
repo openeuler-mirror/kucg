@@ -188,7 +188,7 @@ static ucg_status_t ucg_planc_ucx_scatterv_kntree_op_data_send(ucg_planc_ucx_op_
                 int32_t peer_subtree_size = ucg_algo_kntree_get_subtree_size(iter, peer);
                 for (int32_t i = 0; i < peer_subtree_size; i++) {
                     int32_t idx = (i + peer) % group_size;
-                    int64_t offset = (int64_t)args->displs[idx] * ucg_dt_extent(args->sendtype);
+                    int64_t offset = args->displs[idx] * ucg_dt_extent(args->sendtype);
                     status = ucg_planc_ucx_p2p_isend(args->sendbuf + offset,
                                                      args->sendcounts[idx],
                                                      args->sendtype,

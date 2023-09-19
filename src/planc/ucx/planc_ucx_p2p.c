@@ -99,7 +99,7 @@ static ucg_status_t ucg_planc_ucx_p2p_get_ucp_dt(ucg_dt_t *dt,
      ucg_dt_opaque_t opaque;
     if (ucg_dt_is_contiguous(dt)) {
         *ucp_dt = ucp_dt_make_contig(ucg_dt_size(dt));
-        opaque.obj = (uint64_t)*ucp_dt;
+        opaque.obj = *ucp_dt;
         opaque.destroy = NULL;
     } else {
         ucs_status_t status = ucp_dt_create_generic(&p2p_ucp_dt_ops, (void*)dt, ucp_dt);
@@ -251,7 +251,7 @@ ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
         .cb.send = ucg_planc_ucx_p2p_isend_done,
         .user_data = (void*)state,
     };
-    ucg_debug("isend: %d to %d, tag 0x%lX, count %d, size %u, extent %u",
+    ucg_debug("isend: %d to %d, tag 0x%lX, count %d, size %ld, extent %ld",
               group->myrank, ucg_rank_map_eval(&vgroup->rank_map, vrank),
               ucp_tag, count, ucg_dt_size(dt), ucg_dt_extent(dt));
     ucs_status_ptr_t ucp_req = ucp_tag_send_nbx(ep, buffer, count, ucp_tag, &req_param);
@@ -319,7 +319,7 @@ ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
         .cb.recv = ucg_planc_ucx_p2p_irecv_done,
         .user_data = (void*)state,
     };
-    ucg_debug("irecv: %d to %d, tag 0x%lX, count %d, size %u, extent %u",
+    ucg_debug("irecv: %d to %d, tag 0x%lX, count %d, size %ld, extent %ld",
               sender_group_rank, group->myrank, ucp_tag, count, ucg_dt_size(dt),
               ucg_dt_extent(dt));
     ucp_worker_h ucp_worker = ucg_planc_ucx_p2p_get_ucp_worker(params);

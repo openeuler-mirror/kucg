@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #ifndef UCG_PLANC_UCX_ALLREDUCE_H_
@@ -44,7 +44,11 @@ typedef struct ucg_planc_ucx_allreduce_rabenseifner_args {
  */
 typedef struct ucg_planc_ucx_allreduce {
     union {
-        ucg_algo_rd_iter_t rd_iter;
+        struct {
+            ucg_algo_rd_iter_t iter;
+            void *staging_area_stored;
+            void *recvbuf_stored;
+        } rd;
         struct {
             ucg_algo_ring_iter_t iter;
             /* compute count to blocks, the number of blocks is group size.

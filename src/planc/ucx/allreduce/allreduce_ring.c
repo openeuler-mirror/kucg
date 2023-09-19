@@ -43,6 +43,11 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_check(ucg_vgroup_t *vgroup,
         ucg_info("Allreduce ring don't support non-commutative op");
         return UCG_ERR_UNSUPPORTED;
     }
+    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
+    if (ucx_group->context->config.reduce_consistency == 1) {
+        ucg_info("Allreduce ring don't support reduce calculation results consistency");
+        return UCG_ERR_UNSUPPORTED;
+    }
     return UCG_OK;
 }
 
@@ -54,7 +59,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_reduce_scatter(ucg_plan_op_t
     ucg_coll_allreduce_args_t *args = &ucg_op->super.args.allreduce;
     ucg_rank_t my_rank = vgroup->myrank;
     uint32_t group_size = vgroup->size;
-    uint32_t dt_ext = ucg_dt_extent(args->dt);
+    int64_t dt_ext = ucg_dt_extent(args->dt);
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
     ucg_algo_ring_iter_t *iter = &op->allreduce.ring.iter;
@@ -79,7 +84,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_reduce_scatter(ucg_plan_op_t
                                     (sendblock * small_blkcount + spilt_rank));
             int32_t blockcount = ((sendblock < spilt_rank) ?
                                     large_blkcount : small_blkcount);
-            void *tmpsend = args->recvbuf + (int64_t)blockoffset * dt_ext;
+            void *tmpsend = args->recvbuf + blockoffset * dt_ext;
             status = ucg_planc_ucx_p2p_isend(tmpsend, blockcount, args->dt,
                                                 right_peer, op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
@@ -110,7 +115,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_allgatherv(ucg_plan_op_t *uc
     ucg_coll_allreduce_args_t *args = &ucg_op->super.args.allreduce;
     ucg_rank_t my_rank = vgroup->myrank;
     uint32_t group_size = vgroup->size;
-    uint32_t dt_ext = ucg_dt_extent(args->dt);
+    int64_t dt_ext = ucg_dt_extent(args->dt);
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
     ucg_algo_ring_iter_t *iter = &op->allreduce.ring.iter;
@@ -128,7 +133,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_allgatherv(ucg_plan_op_t *uc
             int32_t recv_block_offset = ((recvblock < spilt_rank) ?
                                             (recvblock * large_blkcount) :
                                             (recvblock * small_blkcount + spilt_rank));
-            void *tmprecv = args->recvbuf + (int64_t)recv_block_offset * dt_ext;
+            void *tmprecv = args->recvbuf + recv_block_offset * dt_ext;
             status = ucg_planc_ucx_p2p_irecv(tmprecv, max_blkcount, args->dt,
                                                 left_peer, op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
@@ -139,7 +144,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_ring_op_allgatherv(ucg_plan_op_t *uc
                                             (sendblock * large_blkcount) :
                                             (sendblock * small_blkcount + spilt_rank));
             int32_t blockcount = ((sendblock < spilt_rank) ? large_blkcount : small_blkcount);
-            void *tmpsend = args->recvbuf + (int64_t)send_block_offset * dt_ext;
+            void *tmpsend = args->recvbuf + send_block_offset * dt_ext;
             status = ucg_planc_ucx_p2p_isend(tmpsend, blockcount, args->dt,
                                                 right_peer, op->tag, vgroup, &params);
             UCG_CHECK_GOTO(status, out);
@@ -278,7 +283,7 @@ ucg_status_t ucg_planc_ucx_allreduce_ring_op_init(ucg_planc_ucx_op_t *ucg_op)
     ucg_op->allreduce.ring.large_blkcount = large_blkcount;
     ucg_op->allreduce.ring.small_blkcount = small_blkcount;
     ucg_dt_t *dt = args->dt;
-    int64_t data_size = dt->true_extent + (int64_t)dt->extent * (large_blkcount - 1);
+    int64_t data_size = dt->true_extent + dt->extent * (large_blkcount - 1);
     ucg_op->staging_area = ucg_malloc(data_size, "alloc staging area");
     if (!ucg_op->staging_area) {
         return UCG_ERR_NO_MEMORY;

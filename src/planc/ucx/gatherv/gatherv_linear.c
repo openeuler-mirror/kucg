@@ -27,9 +27,9 @@ static ucg_status_t ucg_planc_ucx_gatherv_linear_op_root(ucg_planc_ucx_op_t *op)
     ucg_planc_ucx_op_set_p2p_params(op, &params);
 
     if (ucg_test_and_clear_flags(&op->flags, UCG_GATHERV_LINEAR_RECV)) {
-        uint32_t recvtype_extent = ucg_dt_extent(args->recvtype);
+        int64_t recvtype_extent = ucg_dt_extent(args->recvtype);
         for (int i = 0; i < group_size; i++) {
-            void *rbuf = (char*)args->recvbuf + (int64_t)args->displs[i] * recvtype_extent;
+            void *rbuf = (char*)args->recvbuf + args->displs[i] * recvtype_extent;
             int32_t rcount = args->recvcounts[i];
             if (rcount == 0) {
                 continue;
