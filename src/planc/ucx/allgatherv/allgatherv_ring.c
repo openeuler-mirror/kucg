@@ -61,13 +61,13 @@ static ucg_status_t ucg_planc_ucx_allgatherv_ring_op_progress(ucg_plan_op_t *ucg
     ucg_rank_t left_peer = ucg_algo_ring_iter_left_value(iter);
     ucg_rank_t right_peer = ucg_algo_ring_iter_right_value(iter);
     ucg_coll_allgatherv_args_t *args = &op->super.super.args.allgatherv;
-    uint32_t recvtype_extent = ucg_dt_extent(args->recvtype);
+    int64_t recvtype_extent = ucg_dt_extent(args->recvtype);
 
     while (!ucg_algo_ring_iter_end(iter)) {
         int step_idx = ucg_algo_ring_iter_idx(iter);
         if (ucg_test_and_clear_flags(&op->flags, UCG_ALLGATHERV_RING_SEND)) {
             int block_idx = (myrank - step_idx + group_size) % group_size;
-            void *sendbuf = args->recvbuf + (int64_t)args->displs[block_idx] * recvtype_extent;
+            void *sendbuf = args->recvbuf + args->displs[block_idx] * recvtype_extent;
             status = ucg_planc_ucx_p2p_isend(sendbuf, args->recvcounts[block_idx],
                                              args->recvtype, right_peer, op->tag,
                                              vgroup, &params);
@@ -75,7 +75,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_ring_op_progress(ucg_plan_op_t *ucg
         }
         if (ucg_test_and_clear_flags(&op->flags, UCG_ALLGATHERV_RING_RECV)) {
             int block_idx = (myrank - step_idx - 1 + group_size) % group_size;
-            void *recvbuf = args->recvbuf + (int64_t)args->displs[block_idx] * recvtype_extent;
+            void *recvbuf = args->recvbuf + args->displs[block_idx] * recvtype_extent;
             status = ucg_planc_ucx_p2p_irecv(recvbuf, args->recvcounts[block_idx],
                                              args->recvtype, left_peer, op->tag,
                                              vgroup, &params);
@@ -108,7 +108,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_ring_op_trigger(ucg_plan_op_t *ucg_
         void *recvbuf = args->recvbuf;
         ucg_dt_t *recvtype = args->recvtype;
         ucg_dt_t *sendtype = args->sendtype;
-        uint32_t recvtype_extent = ucg_dt_extent(recvtype);
+        int64_t recvtype_extent = ucg_dt_extent(recvtype);
         status = ucg_dt_memcpy((char *)recvbuf + args->displs[myrank] * recvtype_extent,
                                 args->recvcounts[myrank], recvtype,
                                 sendbuf, args->sendcount, sendtype);

@@ -164,7 +164,7 @@ static ucg_status_t ucg_planc_ucx_allgatherv_bruck_op_trigger(ucg_plan_op_t *ucg
     const void *sendbuf = args->sendbuf;
     if (sendbuf != UCG_IN_PLACE) {
         ucg_rank_t myrank = op->super.vgroup->myrank;
-        uint32_t recvtype_extent = ucg_dt_extent(args->recvtype);
+        int64_t recvtype_extent = ucg_dt_extent(args->recvtype);
         void *recvbuf = args->recvbuf + args->displs[myrank] * recvtype_extent;
         status = ucg_dt_memcpy(recvbuf, args->recvcounts[myrank], args->recvtype,
                                sendbuf, args->sendcount, args->sendtype);

@@ -34,13 +34,13 @@ static ucg_status_t ucg_planc_ucx_scatterv_linear_op_root_send_one_by_one(ucg_pl
     ucg_vgroup_t *vgroup = op->super.vgroup;
     uint32_t group_size = vgroup->size;
     int *idx = &op->scatterv.linear.idx;
-    uint32_t sendtype_extent = ucg_dt_extent(args->sendtype);
+    int64_t sendtype_extent = ucg_dt_extent(args->sendtype);
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
 
     while (*idx < group_size) {
         if (ucg_test_and_clear_flags(&op->flags, UCG_SCATTERV_LINEAR_SEND)) {
-            void *sbuf = (char*)args->sendbuf + (int64_t)args->displs[*idx] * sendtype_extent;
+            void *sbuf = (char*)args->sendbuf + args->displs[*idx] * sendtype_extent;
             int32_t scount = args->sendcounts[*idx];
             if (*idx == args->root) {
                 if (scount > 0 && args->recvbuf != UCG_IN_PLACE) {
@@ -70,13 +70,13 @@ static ucg_status_t ucg_planc_ucx_scatterv_linear_op_root_send_batch(ucg_planc_u
     ucg_coll_scatterv_args_t *args = &op->super.super.args.scatterv;
     ucg_vgroup_t *vgroup = op->super.vgroup;
     uint32_t group_size = vgroup->size;
-    uint32_t sendtype_extent = ucg_dt_extent(args->sendtype);
+    int64_t sendtype_extent = ucg_dt_extent(args->sendtype);
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
 
     if (ucg_test_and_clear_flags(&op->flags, UCG_SCATTERV_LINEAR_SEND)) {
         for (int i = 0; i < group_size; ++i) {
-            void *sbuf = (char*)args->sendbuf + (int64_t)args->displs[i] * sendtype_extent;
+            void *sbuf = (char*)args->sendbuf + args->displs[i] * sendtype_extent;
             int32_t scount = args->sendcounts[i];
             if (i == args->root) {
                 if (scount > 0 && args->recvbuf != UCG_IN_PLACE) {

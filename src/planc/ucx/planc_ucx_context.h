@@ -36,6 +36,7 @@ typedef struct ucg_planc_ucx_config {
     int n_polls;
     int estimated_num_eps;
     int estimated_num_ppn;
+    int8_t reduce_consistency;
     ucg_ternary_auto_value_t use_oob;
     ucg_config_names_array_t planm;
 } ucg_planc_ucx_config_t;

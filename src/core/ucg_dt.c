@@ -286,8 +286,8 @@ static ucg_status_t ucg_dt_memcpy_contiguous(void *dst, int32_t dcount, ucg_dt_t
     ucg_assert(ucg_dt_is_contiguous(dst_dt));
     ucg_assert(ucg_dt_is_contiguous(src_dt));
 
-    uint64_t src_len = (uint64_t)scount * ucg_dt_size(src_dt);
-    uint64_t dst_len = (uint64_t)dcount * ucg_dt_size(dst_dt);
+    uint64_t src_len = scount * ucg_dt_size(src_dt);
+    uint64_t dst_len = dcount * ucg_dt_size(dst_dt);
     if (src_len <= dst_len) {
         memcpy(dst, src, src_len);
         return UCG_OK;
@@ -308,8 +308,8 @@ static ucg_status_t ucg_dt_memcpy_pack(void *dst, int32_t dcount, ucg_dt_t *dst_
         return UCG_ERR_NO_RESOURCE;
     }
 
-    uint64_t src_len = (uint64_t)scount * ucg_dt_size(src_dt);
-    uint64_t dst_len = (uint64_t)dcount * ucg_dt_size(dst_dt);
+    uint64_t src_len = scount * ucg_dt_size(src_dt);
+    uint64_t dst_len = dcount * ucg_dt_size(dst_dt);
     uint64_t offset = 0;
     uint64_t len = 0;
     while (1) {
@@ -342,8 +342,8 @@ static ucg_status_t ucg_dt_memcpy_unpack(void *dst, int32_t dcount, ucg_dt_t *ds
         return UCG_ERR_NO_RESOURCE;
     }
 
-    uint64_t src_len = (uint64_t)scount * ucg_dt_size(src_dt);
-    uint64_t dst_len = (uint64_t)dcount * ucg_dt_size(dst_dt);
+    uint64_t src_len = scount * ucg_dt_size(src_dt);
+    uint64_t dst_len = dcount * ucg_dt_size(dst_dt);
     uint64_t offset = 0;
     uint64_t len = 0;
     while (1) {
@@ -407,8 +407,8 @@ static ucg_status_t ucg_dt_memcpy_generic(void *dst, int32_t dcount, ucg_dt_t *d
         }
         unpack_offset += max_len;
     }
-    uint64_t src_len = (uint64_t)scount * ucg_dt_size(src_dt);
-    uint64_t dst_len = (uint64_t)dcount * ucg_dt_size(dst_dt);
+    uint64_t src_len = scount * ucg_dt_size(src_dt);
+    uint64_t dst_len = dcount * ucg_dt_size(dst_dt);
     status = src_len <= dst_len ? UCG_OK : UCG_ERR_TRUNCATE;
 
 out_finish_unpack:
@@ -457,7 +457,7 @@ ucg_dt_state_t* ucg_dt_start_pack(const void *buffer, const ucg_dt_t *dt, int32_
     return state;
 }
 
-uint32_t ucg_dt_packed_size(ucg_dt_state_t *state)
+uint64_t ucg_dt_packed_size(ucg_dt_state_t *state)
 {
     return state->count * ucg_dt_size(state->dt);
 }

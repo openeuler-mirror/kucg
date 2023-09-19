@@ -421,7 +421,7 @@ UCG_PROFILE_FUNC(ucg_status_t, ucg_request_cleanup, (request), ucg_request_h req
     return status;
 }
 
-ucg_status_t ucg_request_msg_size(const ucg_coll_args_t *args, const uint32_t size, uint32_t *msize)
+ucg_status_t ucg_request_msg_size(const ucg_coll_args_t *args, const uint32_t size, uint64_t *msize)
 {
     uint64_t total_size;
     uint64_t dt_size;
@@ -441,13 +441,13 @@ ucg_status_t ucg_request_msg_size(const ucg_coll_args_t *args, const uint32_t si
         case UCG_COLL_TYPE_ALLGATHERV:
             /* The message size of each process is different, so using 0. */
             dt_size = (args->allgatherv.sendbuf != UCG_IN_PLACE) ?
-                      (uint64_t)ucg_dt_size(args->allgatherv.sendtype) :
-                      (uint64_t)ucg_dt_size(args->allgatherv.recvtype);
+                      ucg_dt_size(args->allgatherv.sendtype) :
+                      ucg_dt_size(args->allgatherv.recvtype);
             total_size = 0;
             for (int i = 0; i < size; i++) {
                 total_size += dt_size * args->allgatherv.recvcounts[i];
             }
-            *msize = (uint32_t)(total_size / size);
+            *msize = total_size / size;
             break;
         default:
             return UCG_ERR_INVALID_PARAM;

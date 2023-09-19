@@ -777,7 +777,7 @@ ucg_status_t ucg_plans_prepare(const ucg_plans_t *plans, const ucg_coll_args_t *
     UCG_CHECK_NULL_INVALID(plans, args, op);
 
     ucg_status_t status;
-    uint32_t msg_size = 0;
+    uint64_t msg_size = 0;
     status = ucg_request_msg_size(args, size, &msg_size);
     if (status != UCG_OK) {
         return status;

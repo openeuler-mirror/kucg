@@ -32,13 +32,13 @@ typedef struct ucg_dt {
     ucg_dt_type_t type;
     ucg_dt_flag_t flags;
     /** Size of data if it's put on a contiguous memory */
-    uint32_t size;
+    uint64_t size;
     /** Actual memory size required to store this datatype */
-    uint32_t extent;
+    int64_t extent;
     /** True lower bound of the data without user defined lb and ub */
-    int32_t true_lb;
+    int64_t true_lb;
     /** True extent of the data without user defined lb and ub */
-    uint32_t true_extent;
+    int64_t true_extent;
     /** Save an opaque object, e.g. PlanC datatype */
     ucg_dt_opaque_t opaque;
 } ucg_dt_t;
@@ -89,12 +89,12 @@ void ucg_dt_global_cleanup();
 /***************************************************************
  *                     Datatype routines
  ***************************************************************/
-static inline uint32_t ucg_dt_size(const ucg_dt_t *dt)
+static inline uint64_t ucg_dt_size(const ucg_dt_t *dt)
 {
     return dt->size;
 }
 
-static inline uint32_t ucg_dt_extent(const ucg_dt_t *dt)
+static inline int64_t ucg_dt_extent(const ucg_dt_t *dt)
 {
     return dt->extent;
 }
@@ -140,7 +140,7 @@ ucg_status_t ucg_dt_memcpy(void *dst, int32_t dcount, ucg_dt_t *dst_dt,
 ucg_dt_state_t* ucg_dt_start_pack(const void *buffer, const ucg_dt_t *dt,
                                   int32_t count);
 
-uint32_t ucg_dt_packed_size(ucg_dt_state_t *state);
+uint64_t ucg_dt_packed_size(ucg_dt_state_t *state);
 
 ucg_status_t ucg_dt_pack(ucg_dt_state_t *state, uint64_t offset, void *dst,
                          uint64_t *length);
