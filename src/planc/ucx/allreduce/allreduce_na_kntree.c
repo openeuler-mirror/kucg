@@ -22,6 +22,12 @@ static ucg_status_t ucg_planc_ucx_allreduce_na_kntree_check(ucg_vgroup_t *vgroup
         ucg_info("Allreduce na_kntree don't support unknown ppn");
         return UCG_ERR_UNSUPPORTED;
     }
+
+    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
+    if (ucx_group->context->config.reduce_consistency == 1) {
+        ucg_info("Allreduce na_kntree don't support reduce calculation results consistency");
+        return UCG_ERR_UNSUPPORTED;
+    }
     return UCG_OK;
 }
 
@@ -87,7 +93,7 @@ ucg_status_t ucg_planc_ucx_allreduce_na_kntree_prepare(ucg_vgroup_t *vgroup,
     ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
     ucg_planc_ucx_allreduce_config_t *config;
     config = UCG_PLANC_UCX_CONTEXT_BUILTIN_CONFIG_BUNDLE(ucx_group->context, allreduce,
-                                                 UCG_COLL_TYPE_ALLREDUCE);
+                                                         UCG_COLL_TYPE_ALLREDUCE);
 
     ucg_plan_meta_op_t* meta_op;
     meta_op = ucg_planc_ucx_allreduce_na_kntree_op_new(ucx_group, vgroup, args, config);

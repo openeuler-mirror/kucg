@@ -54,6 +54,11 @@ static ucg_config_field_t ucg_planc_ucx_config_table[] = {
      ucg_offsetof(ucg_planc_ucx_config_t, estimated_num_ppn),
      UCG_CONFIG_TYPE_UINT},
 
+    {"REDUCE_CONSISTENCY", "n",
+     "Ensure consistency of reduce calculation results at the cost of performance",
+     ucg_offsetof(ucg_planc_ucx_config_t, reduce_consistency),
+     UCG_CONFIG_TYPE_BOOL},
+
     {"USE_OOB", "try",
      "The value can be \n"
      " - yes  : Forcibly use oob. If the oob does not exist, a failure will occur. \n"

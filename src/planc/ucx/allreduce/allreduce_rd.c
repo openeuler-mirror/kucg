@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "allreduce.h"
@@ -33,11 +33,11 @@ static ucg_status_t ucg_planc_ucx_allreduce_rd_op_base(ucg_planc_ucx_op_t *op)
     ucg_status_t status = UCG_OK;
     ucg_vgroup_t *vgroup = op->super.vgroup;
     ucg_coll_allreduce_args_t *args = &op->super.super.args.allreduce;
-    void *temp_staging_area = args->staging_area_stored;
-    void *temp_recvbuf = args->recvbuf_stored;
+    void *temp_staging_area = op->allreduce.rd.staging_area_stored;
+    void *temp_recvbuf = op->allreduce.rd.recvbuf_stored;
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
-    ucg_algo_rd_iter_t *iter = &op->allreduce.rd_iter;
+    ucg_algo_rd_iter_t *iter = &op->allreduce.rd.iter;
     ucg_rank_t peer;
     ucg_rank_t my_rank = vgroup->myrank;
 
@@ -58,8 +58,8 @@ static ucg_status_t ucg_planc_ucx_allreduce_rd_op_base(ucg_planc_ucx_op_t *op)
 
         if (my_rank < peer) {
             status = ucg_op_reduce(args->op, temp_recvbuf, temp_staging_area, args->count, args->dt);
-            args->staging_area_stored = temp_recvbuf;
-            args->recvbuf_stored = temp_staging_area;
+            op->allreduce.rd.staging_area_stored = temp_recvbuf;
+            op->allreduce.rd.recvbuf_stored = temp_staging_area;
             void *temp = temp_recvbuf;
             temp_recvbuf = temp_staging_area;
             temp_staging_area = temp;
@@ -84,11 +84,11 @@ static ucg_status_t ucg_planc_ucx_allreduce_rd_op_proxy(ucg_planc_ucx_op_t *op)
     ucg_status_t status = UCG_OK;
     ucg_vgroup_t *vgroup = op->super.vgroup;
     ucg_coll_allreduce_args_t *args = &op->super.super.args.allreduce;
-    void *temp_staging_area = args->staging_area_stored;
+    void *temp_staging_area = op->allreduce.rd.staging_area_stored;
     void *recvbuf = args->recvbuf;
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
-    ucg_algo_rd_iter_t *iter = &op->allreduce.rd_iter;
+    ucg_algo_rd_iter_t *iter = &op->allreduce.rd.iter;
     ucg_rank_t peer;
 
     if (ucg_test_and_clear_flags(&op->flags, UCG_RD_PROXY_RECV)) {
@@ -130,7 +130,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_rd_op_extra(ucg_planc_ucx_op_t *op)
     const void *sendbuf = (args->sendbuf != UCG_IN_PLACE) ? args->sendbuf : args->recvbuf;
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
-    ucg_algo_rd_iter_t *iter = &op->allreduce.rd_iter;
+    ucg_algo_rd_iter_t *iter = &op->allreduce.rd.iter;
     ucg_rank_t peer;
     if (ucg_test_and_clear_flags(&op->flags, UCG_RD_EXTRA_SEND)) {
         peer = ucg_algo_rd_iter_value_inc(iter);
@@ -154,7 +154,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_rd_op_progress(ucg_plan_op_t *ucg_op
 {
     ucg_status_t status;
     ucg_planc_ucx_op_t *op = ucg_derived_of(ucg_op, ucg_planc_ucx_op_t);
-    ucg_algo_rd_iter_t *iter = &op->allreduce.rd_iter;
+    ucg_algo_rd_iter_t *iter = &op->allreduce.rd.iter;
     ucg_algo_rd_iter_type_t type = ucg_algo_rd_iter_type(iter);
 
     if (type == UCG_ALGO_RD_ITER_BASE) {
@@ -174,7 +174,7 @@ static ucg_status_t ucg_planc_ucx_allreduce_rd_op_trigger(ucg_plan_op_t *ucg_op)
     ucg_planc_ucx_op_t *op = ucg_derived_of(ucg_op, ucg_planc_ucx_op_t);
     ucg_planc_ucx_op_reset(op);
 
-    ucg_algo_rd_iter_t *iter = &op->allreduce.rd_iter;
+    ucg_algo_rd_iter_t *iter = &op->allreduce.rd.iter;
     ucg_algo_rd_iter_reset(iter);
     ucg_algo_rd_iter_type_t type = ucg_algo_rd_iter_type(iter);
     if (type == UCG_ALGO_RD_ITER_BASE || type == UCG_ALGO_RD_ITER_PROXY) {
@@ -183,8 +183,8 @@ static ucg_status_t ucg_planc_ucx_allreduce_rd_op_trigger(ucg_plan_op_t *ucg_op)
             op->flags |= UCG_RD_PROXY_FLAGS;
         }
         ucg_coll_allreduce_args_t *args = &ucg_op->super.args.allreduce;
-        args->staging_area_stored = op->staging_area - args->dt->true_lb;
-        args->recvbuf_stored = args->recvbuf;
+        op->allreduce.rd.staging_area_stored = op->staging_area - args->dt->true_lb;
+        op->allreduce.rd.recvbuf_stored = args->recvbuf;
         if (args->sendbuf != UCG_IN_PLACE) {
             status = ucg_dt_memcpy(args->recvbuf, args->count, args->dt,
                                    args->sendbuf, args->count, args->dt);
@@ -233,13 +233,13 @@ ucg_planc_ucx_op_t *ucg_planc_ucx_allreduce_rd_op_new(ucg_planc_ucx_group_t *ucx
     }
     ucg_planc_ucx_op_init(op, ucx_group);
 
-    ucg_algo_rd_iter_t *iter = &op->allreduce.rd_iter;
+    ucg_algo_rd_iter_t *iter = &op->allreduce.rd.iter;
     ucg_algo_rd_iter_init(iter, vgroup->size, vgroup->myrank);
     ucg_algo_rd_iter_type_t type = ucg_algo_rd_iter_type(iter);
     if (type == UCG_ALGO_RD_ITER_BASE || type == UCG_ALGO_RD_ITER_PROXY) {
         ucg_dt_t *dt = args->allreduce.dt;
         int32_t count = args->allreduce.count;
-        int64_t data_size = dt->true_extent + (int64_t)dt->extent * (count - 1);
+        int64_t data_size = dt->true_extent + dt->extent * (count - 1);
         ucg_assert(op->staging_area == NULL);
         op->staging_area = ucg_malloc(data_size, "allreduce rd op staging area");
         if (op->staging_area == NULL) {

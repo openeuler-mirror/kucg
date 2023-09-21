@@ -213,7 +213,7 @@ ucg_status_t ucg_planc_ucx_allreduce_add_reduce_scatter_op(ucg_plan_meta_op_t *m
 ucg_status_t ucg_planc_ucx_allreduce_get_rd_args(ucg_vgroup_t *vgroup,
                                                  const ucg_coll_args_t *args,
                                                  ucg_topo_group_type_t topo_type,
-                                                 int32_t *offset, int32_t *count)
+                                                 int64_t *offset, int32_t *count)
 {
     ucg_status_t status = UCG_OK;
     ucg_topo_group_t *topo_group;

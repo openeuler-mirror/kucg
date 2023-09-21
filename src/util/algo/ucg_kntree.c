@@ -2,6 +2,7 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
  */
 
+#include "util/ucg_log.h"
 #include "ucg_kntree.h"
 #include "util/ucg_helper.h"
 #include "util/ucg_math.h"
@@ -69,6 +70,13 @@ void ucg_algo_kntree_iter_init(ucg_algo_kntree_iter_t *iter, int size, int degre
 {
     ucg_assert(myrank != UCG_INVALID_RANK);
 
+    if (degree <= 1) {
+        degree = 2;
+        ucg_info("The degree of k-nomial tree can't be less than 2, the degree is turned to 2.");
+    } else if (degree > size) {
+        degree = size;
+        ucg_info("The degree %d of k-nomial tree is set too large, the degree is turned to the tree size:%d.", degree, size);
+    }
     ucg_rank_t v_myrank = (myrank - root + size) % size;
     iter->size = size;
     iter->degree = degree;

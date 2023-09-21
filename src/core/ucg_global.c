@@ -3,6 +3,8 @@
  */
 
 #include "ucg_global.h"
+
+#include "ucg_compatible.h"
 #include "ucg_dt.h"
 
 #include "planc/ucg_planc.h"
@@ -73,6 +75,8 @@ ucg_status_t ucg_global_init(const ucg_global_params_t *params)
         goto out;
     }
 
+    ucg_config_compatible();
+
     ucg_global_config_t config;
     status = ucg_config_parser_fill_opts(&config, ucg_global_config_table,
                                          UCG_DEFAULT_ENV_PREFIX, NULL, 0);
@@ -88,7 +92,7 @@ ucg_status_t ucg_global_init(const ucg_global_params_t *params)
         ucg_error("Failed to load plan component");
         goto out;
     }
-    
+
     status = ucg_global_init_planc(params);
     if (status != UCG_OK) {
         ucg_error("Failed to initialize planc");

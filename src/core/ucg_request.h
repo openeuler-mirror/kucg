@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #ifndef UCG_REQUEST_H_
@@ -40,8 +40,6 @@ typedef struct ucg_coll_allreduce_args {
     ucg_op_t *op;
     /* Use only at the ucg_request_allreduce_init(), not elsewhere. */
     ucg_op_generic_t gop;
-    void *recvbuf_stored;
-    void *staging_area_stored;
 } ucg_coll_allreduce_args_t;
 
 typedef struct ucg_coll_alltoallv_args {
@@ -122,7 +120,7 @@ UCG_CLASS_DECLARE(ucg_request_t,
                   UCG_CLASS_CTOR_ARGS(const ucg_coll_args_t *arg));
 
 ucg_status_t ucg_request_msg_size(const ucg_coll_args_t *args, const uint32_t size,
-                                  uint32_t *msize);
+                                  uint64_t *msize);
 
 const char* ucg_coll_type_string(ucg_coll_type_t coll_type);
 
