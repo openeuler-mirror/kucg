@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #ifndef UCG_PLANC_UCX_BCAST_H_
@@ -24,6 +24,9 @@ typedef struct ucg_planc_ucx_bcast_config {
     /* configuration of node-aware kntree bcast */
     int na_kntree_inter_degree;
     int na_kntree_intra_degree;
+    /* configuration of van de geijn */
+    size_t min_bsend;
+    size_t max_bsend;
 } ucg_planc_ucx_bcast_config_t;
 
 /**
@@ -38,6 +41,7 @@ typedef struct ucg_planc_ucx_bcast {
             ucg_algo_ring_iter_t ring_iter;
             uint32_t curr_count;
             uint32_t quotient;
+            uint8_t  send_type;
         } van_de_geijn;
     };
 } ucg_planc_ucx_bcast_t;

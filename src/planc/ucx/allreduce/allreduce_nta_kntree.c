@@ -25,6 +25,11 @@ static ucg_status_t ucg_planc_ucx_allreduce_nta_kntree_check(ucg_vgroup_t *vgrou
         ucg_info("Allreduce nta_kntree don't support non-commutative op");
         return UCG_ERR_UNSUPPORTED;
     }
+    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
+    if (ucx_group->context->config.reduce_consistency == 1) {
+        ucg_info("Allreduce nta_kntree don't support reduce calculation results consistency");
+        return UCG_ERR_UNSUPPORTED;
+    }
     return UCG_OK;
 }
 

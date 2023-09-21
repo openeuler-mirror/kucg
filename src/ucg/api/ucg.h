@@ -475,15 +475,15 @@ typedef struct {
     /** A pointer to user-defined datatype object. */
     void *user_dt;
     /** Size of user-defined datatype if it's put on a contiguous memory. */
-    uint32_t size;
+    uint64_t size;
     /** Extent of the user-defined datatype. */
-    uint32_t extent;
+    int64_t extent;
     /** User-defined datatype convertor. */
     ucg_dt_convertor_t conv;
     /** true lower bound of the data without user defined lb and ub. */
-    int32_t true_lb;
+    int64_t true_lb;
     /** true extent of the data without user defined lb and ub. */
-    uint32_t true_extent;
+    int64_t true_extent;
 } ucg_dt_params_t;
 
 /**

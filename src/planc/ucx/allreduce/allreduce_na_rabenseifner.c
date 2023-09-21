@@ -51,6 +51,11 @@ static ucg_status_t ucg_planc_ucx_allreduce_na_rabenseifner_check(ucg_vgroup_t *
         ucg_info("Allreduce na_rabenseifner don't support count%%ppn!=0");
         return UCG_ERR_UNSUPPORTED;
     }
+    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
+    if (ucx_group->context->config.reduce_consistency == 1) {
+        ucg_info("Allreduce na_rabenseifner don't support reduce calculation results consistency");
+        return UCG_ERR_UNSUPPORTED;
+    }
     return UCG_OK;
 }
 
@@ -73,7 +78,8 @@ ucg_plan_meta_op_t* ucg_planc_ucx_allreduce_na_rabenseifner_op_new(ucg_planc_ucx
                                                            UCG_TOPO_GROUP_TYPE_NODE);
     UCG_CHECK_GOTO(status, err_free_meta_op);
 
-    int32_t offset, count;
+    int32_t count;
+    int64_t offset;
     status = ucg_planc_ucx_allreduce_get_rd_args(vgroup, args, UCG_TOPO_GROUP_TYPE_NODE,
                                                  &offset, &count);
     UCG_CHECK_GOTO(status, err_free_meta_op);
