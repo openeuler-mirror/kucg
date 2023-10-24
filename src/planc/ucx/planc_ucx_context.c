@@ -577,7 +577,7 @@ out:
     return ucg_status_s2g(ucs_status);
 }
 
-ucp_worker_h ucg_planc_ucx_context_get_worker(ucg_planc_uc_context_t *context)
+ucp_worker_h ucg_planc_ucx_context_get_worker(ucg_planc_ucx_context_t *context)
 {
     if (ucg_unlikely(context->ucp_worker == NULL)) {
         if (context->config.use_oob == UCG_YES) {

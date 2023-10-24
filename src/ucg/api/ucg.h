@@ -393,7 +393,7 @@ typedef struct ucg_addr_desc {
  * |...|num_addr_desc|addr_desc[0]|...|addr_desc[N]|address[0]|...|address[N]
  * --------------------------------------------------------------------------
  * addr_desc[i].offset is the offset of address[i] in the layout.
-*/
+ */
 typedef struct {
     // total size of packed information
     uint32_t size;
@@ -625,9 +625,9 @@ typedef struct {
     ucg_get_location_cb_t get_location;
 
     /**
-     * Callback to get information of the process with oob_group.rank,
-    */
-   ucg_get_proc_info_cb_t get_proc_info;
+     * Callback to get information of the process with oob_group.rank.
+     */
+    ucg_get_proc_info_cb_t get_proc_info;
 
     /**
      * Specifies whether the context is used in a single-thread or multi-thread
