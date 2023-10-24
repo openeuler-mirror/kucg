@@ -285,16 +285,6 @@ ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
     return UCG_OK;
 }
 
-static ucp_worker_h ucg_planc_ucx_p2p_get_ucp_worker(ucg_planc_ucx_context_t *context)
-{
-    if (ucg_unlikely(context->ucp_worker == NULL)) {
-        if (context->config.use_oob == UCG_YES) {
-            context->ucp_worker = ucg_planc_ucx_get_oob_ucp_worker();
-        }
-    }
-    return context->ucp_worker;
-}
-
 ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
                                      ucg_dt_t *dt, ucg_rank_t vrank,
                                      int tag, ucg_vgroup_t *vgroup,
@@ -328,7 +318,7 @@ ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
               sender_group_rank, group->myrank, ucp_tag, count, ucg_dt_size(dt),
               ucg_dt_extent(dt));
     ucg_planc_ucx_context_t *context = params->ucx_group->context;
-    ucp_worker_h ucp_worker = ucg_planc_ucx_p2p_get_ucp_worker(context);
+    ucp_worker_h ucp_worker = ucg_planc_ucx_context_get_worker(context);
     if (ucg_unlikely(ucp_worker == NULL)) {
         return UCG_ERR_INVALID_PARAM;
     }
@@ -373,7 +363,7 @@ ucg_status_t ucg_planc_ucx_p2p_test(ucg_planc_ucx_group_t *ucx_group,
     }
 
     ucg_planc_ucx_context_t *context = ucx_group->context;
-    ucp_worker_h ucp_worker = ucg_planc_ucx_p2p_get_ucp_worker(context);
+    ucp_worker_h ucp_worker = ucg_planc_ucx_context_get_worker(context);
     if (ucg_unlikely(ucp_worker == NULL)) {
         return UCG_ERR_INVALID_PARAM;
     }
@@ -399,7 +389,7 @@ ucg_status_t ucg_planc_ucx_p2p_testall(ucg_planc_ucx_group_t *ucx_group,
     }
 
     ucg_planc_ucx_context_t *context = ucx_group->context;
-    ucp_worker_h ucp_worker = ucg_planc_ucx_p2p_get_ucp_worker(context);
+    ucp_worker_h ucp_worker = ucg_planc_ucx_context_get_worker(context);
     if (ucg_unlikely(ucp_worker == NULL)) {
         return UCG_ERR_INVALID_PARAM;
     }
