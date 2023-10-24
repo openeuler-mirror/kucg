@@ -134,8 +134,8 @@ static ucg_status_t ucg_context_apply_params(ucg_context_t *context,
                                     context->oob_group, params->oob_group,
                                     err);
 
-    UCG_CONTEXT_COPY_REQUIRED_FIELD(LOCATION_CB, UCG_COPY_VALUE,
-                                    context->get_location, params->get_location,
+    UCG_CONTEXT_COPY_REQUIRED_FIELD(PROC_INFO_CB, UCG_COPY_VALUE,
+                                    context->get_proc_info, params->get_proc_info,
                                     err);
 
     UCG_CONTEXT_COPY_OPTIONAL_FIELD(THREAD_MODE, UCG_COPY_VALUE,
@@ -290,7 +290,7 @@ err:
     return status;
 }
 
-static ucg_proc_info_t* ucg_context_get_local_proc_info(ucg_context_t *context)
+ucg_proc_info_t* ucg_get_local_proc_info(ucg_context_t *context)
 {
     int num_planc_rscs = context->num_planc_rscs;
     uint32_t proc_info_size = sizeof(ucg_proc_info_t) +
@@ -317,22 +317,6 @@ static ucg_proc_info_t* ucg_context_get_local_proc_info(ucg_context_t *context)
     }
 
     proc->size = proc_info_size;
-    status = context->get_location(context->oob_group.myrank, &proc->location);
-    if (status != UCG_OK) {
-        ucg_error("Failed to get location of rank %d", context->oob_group.myrank);
-        goto err_free_proc;
-    }
-
-    proc->location.subnet_id = (proc->location.field_mask & UCG_LOCATION_FIELD_SUBNET_ID) ?
-                                proc->location.subnet_id : -1;
-    proc->location.node_id   = (proc->location.field_mask & UCG_LOCATION_FIELD_NODE_ID) ?
-                                proc->location.node_id : -1;
-    proc->location.socket_id = (proc->location.field_mask & UCG_LOCATION_FIELD_SOCKET_ID) ?
-                                proc->location.socket_id : -1;
-
-    ucg_debug("Location of rank %d: subnet %d, node %d, socket %d", context->oob_group.myrank,
-        proc->location.subnet_id, proc->location.node_id, proc->location.socket_id);
-
     proc->num_addr_desc = num_planc_rscs;
     attr.field_mask |= UCG_PLANC_CONTEXT_ATTR_FIELD_ADDR;
     for (int i = 0; i < num_planc_rscs; ++i) {
@@ -356,92 +340,6 @@ err_free_proc:
     ucg_free(proc);
 err:
     return NULL;
-}
-
-static ucg_status_t ucg_context_get_max_size(ucg_context_t *context,
-                                             uint32_t size,
-                                             uint32_t *max_size)
-{
-    ucg_oob_group_t *oob_group = &context->oob_group;
-    uint32_t oob_group_size = oob_group->size;
-    uint32_t *size_array = ucg_malloc(sizeof(uint32_t) * oob_group_size,
-                                      "size array");
-    if (size_array == NULL) {
-        return UCG_ERR_NO_MEMORY;
-    }
-
-    ucg_status_t status = oob_group->allgather(&size, size_array,
-                                               sizeof(uint32_t),
-                                               oob_group->group);
-    if (status != UCG_OK) {
-        ucg_error("Failed to allgather size");
-        goto out;
-    }
-
-    *max_size = 0;
-    for (int i = 0; i < oob_group_size; ++i) {
-        if (*max_size < size_array[i]) {
-            *max_size = size_array[i];
-        }
-    }
-
-out:
-    ucg_free(size_array);
-    return status;
-}
-
-static ucg_status_t ucg_context_fill_procs(ucg_context_t *context)
-{
-    ucg_status_t status;
-
-    ucg_proc_info_t *local_proc = ucg_context_get_local_proc_info(context);
-    if (local_proc == NULL) {
-        return UCG_ERR_NO_RESOURCE;
-    }
-
-    uint32_t max_proc_info_size;
-    status = ucg_context_get_max_size(context, local_proc->size, &max_proc_info_size);
-    if (status != UCG_OK) {
-        goto err_free_local_proc;
-    }
-
-    ucg_assert(max_proc_info_size > 0);
-    ucg_oob_group_t *oob_group = &context->oob_group;
-    ucg_proc_info_t *procs = ucg_malloc(max_proc_info_size * (oob_group->size + 1), "procs");
-    if (procs == NULL) {
-        status = UCG_ERR_NO_MEMORY;
-        goto err_free_local_proc;
-    }
-    /* local_proc->size may less than max_proc_info_size, using the last space
-       to save local process information to avoid memory read out-of-bound. */
-    ucg_proc_info_t *tmp_local_proc = (ucg_proc_info_t*)((uint8_t*)procs + max_proc_info_size * oob_group->size);
-    memcpy(tmp_local_proc, local_proc, local_proc->size);
-    status = oob_group->allgather(tmp_local_proc, procs, max_proc_info_size,
-                                  oob_group->group);
-    if (status != UCG_OK) {
-        ucg_error("Failed to allgather proc info");
-        goto err_free_procs;
-    }
-    ucg_free(local_proc);
-
-    context->procs.count = oob_group->size;
-    context->procs.stride = max_proc_info_size;
-    context->procs.info = (uint8_t*)procs;
-    return UCG_OK;
-
-err_free_procs:
-    ucg_free(procs);
-err_free_local_proc:
-    ucg_free(local_proc);
-    return status;
-}
-
-static void ucg_context_free_procs(ucg_context_t *context)
-{
-    context->procs.count = 0;
-    context->procs.stride = 0;
-    ucg_free(context->procs.info);
-    return;
 }
 
 static ucg_status_t ucg_context_init_version(uint32_t major_version,
@@ -473,10 +371,6 @@ static ucg_status_t ucg_context_init_version(uint32_t major_version,
         goto err_free_ctx;
     }
 
-    status = ucg_context_fill_procs(ctx);
-    if (status != UCG_OK) {
-        goto err_free_resource;
-    }
     ucg_list_head_init(&ctx->plist);
 
     status = ucg_mpool_init(&ctx->meta_op_mp, 0, sizeof(ucg_plan_meta_op_t),
@@ -484,7 +378,7 @@ static ucg_status_t ucg_context_init_version(uint32_t major_version,
                             UINT_MAX, NULL, "meta op mpool");
     if (status != UCG_OK) {
         ucg_error("Failed to create mpool");
-        goto err_free_procs;
+        goto err_free_resource;
     }
 
     ucg_debug("Initialized ucg context %p, oob group size %u, myrank %d, "
@@ -494,8 +388,6 @@ static ucg_status_t ucg_context_init_version(uint32_t major_version,
     *context = ctx;
     return UCG_OK;
 
-err_free_procs:
-    ucg_context_free_procs(ctx);
 err_free_resource:
     ucg_context_free_resource(ctx);
 err_free_ctx:
@@ -531,7 +423,6 @@ static void ucg_context_cleanup(ucg_context_h context)
     UCG_CHECK_NULL_VOID(context);
 
     ucg_mpool_cleanup(&context->meta_op_mp, 1);
-    ucg_context_free_procs(context);
     ucg_context_free_resource(context);
     ucg_free(context);
     return;
@@ -544,7 +435,12 @@ void* ucg_context_get_proc_addr(ucg_context_t *context, ucg_rank_t rank, ucg_pla
     int num_planc_rscs = context->num_planc_rscs;
     for (int i = 0; i < num_planc_rscs; ++i) {
         if (planc == context->planc_rscs[i].planc) {
-            ucg_proc_info_t *proc_info = UCG_PROC_INFO(context, rank);
+            ucg_proc_info_t *proc_info;
+            ucg_status_t status = context->get_proc_info(rank, &proc_info);
+            if (status != UCG_OK) {
+                ucg_error("Failed to get proc info of rank %d", rank);
+                return NULL;
+            }
             if (UCG_PROC_ADDR_LEN(proc_info, i) == 0) {
                 return NULL;
             }
@@ -559,8 +455,13 @@ ucg_status_t ucg_context_get_location(ucg_context_t *context, ucg_rank_t rank,
 {
     ucg_assert(context != NULL && location != NULL);
     ucg_assert(rank != UCG_INVALID_RANK && rank < context->oob_group.size);
-    ucg_proc_info_t *proc = UCG_PROC_INFO(context, rank);
-    *location = proc->location;
+    ucg_proc_info_t *proc_info;
+    ucg_status_t status = context->get_proc_info(rank, &proc_info);
+    if (status != UCG_OK) {
+        ucg_error("Failed to get proc info of rank %d", rank);
+        return status;
+    }
+    *location = proc_info->location;
     return UCG_OK;
 }
 

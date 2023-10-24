@@ -240,9 +240,6 @@ TEST_F(test_ucg_context, init_fail_malloc)
 
     stub::mock(stub::MALLOC, result, "size array");
     ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
-
-    stub::mock(stub::MALLOC, result, "procs");
-    ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
 }
 #endif
 
