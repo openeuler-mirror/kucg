@@ -59,11 +59,10 @@ static ucg_config_field_t ucg_planc_ucx_config_table[] = {
      ucg_offsetof(ucg_planc_ucx_config_t, reduce_consistency),
      UCG_CONFIG_TYPE_BOOL},
 
-    {"USE_OOB", "try",
+    {"USE_OOB", "yes",
      "The value can be \n"
      " - yes  : Forcibly use oob. If the oob does not exist, a failure will occur. \n"
-     " - no   : Not use oob. \n"
-     " - try  : Try to use oob, if the oob does not exist, it will create internal resource.",
+     " - no   : Not use oob. \n",
      ucg_offsetof(ucg_planc_ucx_config_t, use_oob),
      UCG_CONFIG_TYPE_TERNARY},
 
@@ -468,21 +467,7 @@ ucg_status_t ucg_planc_ucx_context_init(const ucg_planc_params_t *params,
         goto err_free_planm_rscs;
     }
 
-    if (ctx->config.use_oob == UCG_YES || ctx->config.use_oob == UCG_TRY) {
-        ctx->ucp_worker = ucg_planc_ucx_get_oob_ucp_worker();
-        if (ctx->ucp_worker == NULL) {
-            if (ctx->config.use_oob == UCG_YES) {
-                ucg_error("Failed to reuse OOB ucp resources.");
-                status = UCG_ERR_NO_RESOURCE;
-                goto err_free_mpool;
-            }
-            ctx->config.use_oob = UCG_NO;
-            ucg_info("OOB ucp resource is not available, creating internal ucp resource.");
-        } else {
-            ctx->config.use_oob = UCG_YES;
-        }
-    }
-
+    ctx->ucp_worker = NULL;
     if (ctx->config.use_oob == UCG_NO) {
         status = ucg_planc_ucx_context_init_ucp_context(ctx);
         if (status != UCG_OK) {

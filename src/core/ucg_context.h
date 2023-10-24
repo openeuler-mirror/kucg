@@ -15,10 +15,6 @@
 
 #include "ucg_def.h"
 
-/** Get process information */
-#define UCG_PROC_INFO(_context, _rank) \
-    (ucg_proc_info_t*)((_context)->procs.info + (_rank) * (_context)->procs.stride)
-
 /** Get address of process */
 #define UCG_PROC_ADDR(_info, _planc_idx) \
     (void*)((uint8_t*)(_info) + (_info)->addr_desc[(_planc_idx)].offset)
@@ -39,28 +35,6 @@ typedef struct ucg_resource_planc {
     ucg_planc_context_h ctx;
 } ucg_resource_planc_t;
 
-typedef struct ucg_addr_desc {
-    uint32_t len;
-    uint32_t offset;
-} ucg_addr_desc_t;
-
-/**
- * process information layout:
- * --------------------------------------------------------------------------
- * |...|num_addr_desc|addr_desc[0]|...|addr_desc[N]|address[0]|...|address[N]
- * --------------------------------------------------------------------------
- * addr_desc[i].offset is the offset of address[i] in the layout.
- */
-typedef struct ucg_proc_info {
-    // total size of packed information
-    uint32_t size;
-    ucg_location_t location;
-    uint32_t num_addr_desc;
-    // description of address of all planc
-    ucg_addr_desc_t addr_desc[0];
-    // address of planc
-} ucg_proc_info_t;
-
 typedef struct ucg_proc_info_array {
     uint32_t count; /* number of process information */
     uint32_t stride; /* size of process information */
@@ -68,12 +42,12 @@ typedef struct ucg_proc_info_array {
 } ucg_proc_info_array_t;
 
 typedef struct ucg_context {
-    ucg_proc_info_array_t procs;
     int32_t num_planc_rscs;
     ucg_resource_planc_t *planc_rscs;
     ucg_list_link_t plist; /* progress list */
     ucg_oob_group_t oob_group;
     ucg_get_location_cb_t get_location;
+    ucg_get_proc_info_cb_t get_proc_info;
     ucg_thread_mode_t thread_mode;
     /* Ensure thread-safe of all resources in the context. */
     ucg_lock_t mt_lock;
