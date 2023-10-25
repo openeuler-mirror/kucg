@@ -285,11 +285,6 @@ ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
     return UCG_OK;
 }
 
-static ucp_worker_h ucg_planc_ucx_p2p_get_ucp_worker(ucg_planc_ucx_p2p_params_t *params)
-{
-    return params->ucx_group->context->ucp_worker;
-}
-
 ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
                                      ucg_dt_t *dt, ucg_rank_t vrank,
                                      int tag, ucg_vgroup_t *vgroup,
@@ -322,7 +317,11 @@ ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
     ucg_debug("irecv: %d to %d, tag 0x%lX, count %d, size %ld, extent %ld",
               sender_group_rank, group->myrank, ucp_tag, count, ucg_dt_size(dt),
               ucg_dt_extent(dt));
-    ucp_worker_h ucp_worker = ucg_planc_ucx_p2p_get_ucp_worker(params);
+    ucg_planc_ucx_context_t *context = params->ucx_group->context;
+    ucp_worker_h ucp_worker = ucg_planc_ucx_context_get_worker(context);
+    if (ucg_unlikely(ucp_worker == NULL)) {
+        return UCG_ERR_INVALID_PARAM;
+    }
     ucs_status_ptr_t ucp_req = ucp_tag_recv_nbx(ucp_worker, buffer, count, ucp_tag,
                                                 UCG_PLANC_UCX_TAG_MASK, &req_param);
     if (ucp_req == NULL || UCS_PTR_IS_ERR(ucp_req)) {
@@ -364,7 +363,10 @@ ucg_status_t ucg_planc_ucx_p2p_test(ucg_planc_ucx_group_t *ucx_group,
     }
 
     ucg_planc_ucx_context_t *context = ucx_group->context;
-    ucp_worker_h ucp_worker = context->ucp_worker;
+    ucp_worker_h ucp_worker = ucg_planc_ucx_context_get_worker(context);
+    if (ucg_unlikely(ucp_worker == NULL)) {
+        return UCG_ERR_INVALID_PARAM;
+    }
     int polls = 0;
     int n_polls = context->config.n_polls;
     while (polls++ < n_polls) {
@@ -387,7 +389,10 @@ ucg_status_t ucg_planc_ucx_p2p_testall(ucg_planc_ucx_group_t *ucx_group,
     }
 
     ucg_planc_ucx_context_t *context = ucx_group->context;
-    ucp_worker_h ucp_worker = context->ucp_worker;
+    ucp_worker_h ucp_worker = ucg_planc_ucx_context_get_worker(context);
+    if (ucg_unlikely(ucp_worker == NULL)) {
+        return UCG_ERR_INVALID_PARAM;
+    }
     int polls = 0;
     int n_polls = context->config.n_polls;
     while (polls++ < n_polls) {

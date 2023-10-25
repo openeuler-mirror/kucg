@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-project(xucg VERSION 1.3.1)
+project(xucg VERSION 2.3.0)
 
 ## Set policy
 cmake_policy(SET CMP0048 NEW)
