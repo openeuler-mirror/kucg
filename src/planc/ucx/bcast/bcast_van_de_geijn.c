@@ -333,7 +333,7 @@ static void ucg_planc_ucx_bcast_van_de_geijn_bsend_threshold(const ucg_planc_ucx
     int32_t nnode = vgroup->group->topo->detail.nnode;
 
     *min = config->min_bsend;
-    *max = config->min_bsend;
+    *max = config->max_bsend;
 
     if (config->min_bsend == UCG_MEMUNITS_INF) {
         *max = UCG_MEMUNITS_INF;

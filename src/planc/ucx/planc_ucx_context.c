@@ -59,11 +59,10 @@ static ucg_config_field_t ucg_planc_ucx_config_table[] = {
      ucg_offsetof(ucg_planc_ucx_config_t, reduce_consistency),
      UCG_CONFIG_TYPE_BOOL},
 
-    {"USE_OOB", "try",
+    {"USE_OOB", "yes",
      "The value can be \n"
      " - yes  : Forcibly use oob. If the oob does not exist, a failure will occur. \n"
-     " - no   : Not use oob. \n"
-     " - try  : Try to use oob, if the oob does not exist, it will create internal resource.",
+     " - no   : Not use oob.",
      ucg_offsetof(ucg_planc_ucx_config_t, use_oob),
      UCG_CONFIG_TYPE_TERNARY},
 
@@ -294,8 +293,14 @@ static ucg_status_t ucg_planc_ucx_context_fill_config(ucg_planc_ucx_context_t *c
         }
     }
 
-    /* Use oob resources may not be safe under multi-threads mode */
     if (params->thread_mode == UCG_THREAD_MODE_MULTI) {
+        ucg_info("Disable oob because use oob resources may not be safe under multi-threads mode");
+        ctx->config.use_oob = UCG_NO;
+    }
+
+    ucp_worker_h ucp_worker = ucg_planc_ucx_get_oob_ucp_worker();
+    if (ucp_worker == NULL) {
+        ucg_info("Disable oob because oob worker is null");
         ctx->config.use_oob = UCG_NO;
     }
 
@@ -468,21 +473,7 @@ ucg_status_t ucg_planc_ucx_context_init(const ucg_planc_params_t *params,
         goto err_free_planm_rscs;
     }
 
-    if (ctx->config.use_oob == UCG_YES || ctx->config.use_oob == UCG_TRY) {
-        ctx->ucp_worker = ucg_planc_ucx_get_oob_ucp_worker();
-        if (ctx->ucp_worker == NULL) {
-            if (ctx->config.use_oob == UCG_YES) {
-                ucg_error("Failed to reuse OOB ucp resources.");
-                status = UCG_ERR_NO_RESOURCE;
-                goto err_free_mpool;
-            }
-            ctx->config.use_oob = UCG_NO;
-            ucg_info("OOB ucp resource is not available, creating internal ucp resource.");
-        } else {
-            ctx->config.use_oob = UCG_YES;
-        }
-    }
-
+    ctx->ucp_worker = NULL;
     if (ctx->config.use_oob == UCG_NO) {
         status = ucg_planc_ucx_context_init_ucp_context(ctx);
         if (status != UCG_OK) {
@@ -586,10 +577,24 @@ out:
     return ucg_status_s2g(ucs_status);
 }
 
+ucp_worker_h ucg_planc_ucx_context_get_worker(ucg_planc_ucx_context_t *context)
+{
+    if (ucg_unlikely(context->ucp_worker == NULL)) {
+        if (context->config.use_oob == UCG_YES) {
+            context->ucp_worker = ucg_planc_ucx_get_oob_ucp_worker();
+            if (context->ucp_worker == NULL) {
+                ucg_fatal("Failed to reuse OOB ucp resources.");
+            }
+        }
+    }
+    return context->ucp_worker;
+}
+
 int ucg_planc_ucx_context_progress(ucg_planc_context_h context)
 {
     UCG_CHECK_NULL_INVALID(context);
     ucg_planc_ucx_context_t *ctx = (ucg_planc_ucx_context_t *)context;
+    ctx->ucp_worker = ucg_planc_ucx_context_get_worker(ctx);
     int n_polls = ctx->config.n_polls;
     int polls = 0;
     while (polls++ < n_polls) {

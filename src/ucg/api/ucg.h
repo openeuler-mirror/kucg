@@ -294,7 +294,8 @@ typedef enum {
 typedef enum {
     UCG_PARAMS_FIELD_OOB_GROUP = UCG_BIT(0), /**< Out Of Band communication group */
     UCG_PARAMS_FIELD_LOCATION_CB = UCG_BIT(1), /**< Callback to get location of process */
-    UCG_PARAMS_FIELD_THREAD_MODE = UCG_BIT(2), /**< Context thread mode */
+    UCG_PARAMS_FIELD_PROC_INFO_CB = UCG_BIT(2), /**< Callback to get information of process */
+    UCG_PARAMS_FIELD_THREAD_MODE = UCG_BIT(3), /**< Context thread mode */
 } ucg_params_field_t;
 
 /**
@@ -380,6 +381,28 @@ typedef struct {
      */
     int16_t socket_id;
 } ucg_location_t;
+
+typedef struct ucg_addr_desc {
+    uint32_t len;
+    uint32_t offset;
+} ucg_addr_desc_t;
+
+/**
+ * process information layout:
+ * --------------------------------------------------------------------------
+ * |...|num_addr_desc|addr_desc[0]|...|addr_desc[N]|address[0]|...|address[N]
+ * --------------------------------------------------------------------------
+ * addr_desc[i].offset is the offset of address[i] in the layout.
+ */
+typedef struct {
+    // total size of packed information
+    uint32_t size;
+    ucg_location_t location;
+    uint32_t num_addr_desc;
+    // description of address of all planc
+    ucg_addr_desc_t addr_desc[];
+    // address of planc
+} ucg_proc_info_t;
 
 /**
  * @ingroup UCG_BASE
@@ -565,6 +588,13 @@ typedef ucg_status_t (*ucg_get_location_cb_t)(ucg_rank_t rank,
                                               ucg_location_t *location);
 
 /**
+ * @ignore UCG_CONTEXT
+ * @brief Get process information callback.
+*/
+typedef ucg_status_t (*ucg_get_proc_info_cb_t)(ucg_rank_t rank,
+                                               ucg_proc_info_t **proc);
+
+/**
  * @ingroup UCG_CONTEXT
  * @brief Tuning parameters for UCG context.
  *
@@ -593,6 +623,11 @@ typedef struct {
      * that is less efficient when the user has obtained the location.
      */
     ucg_get_location_cb_t get_location;
+
+    /**
+     * Callback to get information of the process with oob_group.rank.
+     */
+    ucg_get_proc_info_cb_t get_proc_info;
 
     /**
      * Specifies whether the context is used in a single-thread or multi-thread
@@ -961,6 +996,14 @@ static inline ucg_status_t ucg_init(const ucg_params_t *params,
     return ucg_init_version(UCG_API_MAJOR, UCG_API_MINOR, params, config,
                             context);
 }
+
+/**
+ * @brief Get my own process information
+ * 
+ * @param [in] context          Initialized UCG context.
+ * @return ucg_proc_info_t*     Process information
+*/
+ucg_proc_info_t* ucg_get_local_proc_info(ucg_context_h context);
 
 /**
  * @brief Progress all active request.

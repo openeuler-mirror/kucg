@@ -82,7 +82,6 @@ typedef enum {
 typedef enum ucg_ternary_auto_value {
     UCG_NO   = UCS_NO,
     UCG_YES  = UCS_YES,
-    UCG_TRY  = UCS_TRY,
     UCG_AUTO = UCS_AUTO,
     UCG_TERNARY_LAST
 } ucg_ternary_auto_value_t;
