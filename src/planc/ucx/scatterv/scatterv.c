@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "scatterv.h"
@@ -15,6 +15,9 @@ static ucg_plan_attr_t ucg_planc_ucx_scatterv_plan_attr[] = {
 
     {ucg_planc_ucx_scatterv_kntree_prepare,
      2, "Knomial tree", PLAN_DOMAIN},
+
+    {ucg_planc_ucx_scatterv_na_kntree_prepare, 
+     3, "Node-aware K-nomial tree", PLAN_DOMAIN},
 
     {NULL},
 };
@@ -35,6 +38,16 @@ static ucg_config_field_t scatterv_config_table[] = {
     {"SCATTERV_KNTREE_DEGREE", "2",
      "Configure the k value in kntree algo for scatterv",
      ucg_offsetof(ucg_planc_ucx_scatterv_config_t, kntree_degree),
+     UCG_CONFIG_TYPE_INT},
+
+    {"SCATTERV_NA_KNTREE_INTER_DEGREE", "2",
+     "Configure the k value between nodes in node-aware kntree algo for scatterv",
+     ucg_offsetof(ucg_planc_ucx_scatterv_config_t, na_kntree_inter_degree),
+     UCG_CONFIG_TYPE_INT},
+
+    {"SCATTERV_NA_KNTREE_INTRA_DEGREE", "2",
+     "Configure the k value in a node in node-aware kntree algo for scatterv",
+     ucg_offsetof(ucg_planc_ucx_scatterv_config_t, na_kntree_intra_degree),
      UCG_CONFIG_TYPE_INT},
 
     {NULL}
