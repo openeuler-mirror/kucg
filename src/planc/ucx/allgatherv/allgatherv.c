@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "allgatherv.h"
@@ -23,6 +23,9 @@ static ucg_plan_attr_t ucg_planc_ucx_allgatherv_plan_attr[] = {
 
     {ucg_planc_ucx_allgatherv_bruck_prepare,
      5, "Bruck", PLAN_DOMAIN},
+
+    {ucg_planc_ucx_allgatherv_na_rolling_prepare,
+     6, "Node-aware rolling", PLAN_DOMAIN},
 
     {NULL},
 };
@@ -74,10 +77,13 @@ static ucg_plan_policy_t allgatherv_4_32[] = {
 };
 static ucg_plan_policy_t allgatherv_4_64[] = {
     {2, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {1, {16384, 262144}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {6, {16384, 32768}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {32768, 262144}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {2, {262144, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
 
-    {3, {16384, 262144}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {1, {16384, 32768}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+
+    {3, {16384, 262144}, UCG_PLAN_UCX_PLAN_SCORE_3RD},
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allgatherv_4_LG[] = {
@@ -91,34 +97,45 @@ static ucg_plan_policy_t allgatherv_8_1[] = {
 static ucg_plan_policy_t allgatherv_8_4[] = {
     {5, {0, 512}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {4, {512, 4096}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {2, {4096, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {1, {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {2, {4096, 65536}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {6, {65536, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
 
-    {3, {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {2, {65536, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {1, {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+
+    {3, {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_3RD},
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allgatherv_8_8[] = {
     {5, {0, 1024}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {2, {1024, 524288}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {3, {524288, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {2, {1024, 32768}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {6, {32768, 262144}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {3, {262144, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {2, {32768, 262144}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allgatherv_8_16[] = {
     {1, {0, 2048}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {2, {2048, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {1, {16384, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {6, {16384, 65536}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {1, {65536, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {2, {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
 
     {2, {0, 2048}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
-    {3, {16384, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {1, {16384, 65536}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+
+    {3, {16384, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_3RD},
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allgatherv_8_32[] = {
     {2, {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {1, {16384, 65536}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {6, {16384, 65536}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {3, {65536, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
 
-    {3, {16384, 65536}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+    {1, {16384, 65536}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+
+    {3, {16384, 65536}, UCG_PLAN_UCX_PLAN_SCORE_3RD},
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allgatherv_8_64[] = {
