@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include <gtest/gtest.h>
@@ -38,7 +38,7 @@ TEST_F(test_planc_ucx_config, read_default_config)
     ASSERT_STREQ(cfg->plan_attr[UCG_COLL_TYPE_ALLREDUCE], "");
     ASSERT_STREQ(cfg->plan_attr[UCG_COLL_TYPE_BARRIER], "");
     ASSERT_STREQ(cfg->plan_attr[UCG_COLL_TYPE_ALLTOALLV], "");
-    ASSERT_EQ(cfg->n_polls, 10);
+    ASSERT_EQ(cfg->n_polls, 3);
     ASSERT_EQ(cfg->estimated_num_eps, 0);
     ASSERT_EQ(cfg->estimated_num_ppn, 0);
 
@@ -59,7 +59,7 @@ TEST_F(test_planc_ucx_config, read_user_config)
     setenv("UCG_PLANC_UCX_ESTIMATED_NUM_EPS", "10", 1);
     setenv("UCG_PLANC_UCX_ESTIMATED_NUM_PPN", "5", 1);
     ASSERT_EQ(ucg_planc_ucx_config_read(NULL, NULL, &config), UCG_OK);
-    
+
     ucg_planc_ucx_config_t *cfg = (ucg_planc_ucx_config_t *)config;
     ASSERT_EQ(*cfg->config_bundle[UCG_COLL_TYPE_BCAST][UCX_BUILTIN]->data, 4);
     ASSERT_EQ(*cfg->config_bundle[UCG_COLL_TYPE_ALLREDUCE][UCX_BUILTIN]->data, 5);
@@ -90,7 +90,7 @@ TEST_F(test_planc_ucx_config, read_user_env_prefix)
     setenv("GTEST_UCG_PLANC_UCX_ESTIMATED_NUM_EPS", "10", 1);
     setenv("GTEST_UCG_PLANC_UCX_ESTIMATED_NUM_PPN", "5", 1);
     ASSERT_EQ(ucg_planc_ucx_config_read("GTEST", NULL, &config), UCG_OK);
-    
+
     ucg_planc_ucx_config_t *cfg = (ucg_planc_ucx_config_t *)config;
     ASSERT_EQ(*cfg->config_bundle[UCG_COLL_TYPE_BCAST][UCX_BUILTIN]->data, 4);
     ASSERT_EQ(*cfg->config_bundle[UCG_COLL_TYPE_ALLREDUCE][UCX_BUILTIN]->data, 5);

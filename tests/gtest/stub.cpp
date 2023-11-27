@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "stub.h"
@@ -39,6 +39,7 @@ ucg_status_t test_stub_planc_context_init(const ucg_planc_params_t *params,
 void test_stub_planc_context_cleanup(ucg_planc_context_h context);
 ucg_status_t test_stub_planc_context_query(ucg_planc_context_h context,
                                            ucg_planc_context_attr_t *attr);
+int test_stub_planc_context_progress(ucg_planc_context_h context);
 ucg_status_t test_stub_planc_group_create(ucg_planc_context_h context,
                                           const ucg_planc_group_params_t *params,
                                           ucg_planc_group_h *planc_group);
@@ -60,6 +61,7 @@ ucg_status_t test_stub_plan_op_discard(ucg_plan_op_t *op);
  ******************************************************************************/
 ucg_status_t test_stub_allgather(const void *sendbuf, void *recvbuf, int32_t count, void *group);
 ucg_status_t test_stub_get_location(ucg_rank_t rank, ucg_location_t *location);
+ucg_status_t test_stub_get_proc_info(ucg_rank_t rank, ucg_proc_info_t **proc);
 
 static ucg_oob_group_t test_stub_oob_group = {
     .allgather = test_stub_allgather,
@@ -69,9 +71,10 @@ static ucg_oob_group_t test_stub_oob_group = {
 };
 
 ucg_params_t test_stub_context_params = {
-    .field_mask = UCG_PARAMS_FIELD_OOB_GROUP | UCG_PARAMS_FIELD_LOCATION_CB,
+    .field_mask = UCG_PARAMS_FIELD_OOB_GROUP | UCG_PARAMS_FIELD_LOCATION_CB | UCG_PARAMS_FIELD_PROC_INFO_CB,
     .oob_group = test_stub_oob_group,
     .get_location = test_stub_get_location,
+    .get_proc_info = test_stub_get_proc_info,
 };
 
 static const int test_stub_group_size = 5;
@@ -131,6 +134,7 @@ void stub::init(bool load_planc)
         planc->context_init = test_stub_planc_context_init;
         planc->context_cleanup = test_stub_planc_context_cleanup;
         planc->context_query = test_stub_planc_context_query;
+        planc->context_progress = test_stub_planc_context_progress;
         planc->group_create = test_stub_planc_group_create;
         planc->group_destroy = test_stub_planc_group_destroy;
         planc->get_plans = test_stub_planc_get_plans;
@@ -321,6 +325,11 @@ ucg_status_t test_stub_planc_context_query(ucg_planc_context_h context,
     return UCG_OK;
 }
 
+int test_stub_planc_context_progress(ucg_planc_context_h context)
+{
+    return 0;
+}
+
 ucg_status_t test_stub_planc_group_create(ucg_planc_context_h context,
                                           const ucg_planc_group_params_t *params,
                                           ucg_planc_group_h *planc_group)
@@ -453,5 +462,21 @@ ucg_status_t test_stub_get_location(ucg_rank_t rank, ucg_location_t *location)
     // rank-by node
     location->node_id = rank % 1024; // 1024 nodes
     location->socket_id = rank % 4; // 4 sockets
+    return UCG_OK;
+}
+
+ucg_status_t test_stub_get_proc_info(ucg_rank_t rank, ucg_proc_info_t **proc)
+{
+    if (!stub::call(stub::GET_PROC_INFO_CB)) {
+        return UCG_ERR_NO_RESOURCE;
+    }
+    ucg_proc_info_t *local_proc = (ucg_proc_info_t *)malloc(sizeof(ucg_proc_info_t) + sizeof(ucg_addr_desc_t));
+    memset(local_proc, 0, sizeof(ucg_proc_info_t) + sizeof(ucg_addr_desc_t));
+    local_proc->location.field_mask = UCG_LOCATION_FIELD_SOCKET_ID | UCG_LOCATION_FIELD_NODE_ID;
+    local_proc->location.socket_id = 1;
+    local_proc->location.node_id = 1;
+    local_proc->addr_desc[0].len = 10;
+    local_proc->addr_desc[0].offset = 0;
+    *proc = local_proc;
     return UCG_OK;
 }

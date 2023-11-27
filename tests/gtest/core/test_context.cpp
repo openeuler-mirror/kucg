@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include <gtest/gtest.h>
@@ -179,7 +179,7 @@ TEST_F(test_ucg_context, init)
     ASSERT_EQ(ucg_init(&params, m_config, &context), UCG_OK);
     ASSERT_TRUE(context != NULL);
     ASSERT_TRUE(!memcmp(&context->oob_group, &params.oob_group, sizeof(ucg_oob_group_t)));
-    ASSERT_TRUE(context->get_location == params.get_location);
+    ASSERT_TRUE(context->get_proc_info == params.get_proc_info);
     // use planc fake and planc fake2
     ASSERT_EQ(context->num_planc_rscs, 2);
 #ifdef UCG_ENABLE_MT
@@ -234,12 +234,6 @@ TEST_F(test_ucg_context, init_fail_malloc)
 
     stub::mock(stub::CALLOC, result, "ucg resource planc");
     ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
-
-    stub::mock(stub::MALLOC, result, "local proc");
-    ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
-
-    stub::mock(stub::MALLOC, result, "size array");
-    ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
 }
 #endif
 
@@ -265,44 +259,6 @@ TEST_F(test_ucg_context, init_fail_planc_context_init)
     std::vector<stub::routine_result_t> result = {stub::FAILURE};
 
     stub::mock(stub::PLANC_CONTEXT_INIT, result);
-    ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
-}
-
-TEST_F(test_ucg_context, init_fail_planc_context_query)
-{
-    ucg_context_h context;
-    std::vector<stub::routine_result_t> result = {stub::FAILURE};
-
-    stub::mock(stub::PLANC_CONTEXT_QUERY, result, "address length");
-    ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
-
-    stub::mock(stub::PLANC_CONTEXT_QUERY, result, "address");
-    ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
-}
-
-TEST_F(test_ucg_context, init_fail_get_location)
-{
-    ucg_context_h context;
-    std::vector<stub::routine_result_t> result = {stub::FAILURE};
-
-    stub::mock(stub::GET_LOCATION_CB, result);
-    ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
-}
-
-TEST_F(test_ucg_context, init_fail_allgather)
-{
-    ucg_context_h context;
-    std::vector<stub::routine_result_t> result = {stub::FAILURE};
-
-    // Failed to get size of process information
-    stub::mock(stub::ALLGATHER_CB, result);
-    ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
-
-    // Failed to get process information.
-    result.clear();
-    result.push_back(stub::SUCCESS); // get size Successfully.
-    result.push_back(stub::FAILURE);
-    stub::mock(stub::ALLGATHER_CB, result);
     ASSERT_NE(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
 }
 
@@ -333,15 +289,16 @@ TEST_F(test_ucg_context, get_proc_addr)
     ASSERT_EQ(ucg_init(&test_stub_context_params, m_config, &context), UCG_OK);
 
     ucg_planc_t *planc = ucg_planc_get_by_idx(0);
-    char *addr = (char*)ucg_context_get_proc_addr(context, 0, planc);
+    ucg_proc_info_t *proc_info = NULL;
+    char *addr = (char*)ucg_context_get_proc_addr(context, 0, planc, &proc_info);
     ASSERT_TRUE(addr != NULL);
-    // Related to test_stub_planc_context_query().
-    ASSERT_STREQ(addr, "hello");
+    ucg_free_proc_info(proc_info);
 
     planc = ucg_planc_get_by_idx(1);
-    addr = (char*)ucg_context_get_proc_addr(context, 0, planc);
+    addr = (char*)ucg_context_get_proc_addr(context, 0, planc, &proc_info);
     // address length is 0, return NULL.
     ASSERT_TRUE(addr == NULL);
+    ucg_free_proc_info(proc_info);
 
     ucg_cleanup(context);
 }
@@ -353,8 +310,10 @@ TEST_F(test_ucg_context, get_proc_addr_invalid)
 
     // No required planc
     ucg_planc_t *planc = (ucg_planc_t*)1;
-    char *addr = (char*)ucg_context_get_proc_addr(context, 0, planc);
+    ucg_proc_info_t *proc_info = NULL;
+    char *addr = (char*)ucg_context_get_proc_addr(context, 0, planc, &proc_info);
     ASSERT_TRUE(addr == NULL);
+    ucg_free_proc_info(proc_info);
 
     ucg_cleanup(context);
 }
