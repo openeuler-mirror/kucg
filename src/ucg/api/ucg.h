@@ -588,9 +588,9 @@ typedef ucg_status_t (*ucg_get_location_cb_t)(ucg_rank_t rank,
                                               ucg_location_t *location);
 
 /**
- * @ignore UCG_CONTEXT
+ * @ingroup UCG_CONTEXT
  * @brief Get process information callback.
-*/
+ */
 typedef ucg_status_t (*ucg_get_proc_info_cb_t)(ucg_rank_t rank,
                                                ucg_proc_info_t **proc);
 
@@ -998,12 +998,22 @@ static inline ucg_status_t ucg_init(const ucg_params_t *params,
 }
 
 /**
- * @brief Get my own process information
- * 
+ * @brief Get my own process information and malloc space to storage it
+ *
  * @param [in] context          Initialized UCG context.
  * @return ucg_proc_info_t*     Process information
-*/
-ucg_proc_info_t* ucg_get_local_proc_info(ucg_context_h context);
+ */
+ucg_proc_info_t* ucg_get_allocated_local_proc_info(ucg_context_h context);
+
+/**
+ * @brief Free proc info space
+ *
+ * @param [in] proc             Proc ptr
+ * @retval UCG_OK Success.
+ * @retval Otherwise Failure
+ */
+
+ucg_status_t ucg_free_proc_info(ucg_proc_info_t *proc);
 
 /**
  * @brief Progress all active request.

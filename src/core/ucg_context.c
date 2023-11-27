@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "ucg_context.h"
@@ -290,7 +290,15 @@ err:
     return status;
 }
 
-ucg_proc_info_t* ucg_get_local_proc_info(ucg_context_t *context)
+ucg_status_t ucg_free_proc_info(ucg_proc_info_t *proc)
+{
+    if (proc) {
+        ucg_free(proc);
+    }
+    return UCG_OK;
+}
+
+ucg_proc_info_t* ucg_get_allocated_local_proc_info(ucg_context_t *context)
 {
     int num_planc_rscs = context->num_planc_rscs;
     uint32_t proc_info_size = sizeof(ucg_proc_info_t) +
@@ -428,23 +436,22 @@ static void ucg_context_cleanup(ucg_context_h context)
     return;
 }
 
-void* ucg_context_get_proc_addr(ucg_context_t *context, ucg_rank_t rank, ucg_planc_t *planc)
+void* ucg_context_get_proc_addr(ucg_context_t *context, ucg_rank_t rank, ucg_planc_t *planc, ucg_proc_info_t **proc_info)
 {
     ucg_assert(context != NULL && planc != NULL);
     ucg_assert(rank != UCG_INVALID_RANK && rank < context->oob_group.size);
     int num_planc_rscs = context->num_planc_rscs;
     for (int i = 0; i < num_planc_rscs; ++i) {
         if (planc == context->planc_rscs[i].planc) {
-            ucg_proc_info_t *proc_info;
-            ucg_status_t status = context->get_proc_info(rank, &proc_info);
+            ucg_status_t status = context->get_proc_info(rank, proc_info);
             if (status != UCG_OK) {
                 ucg_error("Failed to get proc info of rank %d", rank);
                 return NULL;
             }
-            if (UCG_PROC_ADDR_LEN(proc_info, i) == 0) {
+            if (UCG_PROC_ADDR_LEN(*proc_info, i) == 0) {
                 return NULL;
             }
-            return UCG_PROC_ADDR(proc_info, i);
+            return UCG_PROC_ADDR(*proc_info, i);
         }
     }
     return NULL;
@@ -462,6 +469,7 @@ ucg_status_t ucg_context_get_location(ucg_context_t *context, ucg_rank_t rank,
         return status;
     }
     *location = proc_info->location;
+    ucg_free_proc_info(proc_info);
     return UCG_OK;
 }
 
