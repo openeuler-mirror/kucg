@@ -1,16 +1,12 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
-#include "ucg_request.h"
 #include "ucg_group.h"
 #include "ucg_plan.h"
-#include "ucg_dt.h"
-
 #include "util/ucg_log.h"
 #include "util/ucg_helper.h"
 #include "util/ucg_profile.h"
-#include <string.h>
 
 
 #define UCG_REQUEST_COPY_REQUIRED_FIELD(_field, _copy, _dst, _src, _err_label) \
@@ -449,6 +445,9 @@ ucg_status_t ucg_request_msg_size(const ucg_coll_args_t *args, const uint32_t si
             }
             *msize = total_size / size;
             break;
+        case UCG_COLL_TYPE_REDUCE:
+            *msize = ucg_dt_size(args->reduce.dt) * args->reduce.count;
+            break;
         default:
             return UCG_ERR_INVALID_PARAM;
     }
@@ -473,6 +472,8 @@ const char* ucg_coll_type_string(ucg_coll_type_t coll_type)
             return "gatherv";
         case UCG_COLL_TYPE_ALLGATHERV:
             return "allgatherv";
+        case UCG_COLL_TYPE_REDUCE:
+            return "reduce";
         default:
             return "unknown";
     }
