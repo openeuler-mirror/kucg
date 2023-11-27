@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #ifndef UCG_CONTEXT_H_
@@ -61,8 +61,9 @@ typedef struct ucg_context {
  * @param [in] context      UCG Context.
  * @param [in] rank         Context rank.
  * @param [in] planc        Plan component.
+ * @param [in] proc_info    Start address ptr of proc info.
  */
-void* ucg_context_get_proc_addr(ucg_context_t *context, ucg_rank_t rank, ucg_planc_t *planc);
+void* ucg_context_get_proc_addr(ucg_context_t *context, ucg_rank_t rank, ucg_planc_t *planc, ucg_proc_info_t **proc_info);
 
 /**
  * @brief Get location of process.
