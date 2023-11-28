@@ -1010,9 +1010,8 @@ ucg_proc_info_t* ucg_get_allocated_local_proc_info(ucg_context_h context);
  *
  * @param [in] proc             Proc ptr
  * @retval UCG_OK Success.
- * @retval Otherwise Failure
+ * @retval Otherwise Failure.
  */
-
 ucg_status_t ucg_free_proc_info(ucg_proc_info_t *proc);
 
 /**

@@ -1,16 +1,12 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 #define _GNU_SOURCE // For dladdr()
 
 #include "ucg_planc.h"
-#include "util/ucg_parser.h"
-#include "util/ucg_log.h"
-#include "util/ucg_malloc.h"
 #include "core/ucg_global.h"
 #include "core/ucg_group.h"
 
-#include <string.h>
 #include <dlfcn.h>
 #include <libgen.h>
 

@@ -1,18 +1,15 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "ucg_component.h"
 
 #include "util/ucg_log.h"
-#include "util/ucg_helper.h"
 #include "util/ucg_malloc.h"
 
 #include <libgen.h>
-#include <string.h>
 #include <dlfcn.h>
 #include <glob.h>
-#include <stdio.h>
 
 #define UCG_PATTERN_PREFIX "lib"
 #define UCG_PATTERN_PREFIX_LEN 3

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2023. All rights reserved.
  */
 
 #include "scatterv.h"
@@ -654,7 +654,7 @@ static ucg_status_t ucg_planc_ucx_scatterv_na_kntree_op_progress(ucg_plan_op_t *
     /* sendcounts isn't equal to recvcount*/
     int32_t recv_len = intra_args->sendcounts[myrank_intra] * na_args->sdtype_size >
                        args->recvcount * ucg_dt_size(args->recvtype) ?
-                       args->recvcount * ucg_dt_size(args->recvtype) : 
+                       args->recvcount * ucg_dt_size(args->recvtype) :
                        intra_args->sendcounts[myrank_intra] * na_args->sdtype_size;
     memcpy(args->recvbuf, intra_args->sendbuf, recv_len);
 
@@ -831,7 +831,7 @@ ucg_planc_ucx_op_t* ucg_planc_ucx_scatterv_na_kntree_op_new(ucg_planc_ucx_group_
         goto err_free_op;
     }
 
-    ucg_planc_ucx_op_init(ucx_op, ucx_group, config);
+    ucg_planc_ucx_op_init(ucx_op, ucx_group);
     return ucx_op;
 err_free_op:
     ucg_mpool_put(ucx_op);

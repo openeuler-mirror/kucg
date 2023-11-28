@@ -16,7 +16,7 @@ static ucg_plan_attr_t ucg_planc_ucx_scatterv_plan_attr[] = {
     {ucg_planc_ucx_scatterv_kntree_prepare,
      2, "Knomial tree", PLAN_DOMAIN},
 
-    {ucg_planc_ucx_scatterv_na_kntree_prepare, 
+    {ucg_planc_ucx_scatterv_na_kntree_prepare,
      3, "Node-aware K-nomial tree", PLAN_DOMAIN},
 
     {NULL},

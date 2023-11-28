@@ -1,9 +1,8 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "ucg_log.h"
-#include <stdio.h>
 
 static ucs_log_component_config_t g_log_component = {
     UCS_LOG_LEVEL_INFO, "UCG"   /* default configure */
