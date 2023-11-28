@@ -42,6 +42,8 @@ void ucg_planc_ucx_group_destroy(ucg_planc_group_h planc_group);
 
 ucg_status_t ucg_planc_ucx_create_node_leader_algo_group(ucg_planc_ucx_group_t *ucx_group,
                                                          ucg_vgroup_t *vgroup);
+ucg_status_t ucg_planc_ucx_create_only_node_leader_algo_group(ucg_planc_ucx_group_t *ucx_group,
+                                                              ucg_vgroup_t *vgroup);
 ucg_status_t ucg_planc_ucx_create_socket_leader_algo_group(ucg_planc_ucx_group_t *ucx_group,
                                                            ucg_vgroup_t *vgroup);
 

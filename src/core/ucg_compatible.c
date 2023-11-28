@@ -7,9 +7,6 @@
 #include "util/ucg_helper.h"
 #include "util/ucg_log.h"
 #include "util/ucg_malloc.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define HOLD_AFTER_CONVERT 0
 #define UNSET_AFTER_CONVERT 1
