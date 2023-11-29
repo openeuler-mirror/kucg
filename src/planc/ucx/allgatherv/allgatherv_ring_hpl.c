@@ -1,14 +1,9 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "allgatherv.h"
 #include "planc_ucx_plan.h"
-#include "planc_ucx_p2p.h"
-#include "core/ucg_dt.h"
-#include "core/ucg_group.h"
-#include "util/ucg_log.h"
-#include "util/ucg_malloc.h"
 
 enum {
     UCG_UCX_ALLGATHERV_RING_HPL_SEND = UCG_BIT(0),

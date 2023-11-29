@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #ifndef UCG_PLANC_UCX_REDUCE_H_
@@ -20,7 +20,8 @@ typedef struct ucg_planc_ucx_reduce {
     ucg_algo_kntree_iter_t kntree_iter;
     ucg_planc_ucx_p2p_req_t **requests;
     int requests_count;
-    uint64_t req_bitmap;
+    uint8_t* req_bitmap;
+    int bitcount;
 } ucg_planc_ucx_reduce_t;
 
 const ucg_plan_policy_t *ucg_planc_ucx_get_reduce_plan_policy(ucg_planc_ucx_node_level_t node_level,

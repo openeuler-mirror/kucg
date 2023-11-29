@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include <ucp/api/ucp.h>
@@ -293,15 +293,17 @@ static ucg_status_t ucg_planc_ucx_context_fill_config(ucg_planc_ucx_context_t *c
         }
     }
 
-    if (params->thread_mode == UCG_THREAD_MODE_MULTI) {
-        ucg_info("Disable oob because use oob resources may not be safe under multi-threads mode");
-        ctx->config.use_oob = UCG_NO;
-    }
+    if (ctx->config.use_oob == UCG_YES) {
+        if (params->thread_mode == UCG_THREAD_MODE_MULTI) {
+            ucg_info("Disable oob because use oob resources may not be safe under multi-threads mode");
+            ctx->config.use_oob = UCG_NO;
+        }
 
-    ucp_worker_h ucp_worker = ucg_planc_ucx_get_oob_ucp_worker();
-    if (ucp_worker == NULL) {
-        ucg_info("Disable oob because oob worker is null");
-        ctx->config.use_oob = UCG_NO;
+        ucp_worker_h ucp_worker = ucg_planc_ucx_get_oob_ucp_worker();
+        if (ucp_worker == NULL) {
+            ucg_info("Disable oob because oob worker is null");
+            ctx->config.use_oob = UCG_NO;
+        }
     }
 
     return UCG_OK;

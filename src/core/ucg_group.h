@@ -1,19 +1,12 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #ifndef UCG_GROUP_H_
 #define UCG_GROUP_H_
 
-#include "ucg/api/ucg.h"
-
-#include "ucg_def.h"
 #include "ucg_context.h"
 #include "ucg_rank_map.h"
-
-#include "planc/ucg_planc_def.h"
-
-#include <limits.h>
 
 /**
  * Like ompi/coll, a negative value is used to avoid tag conflicts with
@@ -51,24 +44,6 @@ typedef struct ucg_group {
 static inline ucg_rank_t ucg_group_get_ctx_rank(ucg_group_t *group, ucg_rank_t rank)
 {
     return ucg_rank_map_eval(&group->rank_map, rank);
-}
-
-/**
- * @brief Get process address by group rank.
- *
- * @param [in] group    UCG Group
- * @param [in] rank     Group rank
- * @param [in] planc    Plan component
- * @return process address
- */
-static inline void* ucg_group_get_proc_addr(ucg_group_t *group, ucg_rank_t rank,
-                                            ucg_planc_t *planc)
-{
-    ucg_rank_t ctx_rank = ucg_group_get_ctx_rank(group, rank);
-    if (ucg_unlikely(ctx_rank == UCG_INVALID_RANK)) {
-        return NULL;
-    }
-    return ucg_context_get_proc_addr(group->context, ctx_rank, planc);
 }
 
 /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "planc_ucx_p2p.h"
@@ -131,13 +131,15 @@ static ucp_ep_h ucg_planc_ucx_p2p_get_ucp_ep(ucg_vgroup_t *vgroup, ucg_rank_t vr
     } else {
         ucg_context_t *context = vgroup->group->context;
         ucg_planc_ucx_t *planc_ucx = ucg_planc_ucx_instance();
-        void *ucp_addr = ucg_context_get_proc_addr(context, ctx_rank, &planc_ucx->super);
+        ucg_proc_info_t *proc_info = NULL;
+        void *ucp_addr = ucg_context_get_proc_addr(context, ctx_rank, &planc_ucx->super, &proc_info);
         ucp_ep_params_t params = {
             .field_mask = UCP_EP_PARAM_FIELD_REMOTE_ADDRESS |
                           UCP_EP_PARAM_FIELD_ERR_HANDLING_MODE,
             .address = (ucp_address_t*)ucp_addr,
         };
         ucs_status_t status = ucp_ep_create(ucx_context->ucp_worker, &params, &ep);
+        ucg_free_proc_info(proc_info);
         if (status != UCS_OK) {
             ucg_error("Failed to create ucp ep, %s", ucs_status_string(status));
             return NULL;
