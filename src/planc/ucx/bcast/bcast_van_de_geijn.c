@@ -3,18 +3,7 @@
  */
 
 #include "bcast.h"
-#include "core/ucg_request.h"
-#include "planc_ucx_context.h"
 #include "planc_ucx_plan.h"
-#include "planc_ucx_p2p.h"
-#include "core/ucg_dt.h"
-#include "core/ucg_group.h"
-#include "ucg/api/ucg.h"
-#include "util/algo/ucg_kntree.h"
-#include "util/algo/ucg_ring.h"
-#include "util/ucg_log.h"
-#include "util/ucg_malloc.h"
-#include "util/ucg_parser.h"
 
 enum {
     UCG_BCAST_VAN_DE_GEIJN_SCATTERV_PHASE   = UCG_BIT(0), /* van de Geijn algorithm scatterv phase */

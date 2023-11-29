@@ -1,14 +1,9 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "planc_ucx_group.h"
 #include "planc_ucx_global.h"
-#include "util/ucg_malloc.h"
-#include "util/ucg_helper.h"
-#include "util/ucg_log.h"
-#include "core/ucg_def.h"
-#include "core/ucg_group.h"
 
 ucg_status_t ucg_planc_ucx_group_create(ucg_planc_context_h context,
                                         const ucg_planc_group_params_t *params,
@@ -141,6 +136,102 @@ ucg_status_t ucg_planc_ucx_create_node_leader_algo_group(ucg_planc_ucx_group_t *
             break;
         }
     }
+    algo_group->super.myrank = vrank;
+    algo_group->super.size = vsize;
+    ucg_assert(algo_group->super.myrank < algo_group->super.size);
+
+    if (vsize <= 1) { // Group is meaningless when it has one or less member
+        algo_group->state = UCG_ALGO_GROUP_STATE_DISABLE;
+    } else {
+        algo_group->state = UCG_ALGO_GROUP_STATE_ENABLE;
+        status = ucg_rank_map_init_by_array(&algo_group->super.rank_map,
+                                            &ranks, vsize, 0);
+        if (status != UCG_OK) {
+            goto err_free_global_ranks;
+        }
+    }
+
+err_free_global_ranks:
+    ucg_free(global_ranks);
+err_free_offsets:
+    ucg_free(offsets);
+err_free_ranks:
+    ucg_free(ranks);
+err:
+    return status;
+}
+
+/* only be aware of nodes, but unaware of sockets */
+ucg_status_t ucg_planc_ucx_create_only_node_leader_algo_group(ucg_planc_ucx_group_t *ucx_group,
+                                                              ucg_vgroup_t *vgroup)
+{
+    ucg_status_t status = UCG_OK;
+    ucg_planc_ucx_algo_group_t *algo_group = &ucx_group->groups[UCG_ALGO_GROUP_TYPE_NODE_LEADER];
+    if (algo_group->state != UCG_ALGO_GROUP_STATE_NOT_INIT) {
+        return algo_group->state == UCG_ALGO_GROUP_STATE_ERROR ? UCG_ERR_NO_MEMORY : UCG_OK;
+    }
+
+    ucg_topo_group_t *node_group = ucg_topo_get_group(vgroup->group->topo,
+                                                      UCG_TOPO_GROUP_TYPE_NODE);
+    if (node_group == NULL || node_group->state == UCG_TOPO_GROUP_STATE_ERROR ||
+        node_group->state == UCG_TOPO_GROUP_STATE_DISABLE) {
+        return UCG_ERR_UNSUPPORTED;
+    }
+    uint32_t size = vgroup->size;
+    uint32_t ppn = node_group->super.size;
+    int32_t num_nodes = size / ppn;
+    int myoffset = -1;
+    ucg_rank_t *ranks = NULL;
+    ranks = ucg_malloc(num_nodes * sizeof(ucg_rank_t), "ucg na rolling ranks");
+    if (ranks == NULL) {
+        goto err;
+    }
+    ucg_rank_t *offsets = NULL;
+    offsets = ucg_calloc(size, sizeof(ucg_rank_t), "ucg na rolling offsets");
+    if (offsets == NULL) {
+        goto err_free_ranks;
+    }
+    ucg_rank_t *global_ranks = NULL;
+    global_ranks = ucg_calloc(size, sizeof(ucg_rank_t), "ucg na rolling global_ranks");
+    if (global_ranks == NULL) {
+        goto err_free_offsets;
+    }
+
+    for (int i = 0; i < size; ++i) {
+        int32_t node_id = ucg_topo_get_location_id(vgroup->group->topo, i,
+                                                   UCG_TOPO_LOC_NODE_ID);
+        if (node_id < 0) {
+            return UCG_ERR_UNSUPPORTED;
+        }
+        if (i == vgroup->myrank) {
+            myoffset = offsets[node_id];
+        }
+        global_ranks[node_id * ppn + offsets[node_id]] = i;
+        ++offsets[node_id];
+    }
+    memset(offsets, 0, size * sizeof(ucg_rank_t));
+    ucg_rank_t myrank = vgroup->myrank;
+    uint32_t vsize = 0;
+    for (int j = 0; j < size; ++j) {
+        int i = global_ranks[j];
+        int32_t node_id = ucg_topo_get_location_id(vgroup->group->topo, i,
+                                                   UCG_TOPO_LOC_NODE_ID);
+        if (node_id < 0) {
+            return UCG_ERR_UNSUPPORTED;
+        }
+        if (offsets[node_id] == myoffset) {
+            ranks[vsize++] = i;
+        }
+        ++offsets[node_id];
+    }
+    ucg_rank_t vrank = 0;
+    for (int i = 0; i < num_nodes; ++i) {
+        if (ranks[i] == myrank) {
+            vrank = i;
+            break;
+        }
+    }
+
     algo_group->super.myrank = vrank;
     algo_group->super.size = vsize;
     ucg_assert(algo_group->super.myrank < algo_group->super.size);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include <gtest/gtest.h>
@@ -380,7 +380,7 @@ TEST_F(test_ucg_request, with_context_progress)
 
 TEST_F(test_ucg_request, complete_cb)
 {
-        const int count = 10;
+    const int count = 10;
     int buffer[count] = {1};
     ucg_rank_t root = 0;
     ucg_dt_t dt = {

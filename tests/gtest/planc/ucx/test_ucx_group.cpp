@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include <gtest/gtest.h>
@@ -30,10 +30,9 @@ public:
         ucg_planc_ucx_context_init(&params, config, &m_context);
         ucg_planc_ucx_config_release(config);
 
-        ucg_group_t group = {
-            .context = &m_ucg_context
-        };
-        m_group_params.group = &group;
+        m_ucg_group.context = &m_ucg_context;
+        m_ucg_group.id = 1;
+        m_group_params.group = &m_ucg_group;
     }
 
     static void TearDownTestSuite()
@@ -42,10 +41,12 @@ public:
         stub::cleanup();
     }
 
+    static ucg_group_t m_ucg_group;
     static ucg_context_t m_ucg_context;
     static ucg_planc_context_h m_context;
     static ucg_planc_group_params_t m_group_params;
 };
+ucg_group_t test_planc_ucx_group::m_ucg_group;
 ucg_context_t test_planc_ucx_group::m_ucg_context;
 ucg_planc_context_h test_planc_ucx_group::m_context = NULL;
 ucg_planc_group_params_t test_planc_ucx_group::m_group_params = {NULL};

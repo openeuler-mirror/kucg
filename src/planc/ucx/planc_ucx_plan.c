@@ -1,16 +1,9 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
-#include <string.h>
 
 #include "planc_ucx_plan.h"
-#include "planc_ucx_group.h"
-#include "planc_ucx_global.h"
-#include "planc_ucx_p2p.h"
-#include "planc/ucg_planm.h"
-#include "util/ucg_log.h"
-#include "util/ucg_malloc.h"
 
 UCG_PLAN_ATTR_TABLE_DEFINE(ucg_planc_ucx);
 
@@ -80,10 +73,11 @@ static ucg_status_t ucg_planc_ucx_add_default_plans(ucg_planc_ucx_group_t *ucx_g
     ucg_group_t *group = vgroup->group;
 
     /* calc node_level and ppn_level */
-    int32_t ppn = group->topo->ppn;
-    int32_t node_cnt = group->size / ppn;
-    ucg_planc_ucx_node_level_t node_level = ucg_planc_ucx_get_node_level(node_cnt);
-    ucg_planc_ucx_ppn_level_t ppn_level = ucg_planc_ucx_get_ppn_level(ppn);
+    int32_t nnode = group->topo->detail.nnode;
+    int32_t ave_ppn;
+    ave_ppn = nnode == 0 ? UCG_TOPO_PPX_UNKNOWN : group->size / nnode;
+    ucg_planc_ucx_node_level_t node_level = ucg_planc_ucx_get_node_level(nnode);
+    ucg_planc_ucx_ppn_level_t ppn_level = ucg_planc_ucx_get_ppn_level(ave_ppn);
 
     ucg_plan_params_t params;
     params.mem_type = UCG_MEM_TYPE_HOST;

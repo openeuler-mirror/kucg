@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "reduce.h"
@@ -60,7 +60,7 @@ static ucg_status_t ucg_planc_ucx_reduce_kntree_op_recv_and_reduce(ucg_planc_ucx
     }
 
     for (idx = 0; idx < op->reduce.requests_count; idx++) {
-        if (op->reduce.req_bitmap & UCG_BIT(idx)) {
+        if (op->reduce.req_bitmap[idx]) {
             continue;
         }
         status = ucg_planc_ucx_p2p_test(op->ucx_group, &op->reduce.requests[idx]);
@@ -71,10 +71,11 @@ static ucg_status_t ucg_planc_ucx_reduce_kntree_op_recv_and_reduce(ucg_planc_ucx
         staging_area = op->staging_area + idx * data_size;
         status = ucg_op_reduce(args->op, staging_area, recvbuf, args->count, args->dt);
         UCG_CHECK_GOTO(status, out);
-        op->reduce.req_bitmap |= UCG_BIT(idx);
+        op->reduce.req_bitmap[idx] = 1;
+        ++op->reduce.bitcount;
     }
 
-    status = (ucg_popcount(op->reduce.req_bitmap) == op->reduce.requests_count) ? UCG_OK : UCG_INPROGRESS;
+    status = (op->reduce.bitcount == op->reduce.requests_count) ? UCG_OK : UCG_INPROGRESS;
 
 out:
     return status;
@@ -138,7 +139,8 @@ static ucg_status_t ucg_planc_ucx_reduce_kntree_op_trigger(ucg_plan_op_t *ucg_op
 
     ucg_algo_kntree_iter_t *iter = &op->reduce.kntree_iter;
     ucg_algo_kntree_iter_reset(iter);
-    op->reduce.req_bitmap = 0;
+    op->reduce.bitcount = 0;
+    memset(op->reduce.req_bitmap, 0, op->reduce.requests_count);
     for (int i = 0; i < op->reduce.requests_count; i++) {
         op->reduce.requests[i] = NULL;
     }
@@ -167,6 +169,10 @@ static ucg_status_t ucg_planc_ucx_reduce_kntree_op_discard(ucg_plan_op_t *ucg_op
 
     if (op->staging_area != NULL) {
         ucg_free(op->staging_area);
+    }
+
+    if (op->reduce.req_bitmap != NULL) {
+        ucg_free(op->reduce.req_bitmap);
     }
 
     UCG_CLASS_DESTRUCT(ucg_plan_op_t, &op->super);
@@ -198,19 +204,30 @@ ucg_status_t ucg_planc_ucx_reduce_kntree_op_init(ucg_planc_ucx_op_t *op,
     }
     op->staging_area = ucg_malloc(data_size * requests_count, "reduce kntree op staging area");
     if (op->staging_area == NULL) {
-        status = UCG_ERR_NO_MEMORY;
+        goto err;
     }
 
     op->reduce.requests = ucg_malloc(sizeof(ucg_planc_ucx_p2p_req_t *) * requests_count,
                                      "reduce kntree requests");
     if (op->reduce.requests == NULL) {
-        ucg_free(op->staging_area);
-        status = UCG_ERR_NO_MEMORY;
+        goto err_free_staging_area;
+    }
+
+    op->reduce.req_bitmap = ucg_malloc(requests_count * sizeof(uint8_t), "reduce bitmap");
+    if (op->reduce.req_bitmap == NULL) {
+        goto err_free_requests;
     }
 
     op->reduce.requests_count = requests_count;
 
     return status;
+
+err_free_requests:
+    ucg_free(op->reduce.requests);
+err_free_staging_area:
+    ucg_free(op->staging_area);
+err:
+    return UCG_ERR_NO_MEMORY;
 }
 
 ucg_planc_ucx_op_t *ucg_planc_ucx_reduce_kntree_op_new(ucg_planc_ucx_group_t *ucx_group,

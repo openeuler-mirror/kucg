@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 
 #include "ucg_info.h"
@@ -22,6 +22,16 @@ static ucg_status_t get_location(ucg_rank_t rank, ucg_location_t *location)
     return UCG_OK;
 }
 
+static ucg_status_t get_proc_info(ucg_rank_t rank, ucg_proc_info_t **proc)
+{
+    ucg_proc_info_t *local_proc = (ucg_proc_info_t *)malloc(sizeof(ucg_proc_info_t));
+    local_proc->location.field_mask = UCG_LOCATION_FIELD_SOCKET_ID | UCG_LOCATION_FIELD_NODE_ID;
+    local_proc->location.socket_id = 1;
+    local_proc->location.node_id = 1;
+    *proc = local_proc;
+    return UCG_OK;
+}
+
 static void init_context(ucg_context_h *context)
 {
     ucg_config_h config;
@@ -29,14 +39,16 @@ static void init_context(ucg_context_h *context)
 
     ucg_params_t params;
     params.field_mask = UCG_PARAMS_FIELD_OOB_GROUP |
-                        UCG_PARAMS_FIELD_LOCATION_CB;
+                        UCG_PARAMS_FIELD_LOCATION_CB |
+                        UCG_PARAMS_FIELD_PROC_INFO_CB;
     params.oob_group.allgather = oob_allgather;
     params.oob_group.myrank = 0;
     params.oob_group.size = 1;
     params.oob_group.group = NULL;
     params.get_location = get_location;
+    params.get_proc_info = get_proc_info;
 
-	UCG_CHECK(ucg_init(&params, config, context));
+    UCG_CHECK(ucg_init(&params, config, context));
     return;
 }
 
@@ -58,7 +70,7 @@ static void create_group(ucg_context_h context, ucg_group_h *group)
     params.oob_group.size = 1;
     params.oob_group.group = NULL;
 
-	UCG_CHECK(ucg_group_create(context, &params, group));
+    UCG_CHECK(ucg_group_create(context, &params, group));
 }
 
 void print_plans()

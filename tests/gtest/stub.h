@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
  */
 #ifndef TEST_STUB_H_
 #define TEST_STUB_H_
@@ -40,6 +40,7 @@ public:
         PLAN_OP_DISCARD,
         // User Callback
         GET_LOCATION_CB,
+        GET_PROC_INFO_CB,
         ALLGATHER_CB,
         ROUTINE_TYPE_LAST,
     };
