@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include "planc_ucx_group.h"
@@ -10,11 +10,6 @@ ucg_status_t ucg_planc_ucx_group_create(ucg_planc_context_h context,
                                         ucg_planc_group_h *planc_group)
 {
     UCG_CHECK_NULL_INVALID(context, params, planc_group);
-
-    if (params->group->id > ((1 << UCG_PLANC_UCX_GROUP_BITS) - 1)) {
-        ucg_error("UCG does not support comm_id > 2^19.");
-        return UCG_ERR_UNSUPPORTED;
-    }
 
     ucg_status_t status;
     ucg_planc_ucx_group_t *ucx_group;
