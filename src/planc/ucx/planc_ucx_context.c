@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include <ucp/api/ucp.h>
@@ -356,7 +356,7 @@ static ucg_status_t ucg_planc_ucx_context_init_ucp_context(ucg_planc_ucx_context
                             UCP_PARAM_FIELD_ESTIMATED_NUM_EPS |
                             UCP_PARAM_FIELD_ESTIMATED_NUM_PPN;
     ucp_params.features = UCP_FEATURE_TAG;
-    ucp_params.tag_sender_mask = UCG_PLANC_UCX_TAG_SENDER_MASK;
+    ucp_params.tag_sender_mask = UCG_P2P_TAG_SENDER_MASK;
     ucp_params.request_size = sizeof(ucg_planc_ucx_p2p_req_t);
     ucp_params.request_init = ucg_planc_ucx_p2p_req_init;
     ucp_params.estimated_num_eps = ctx->ucg_context->oob_group.size;

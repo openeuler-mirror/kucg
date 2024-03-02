@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 
@@ -48,7 +48,7 @@ static ucg_plan_attr_t ucg_planc_ucx_bcast_plan_attr[] = {
 
     {ucg_planc_ucx_bcast_long_m_prepare,
      14, "Long(modified)", PLAN_DOMAIN};
-        
+
     {NULL},
 };
 UCG_PLAN_ATTR_REGISTER_TABLE(ucg_planc_ucx, UCG_COLL_TYPE_BCAST,

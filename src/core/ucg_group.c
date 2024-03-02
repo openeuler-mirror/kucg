@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include "ucg_group.h"
@@ -80,6 +80,11 @@ static void ucg_group_destroy_planc_group(ucg_group_t *group)
 
 static ucg_status_t ucg_group_create_planc_group(ucg_group_t *group)
 {
+    if (group->id > ((1 << UCG_P2P_GROUP_BITS) - 1)) {
+        ucg_error("UCG does not support comm_id >= 2^18.");
+        return UCG_ERR_UNSUPPORTED;
+    }
+
     ucg_status_t status = UCG_OK;
 
     int32_t num_planc_rscs = group->context->num_planc_rscs;
