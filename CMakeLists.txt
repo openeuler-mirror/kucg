@@ -1,18 +1,28 @@
 #
-# Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+# Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
 #
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 2.8.12)
 
-project(xucg VERSION 2.3.0)
+if(POLICY CMP0048)
+    set(SUPPORT_CMAKE3 "ON")
+else()
+    set(SUPPORT_CMAKE3 "OFF")
+endif()
 
-## Set policy
-cmake_policy(SET CMP0048 NEW)
+if(SUPPORT_CMAKE3 MATCHES "ON")
+    cmake_policy(SET CMP0048 NEW)
+    project(xucg VERSION 2.4.0)
+else()
+    project(xucg C CXX)
+    set(PROJECT_VERSION_MAJOR 2)
+    set(PROJECT_VERSION_MINOR 4)
+    set(PROJECT_VERSION_PATCH 0)
+endif()
 
 # Define options
 option(UCG_BUILD_TOOLS "Build ucg tools" ON)
 option(UCG_BUILD_TESTS "Build ucg tests" ON)
-
 # Set base include search path.
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 if (IS_DIRECTORY ${UCG_BUILD_WITH_UCX})
