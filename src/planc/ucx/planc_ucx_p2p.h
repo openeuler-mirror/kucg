@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #ifndef UCG_PLANC_UCX_P2P_H_
@@ -20,28 +20,6 @@
             goto _label; \
         } \
     } while (0)
-
-/**
- * UCG tag structure:
- *
- * 01234567 01234567 01234567   01234567 01234567 0123      4      567 01234567 01234567
- *                            |                        |         |
- *        op seq (24)         |   source rank (20)     | ucg (1) |     group id (19)
- *                            |                        |         |
- */
-#define UCG_PLANC_UCX_SEQ_BITS 24
-#define UCG_PLANC_UCX_RANK_BITS 20
-#define UCG_PLANC_UCX_UCG_BITS 1
-#define UCG_PLANC_UCX_GROUP_BITS 19
-
-#define UCG_PLANC_UCX_SEQ_BITS_OFFSET   (UCG_PLANC_UCX_RANK_BITS + UCG_PLANC_UCX_UCG_BITS + UCG_PLANC_UCX_GROUP_BITS)
-#define UCG_PLANC_UCX_RANK_BITS_OFFSET  (UCG_PLANC_UCX_UCG_BITS + UCG_PLANC_UCX_GROUP_BITS)
-#define UCG_PLANC_UCX_UCG_BITS_OFFSET   (UCG_PLANC_UCX_GROUP_BITS)
-#define UCG_PLANC_UCX_ID_BITS_OFFSET    0
-
-#define UCG_PLANC_UCX_TAG_MASK          -1
-
-#define UCG_PLANC_UCX_TAG_SENDER_MASK   UCG_MASK(UCG_PLANC_UCX_RANK_BITS + UCG_PLANC_UCX_UCG_BITS + UCG_PLANC_UCX_GROUP_BITS)
 
 typedef struct ucg_planc_ucx_p2p_req {
     /* trade-off, sizeof(ompi_request_t)=160 */

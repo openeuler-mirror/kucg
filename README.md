@@ -15,6 +15,7 @@ Group-based Collective Operations for UCX
 - UCG_BUILD_TESTS: Build UCG tests, default ON
 - UCG_BUILD_WITH_UCX: Specify the UCX install path
 - UCG_BUILD_WITH_HCCL: Specify the HCCL install path
+- UCG_BUILD_WITH_GTEST: Specify the googletest install path
 
 - UCG_ENABLE_PROFILE: Enable profiling, default OFF
 - UCG_ENABLE_GCOV: Enable code coverage, default OFF

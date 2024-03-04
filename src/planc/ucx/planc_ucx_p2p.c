@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include "planc_ucx_p2p.h"
@@ -18,10 +18,10 @@
 static ucp_tag_t ucg_planc_ucx_make_tag(int tag, ucg_rank_t rank,
                                         uint32_t group_id)
 {
-    return ((((uint64_t)(tag)) << UCG_PLANC_UCX_SEQ_BITS_OFFSET) |
-            (((uint64_t)(rank)) << UCG_PLANC_UCX_RANK_BITS_OFFSET) |
-            (((uint64_t)(1)) << UCG_PLANC_UCX_UCG_BITS_OFFSET) |
-            (((uint64_t)(group_id)) << UCG_PLANC_UCX_ID_BITS_OFFSET));
+    return ((((uint64_t)(tag)) << UCG_P2P_SEQ_BITS_OFFSET) |
+            (((uint64_t)(rank)) << UCG_P2P_RANK_BITS) |
+            (((uint64_t)(UCG_P2P_FLAG_ONE)) << UCG_P2P_FLAG_BITS_OFFSET) |
+            (((uint64_t)(group_id)) << UCG_P2P_ID_BITS_OFFSET));
 }
 
 static void* ucg_planc_ucx_p2p_start_pack(void *context, const void *buffer,
@@ -325,7 +325,7 @@ ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
         return UCG_ERR_INVALID_PARAM;
     }
     ucs_status_ptr_t ucp_req = ucp_tag_recv_nbx(ucp_worker, buffer, count, ucp_tag,
-                                                UCG_PLANC_UCX_TAG_MASK, &req_param);
+                                                UCG_P2P_TAG_MASK, &req_param);
     if (ucp_req == NULL || UCS_PTR_IS_ERR(ucp_req)) {
         return ucg_status_s2g(UCS_PTR_STATUS(ucp_req));
     }
