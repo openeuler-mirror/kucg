@@ -13,6 +13,34 @@
 #include "util/ucg_class.h"
 #include "util/ucg_list.h"
 
+/**
+ * UCG P2P Request tag structure:
+ *
+ * 01234567 1234567 1234567   01234567 01234567 0123     45      67 01234567 01234567
+ *                          |                        |         |
+ *        op seq (24)       |   source rank (20)     | flag(2) |    group id (18)
+ *                          |                        |         |
+ */
+
+enum {
+    UCG_P2P_FLAG_ONE = 1,   // 01
+    UCG_P2P_FLAG_TWO,       // 10
+    UCG_P2P_FLAG_THREE,     // 11
+};
+
+#define UCG_P2P_SEQ_BITS    24
+#define UCG_P2P_RANK_BITS   20
+#define UCG_P2P_FLAG_BITS   2
+#define UCG_P2P_GROUP_BITS  18
+
+#define UCG_P2P_SEQ_BITS_OFFSET     (UCG_P2P_RANK_BITS + UCG_P2P_FLAG_BITS + UCG_P2P_GROUP_BITS)
+#define UCG_P2P_RANK_BITS_OFFSET    (UCG_P2P_FLAG_BITS + UCG_P2P_GROUP_BITS)
+#define UCG_P2P_FLAG_BITS_OFFSET    (UCG_P2P_GROUP_BITS)
+#define UCG_P2P_ID_BITS_OFFSET      0
+
+#define UCG_P2P_TAG_MASK    -1
+#define UCG_P2P_TAG_SENDER_MASK     UCG_MASK(UCG_P2P_RANK_BITS + UCG_P2P_FLAG_BITS + UCG_P2P_GROUP_BITS)
+
 typedef enum {
     UCG_COLL_TYPE_BCAST,
     UCG_COLL_TYPE_ALLREDUCE,
