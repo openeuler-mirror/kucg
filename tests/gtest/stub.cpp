@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include "stub.h"
@@ -13,7 +13,12 @@ extern "C" {
 #include "core/ucg_request.h"
 #include "core/ucg_plan.h"
 #include "core/ucg_global.h"
+#include "core/ucg_dt.h"
 #include "planc/ucg_planc.h"
+#include "planc/ucx/planc_ucx_p2p.h"
+#include "planc/ucx/planc_ucx_group.h"
+#include "ucs/type/status.h"
+#include "ucs/datastruct/mpool.h"
 
 void *test_stub_malloc(size_t size, const char *name);
 void *test_stub_calloc(size_t nmemb, size_t size, const char *name);
@@ -478,5 +483,45 @@ ucg_status_t test_stub_get_proc_info(ucg_rank_t rank, ucg_proc_info_t **proc)
     local_proc->addr_desc[0].len = 10;
     local_proc->addr_desc[0].offset = 0;
     *proc = local_proc;
+    return UCG_OK;
+}
+
+void ucg_mpool_put(void *obj)
+{
+    return ;
+}
+
+ucs_status_t fake_ucs_mpool_chunk_malloc(ucs_mpool_t *mp, size_t *size_p, void **chunk_p)
+{
+    mp->data->elems_per_chunk = (unsigned)1000,
+    *chunk_p = ucg_malloc(*size_p, mp->data->name);
+    return (*chunk_p == NULL) ? UCS_ERR_NO_MEMORY : UCS_OK;
+}
+
+void fake_ucs_mpool_chunk_free(ucs_mpool_t *mp, void *chunk)
+{
+    ucg_free(chunk);
+    return ;
+}
+
+ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
+                                     ucg_dt_t *dt, ucg_rank_t vrank,
+                                     int tag, ucg_vgroup_t *vgroup,
+                                     ucg_planc_ucx_p2p_params_t *params)
+{
+    return UCG_OK;
+}
+
+ucg_status_t ucg_planc_ucx_p2p_isrecv(void *buffer, int32_t count,
+                                     ucg_dt_t *dt, ucg_rank_t vrank,
+                                     int tag, ucg_vgroup_t *vgroup,
+                                     ucg_planc_ucx_p2p_params_t *params)
+{
+    return UCG_OK;
+}
+
+ucg_status_t ucg_planc_ucx_p2p_testall(ucg_planc_ucx_group_t *ucx_group,
+                                       ucg_planc_ucx_p2p_state_t *state)
+{
     return UCG_OK;
 }
