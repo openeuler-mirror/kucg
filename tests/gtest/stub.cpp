@@ -512,7 +512,7 @@ ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
     return UCG_OK;
 }
 
-ucg_status_t ucg_planc_ucx_p2p_isrecv(void *buffer, int32_t count,
+ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
                                      ucg_dt_t *dt, ucg_rank_t vrank,
                                      int tag, ucg_vgroup_t *vgroup,
                                      ucg_planc_ucx_p2p_params_t *params)

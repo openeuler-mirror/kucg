@@ -22,7 +22,7 @@ extern "C" {
 using namespace std;
 
 class test_ucx_barrier : public testing::Test {
-private :
+private:
     static void fill_config()
     {
         static ucg_planc_ucx_config_bundle_t config_bundle[UCG_COLL_TYPE_LAST][UCX_MODULE_LAST];
@@ -44,7 +44,7 @@ public:
     static void SetUpTestCase()
     {
         uint32_t size = 16;
-        ucg_tank_map_t  map = {
+        ucg_rank_map_t map = {
             .type = UCG_RANK_MAP_TYPE_FULL,
             .size = size,
         };
@@ -74,7 +74,7 @@ public:
         };
         static ucs_mpool_t meta_mpool = {
             .freelist = NULL,
-            .deta = &meta_mpool_data,
+            .data = &meta_mpool_data,
         };
         static ucg_context_t group_context = {
             .meta_op_mp = {
@@ -113,7 +113,7 @@ public:
         };
         static ucs_mpool_t op_mpool = {
             .freelist = NULL,
-            .deta = &op_mpool_data,
+            .data = &op_mpool_data,
         };
         ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
         ucx_group->context->op_mp.super = op_mpool;
@@ -296,7 +296,7 @@ TEST_F(test_ucx_barrier, barrier_sa_rd_and_kntree_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_barrier, barrier_sa_rd_and_bntree_init_error)
+TEST_F(test_ucx_barrier, barrier_sa_rd_and_kntree_init_error)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -387,7 +387,7 @@ TEST_F(test_ucx_barrier, barrier_na_rd_and_kntree)
     EXPECT_EQ(status, UCG_OK);
 
     op2->super.id = 1;
-    status = op->trigger(op2);
+    status = op2->trigger(op2);
     EXPECT_EQ(status, UCG_OK);
 
     ucg_plan_meta_op_t *meta_op = (ucg_plan_meta_op_t *)op1;
@@ -396,7 +396,7 @@ TEST_F(test_ucx_barrier, barrier_na_rd_and_kntree)
     status = trigger_op->trigger(trigger_op);
     EXPECT_EQ(status, UCG_OK);
 
-    ucg_plan_ucx_op_t *send_op = ucg_derived_of(trigger_op, ucg_planc_ucx_op_t);
+    ucg_planc_ucx_op_t *send_op = ucg_derived_of(trigger_op, ucg_planc_ucx_op_t);
     send_op->barrier.fanin_iter.parent = 0;
     status = trigger_op->trigger(trigger_op);
     send_op->barrier.fanin_iter.parent = UCG_INVALID_RANK;
@@ -426,7 +426,7 @@ TEST_F(test_ucx_barrier, barrier_rd)
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 
-    ucg_plan_ucx_op_t *rd_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
+    ucg_planc_ucx_op_t *rd_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
     ucg_algo_rd_iter_t *iter = &rd_op->barrier.rd_iter;
     iter->type = UCG_ALGO_RD_ITER_PROXY;
     status = op->trigger(op);
@@ -479,6 +479,6 @@ TEST_F(test_ucx_barrier, barrier_sa_rd_and_kntree)
     status = op->discard(op);
     EXPECT_EQ(status, UCG_OK);
 
-    status = op1->discard(op1);
+    status = op->discard(op1);
     EXPECT_EQ(status, UCG_OK);
 }
