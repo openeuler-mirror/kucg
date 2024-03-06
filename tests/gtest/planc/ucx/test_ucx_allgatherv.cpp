@@ -43,7 +43,7 @@ public:
     static void SetUpTestCase()
     {
         uint32_t size = 16;
-        ucg_tank_map_t  map = {
+        ucg_rank_map_t map = {
             .type = UCG_RANK_MAP_TYPE_FULL,
             .size = size,
         };
@@ -52,7 +52,7 @@ public:
             locations[i].node_id = i;
             locations[i].socket_id = i;
         }
-        static ucg_topo_detail_t = {
+        static ucg_topo_detail_t detail= {
             .locations = locations,
         };
         static ucg_topo_t topo = {
@@ -82,7 +82,7 @@ public:
         };
         static ucs_mpool_t meta_mpool = {
             .freelist = NULL,
-            .deta = &meta_mpool_data,
+            .data = &meta_mpool_data,
         };
         static ucg_context_t group_context = {
             .meta_op_mp = {
@@ -122,7 +122,7 @@ public:
         };
         static ucs_mpool_t op_mpool = {
             .freelist = NULL,
-            .deta = &op_mpool_data,
+            .data = &op_mpool_data,
         };
         ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
         ucx_group->context->op_mp.super = op_mpool;
@@ -141,8 +141,9 @@ public:
             .sendcount = count,
             .sendtype = &dt,
             .recvbuf = buf,
+            .recvcounts = recvcounts,
             .displs = displs,
-            .recvbuf = &dt,
+            .recvtype = &dt,
         };
         return ;
     }
@@ -166,7 +167,7 @@ TEST_F(test_ucx_allgatherv, allgatherv_bruck)
     status = ucg_planc_ucx_allgatherv_bruck_prepare(&m_group.super.super, &m_args, &op);
     EXPECT_EQ(status, UCG_OK);
 
-    OP->super.id = 1;
+    op->super.id = 1;
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 
@@ -181,7 +182,7 @@ TEST_F(test_ucx_allgatherv, allgatherv_linear)
     status = ucg_planc_ucx_allgatherv_linear_prepare(&m_group.super.super, &m_args, &op);
     EXPECT_EQ(status, UCG_OK);
 
-    OP->super.id = 1;
+    op->super.id = 1;
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 
@@ -199,23 +200,20 @@ TEST_F(test_ucx_allgatherv, allgatherv_na_rolling_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 
     ucg_plan_op_t *op1 = NULL;
-    ucg_status_t status;
     m_group.super.super.group->topo->ppn = UCG_TOPO_PPX_UNKNOWN;
     status = ucg_planc_ucx_allgatherv_na_rolling_prepare(&m_group.super.super, &m_args, &op1);
     m_group.super.super.group->topo->ppn = 2;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 
     ucg_plan_op_t *op2 = NULL;
-    ucg_status_t status;
     m_group.super.super.group->topo->ppn = 1;
     status = ucg_planc_ucx_allgatherv_na_rolling_prepare(&m_group.super.super, &m_args, &op2);
     m_group.super.super.group->topo->ppn = 2;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 
     ucg_plan_op_t *op3 = NULL;
-    ucg_status_t status;
     m_group.super.super.group->topo->ppn = UCG_TOPO_PPX_UNBALANCED;
-    status = ucg_planc_ucx_allgatherv_na_rolling_prepare(&m_group.super.super, &m_args, &op);
+    status = ucg_planc_ucx_allgatherv_na_rolling_prepare(&m_group.super.super, &m_args, &op3);
     m_group.super.super.group->topo->ppn = 2;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
@@ -232,14 +230,15 @@ TEST_F(test_ucx_allgatherv, allgatherv_na_rolling)
     ucx_group->groups[UCG_ALGO_GROUP_TYPE_NODE_LEADER].super.size = 1;
     status = ucg_planc_ucx_allgatherv_na_rolling_prepare(&m_group.super.super, &m_args, &op);
     ucx_group->groups[UCG_ALGO_GROUP_TYPE_NODE_LEADER].state = UCG_ALGO_GROUP_STATE_NOT_INIT;
+    m_group.super.super.group->topo->groups[UCG_TOPO_GROUP_TYPE_NODE].state = UCG_TOPO_GROUP_STATE_NOT_INIT;
     m_group.super.super.group->topo->groups[UCG_TOPO_GROUP_TYPE_NODE].super.size = 0;
     m_group.super.super.group->topo->detail.locations[0].node_id = 49;
     EXPECT_EQ(status, UCG_OK);
 
     ucg_plan_meta_op_t *meta_op = (ucg_plan_meta_op_t *)op;
-    ucg_plan_ucx_op_t *trigger_op = (ucg_plan_ucx_op_t *)meta_op->ops[0];
+    ucg_planc_ucx_op_t *trigger_op = (ucg_planc_ucx_op_t *)meta_op->ops[0];
     trigger_op->allgatherv.rolling_iter.left = 1;
-    trigger_op->allgatherv.rolling_iter.right = 1;
+    trigger_op->allgatherv.rolling_iter.right = 3;
     static ucg_vgroup_t intra_group = {
         .myrank = 0,
         .size = 4,
@@ -253,7 +252,7 @@ TEST_F(test_ucx_allgatherv, allgatherv_na_rolling)
     status = meta_op->ops[0]->trigger(meta_op->ops[0]);
     EXPECT_EQ(status, UCG_OK);
 
-    trigger_op = (ucg_plan_ucx_op_t *)meta_op->ops[1];
+    trigger_op = (ucg_planc_ucx_op_t *)meta_op->ops[1];
     trigger_op->allgatherv.rolling_iter.left = 1;
     trigger_op->allgatherv.rolling_iter.right = 3;
     static ucg_group_t group = {
@@ -296,7 +295,7 @@ TEST_F(test_ucx_allgatherv, allgatherv_neighbor)
     status = ucg_planc_ucx_allgatherv_neighbor_prepare(&m_group.super.super, &m_args, &op);
     EXPECT_EQ(status, UCG_OK);
 
-    OP->super.id = 1;
+    op->super.id = 1;
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 
@@ -317,7 +316,7 @@ TEST_F(test_ucx_allgatherv, allgatherv_ring)
     status = ucg_planc_ucx_allgatherv_ring_prepare(&m_group.super.super, &m_args, &op);
     EXPECT_EQ(status, UCG_OK);
 
-    OP->super.id = 1;
+    op->super.id = 1;
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 
@@ -332,7 +331,7 @@ TEST_F(test_ucx_allgatherv, allgatherv_ring_hpl)
     status = ucg_planc_ucx_allgatherv_ring_hpl_prepare(&m_group.super.super, &m_args, &op);
     EXPECT_EQ(status, UCG_OK);
 
-    OP->super.id = 1;
+    op->super.id = 1;
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 

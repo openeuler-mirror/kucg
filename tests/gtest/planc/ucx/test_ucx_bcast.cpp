@@ -21,8 +21,8 @@ extern "C" {
 
 using namespace std;
 
-class test_ucx_bast : public testing::Test {
-private :
+class test_ucx_bcast : public testing::Test {
+private:
     static void fill_config()
     {
         static ucg_planc_ucx_config_bundle_t config_bundle[UCG_COLL_TYPE_LAST][UCX_MODULE_LAST];
@@ -38,7 +38,7 @@ public:
     static void SetUpTestCase()
     {
         uint32_t size = 16;
-        ucg_tank_map_t  map = {
+        ucg_rank_map_t map = {
             .type = UCG_RANK_MAP_TYPE_FULL,
             .size = size,
         };
@@ -67,7 +67,7 @@ public:
         };
         static ucs_mpool_t mpool = {
             .freelist = NULL,
-            .deta = &mpool_data,
+            .data = &mpool_data,
         };
         static ucg_context_t group_context = {
             .meta_op_mp = {
@@ -105,7 +105,7 @@ public:
         };
         static ucs_mpool_t mp_op_mpool = {
             .freelist = NULL,
-            .deta = &mp_mpool_data,
+            .data = &mp_op_mpool_data,
         };
         ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
         ucx_group->context->op_mp.super = mp_op_mpool;
@@ -136,11 +136,11 @@ public:
     static ucg_planc_ucx_group_t m_group;
     static ucg_coll_args_t m_args;
 };
-ucg_planc_ucx_config_t test_ucx_bast::m_config;
-ucg_planc_ucx_group_t test_ucx_bast::m_group;
-ucg_coll_args_t test_ucx_bast::m_args;
+ucg_planc_ucx_config_t test_ucx_bcast::m_config;
+ucg_planc_ucx_group_t test_ucx_bcast::m_group;
+ucg_coll_args_t test_ucx_bcast::m_args;
 
-TEST_F(test_ucx_bast, bcast_van_de_geijn_check_error)
+TEST_F(test_ucx_bcast, bcast_van_de_geijn_check_error)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -151,7 +151,7 @@ TEST_F(test_ucx_bast, bcast_van_de_geijn_check_error)
 
 }
 
-TEST_F(test_ucx_bast, bcast_bntree)
+TEST_F(test_ucx_bcast, bcast_bntree)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -166,7 +166,7 @@ TEST_F(test_ucx_bast, bcast_bntree)
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_inc_2_ring_m)
+TEST_F(test_ucx_bcast, bcast_inc_2_ring_m)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -181,7 +181,7 @@ TEST_F(test_ucx_bast, bcast_inc_2_ring_m)
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_inc_ring_m)
+TEST_F(test_ucx_bcast, bcast_inc_ring_m)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -196,7 +196,7 @@ TEST_F(test_ucx_bast, bcast_inc_ring_m)
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_ring)
+TEST_F(test_ucx_bcast, bcast_ring)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -211,7 +211,7 @@ TEST_F(test_ucx_bast, bcast_ring)
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_nta_kntree)
+TEST_F(test_ucx_bcast, bcast_nta_kntree)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -226,7 +226,7 @@ TEST_F(test_ucx_bast, bcast_nta_kntree)
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_na_kntree_check_error)
+TEST_F(test_ucx_bcast, bcast_na_kntree_check_error)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -236,7 +236,7 @@ TEST_F(test_ucx_bast, bcast_na_kntree_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_bast, bcast_na_kntree)
+TEST_F(test_ucx_bcast, bcast_na_kntree)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -266,7 +266,7 @@ TEST_F(test_ucx_bast, bcast_na_kntree)
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_na_kntree_and_bntree_check_error)
+TEST_F(test_ucx_bcast, bcast_na_kntree_and_bntree_check_error)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -276,7 +276,7 @@ TEST_F(test_ucx_bast, bcast_na_kntree_and_bntree_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_bast, bcast_na_kntree_and_bntree)
+TEST_F(test_ucx_bcast, bcast_na_kntree_and_bntree)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -291,7 +291,7 @@ TEST_F(test_ucx_bast, bcast_na_kntree_and_bntree)
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_na_bntree_check_error)
+TEST_F(test_ucx_bcast, bcast_na_bntree_check_error)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -301,7 +301,7 @@ TEST_F(test_ucx_bast, bcast_na_bntree_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_bast, bcast_na_bntree)
+TEST_F(test_ucx_bcast, bcast_na_bntree)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -316,7 +316,7 @@ TEST_F(test_ucx_bast, bcast_na_bntree)
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_kntree)
+TEST_F(test_ucx_bcast, bcast_kntree)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -337,7 +337,7 @@ TEST_F(test_ucx_bast, bcast_kntree)
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_long_check_error)
+TEST_F(test_ucx_bcast, bcast_long_check_error)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -347,7 +347,7 @@ TEST_F(test_ucx_bast, bcast_long_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_bast, bcast_long)
+TEST_F(test_ucx_bcast, bcast_long)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -358,17 +358,17 @@ TEST_F(test_ucx_bast, bcast_long)
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 
-    ucg_plan_ucx_op_t *root_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
+    ucg_planc_ucx_op_t *root_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
     root_op->bcast._long.kntree_iter.parent = 1;
     status = op->trigger(op);
     root_op->bcast._long.kntree_iter.parent = UCG_INVALID_RANK;
     EXPECT_EQ(status, UCG_OK);
 
-    op->discard(op);
+    status = op->discard(op);
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_long_m_check_error)
+TEST_F(test_ucx_bcast, bcast_long_m_check_error)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -378,7 +378,7 @@ TEST_F(test_ucx_bast, bcast_long_m_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_bast, bcast_long_m)
+TEST_F(test_ucx_bcast, bcast_long_m)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -389,17 +389,17 @@ TEST_F(test_ucx_bast, bcast_long_m)
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 
-    ucg_plan_ucx_op_t *root_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
+    ucg_planc_ucx_op_t *root_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
     root_op->bcast._long.kntree_iter.parent = 1;
     status = op->trigger(op);
     root_op->bcast._long.kntree_iter.parent = UCG_INVALID_RANK;
     EXPECT_EQ(status, UCG_OK);
 
-    op->discard(op);
+    status = op->discard(op);
     EXPECT_EQ(status, UCG_OK);
 }
 
-TEST_F(test_ucx_bast, bcast_van_de_geijn)
+TEST_F(test_ucx_bcast, bcast_van_de_geijn)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
@@ -410,16 +410,16 @@ TEST_F(test_ucx_bast, bcast_van_de_geijn)
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 
-    ucg_plan_ucx_op_t *batch_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
+    ucg_planc_ucx_op_t *batch_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
     batch_op->bcast.van_de_geijn.send_type = 1;
     status = op->trigger(op);
     batch_op->bcast.van_de_geijn.send_type = 0;
     EXPECT_EQ(status, UCG_OK);
 
-    ucg_plan_ucx_op_t *root_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
-    root_op->bcast._long.kntree_iter.parent = 1;
+    ucg_planc_ucx_op_t *root_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
+    root_op->bcast.kntree_iter.parent = 1;
     status = op->trigger(op);
-    root_op->bcast._long.kntree_iter.parent = UCG_INVALID_RANK;
+    root_op->bcast.kntree_iter.parent = UCG_INVALID_RANK;
     EXPECT_EQ(status, UCG_OK);
 
     ucg_planc_ucx_bcast_config_t *config = (ucg_planc_ucx_bcast_config_t *)(m_config.config_bundle[UCG_COLL_TYPE_BCAST][UCX_BUILTIN]->data);
@@ -432,12 +432,12 @@ TEST_F(test_ucx_bast, bcast_van_de_geijn)
     EXPECT_EQ(status, UCG_OK);
 
     op1->super.id = 1;
-    op1->trigger(op1);
+    status = op1->trigger(op1);
     EXPECT_EQ(status, UCG_OK);
 
-    op1->discard(op1);
+    status = op1->discard(op1);
     EXPECT_EQ(status, UCG_OK);
 
-    op->discard(op);
+    status = op->discard(op);
     EXPECT_EQ(status, UCG_OK);
 }

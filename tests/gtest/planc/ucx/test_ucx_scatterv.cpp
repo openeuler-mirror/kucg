@@ -43,7 +43,7 @@ public:
     static void SetUpTestCase()
     {
         uint32_t size = 16;
-        ucg_tank_map_t  map = {
+        ucg_rank_map_t map = {
             .type = UCG_RANK_MAP_TYPE_FULL,
             .size = size,
         };
@@ -77,7 +77,7 @@ public:
         };
         static ucs_mpool_t meta_mpool = {
             .freelist = NULL,
-            .deta = &meta_mpool_data,
+            .data = &meta_mpool_data,
         };
         static ucg_context_t group_context = {
             .meta_op_mp = {
@@ -117,9 +117,9 @@ public:
         };
         static ucs_mpool_t op_mpool = {
             .freelist = NULL,
-            .deta = &op_mpool_data,
+            .data = &op_mpool_data,
         };
-        ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
+        static ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
         ucx_group->context->op_mp.super = op_mpool;
 
         static int buf[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -170,7 +170,7 @@ TEST_F(test_ucx_scatterv, scatterv_kntree)
     op->super.id = 1;
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
-    ucg_plan_ucx_op_t *trigger_op = (ucg_plan_op_t *)op;
+    ucg_planc_ucx_op_t *trigger_op = (ucg_planc_ucx_op_t *)op;
     trigger_op->scatterv.kntree.kntree_iter.parent = UCG_INVALID_RANK;
     m_group.super.super.myrank = -1;
     trigger_op->super.super.args.scatterv.root = -1;

@@ -21,7 +21,7 @@ extern "C" {
 using namespace std;
 
 class test_ucx_gatherv : public testing::Test {
-private :
+private:
     static void fill_config()
     {
         static ucg_planc_ucx_config_bundle_t config_bundle[UCG_COLL_TYPE_LAST][UCX_MODULE_LAST];
@@ -43,7 +43,7 @@ public:
     static void SetUpTestCase()
     {
         uint32_t size = 16;
-        ucg_tank_map_t  map = {
+        ucg_rank_map_t map = {
             .type = UCG_RANK_MAP_TYPE_FULL,
             .size = size,
         };
@@ -73,7 +73,7 @@ public:
         };
         static ucs_mpool_t meta_mpool = {
             .freelist = NULL,
-            .deta = &meta_mpool_data,
+            .data = &meta_mpool_data,
         };
         static ucg_context_t group_context = {
             .meta_op_mp = {
@@ -113,7 +113,7 @@ public:
         };
         static ucs_mpool_t op_mpool = {
             .freelist = NULL,
-            .deta = &op_mpool_data,
+            .data = &op_mpool_data,
         };
         ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
         ucx_group->context->op_mp.super = op_mpool;
@@ -139,7 +139,7 @@ public:
             .recvcounts = recvcounts,
             .displs = displs,
             .recvtype = &recvtype,
-            .root = root,
+            .root = 0,
         };
         return;
     }
@@ -167,11 +167,11 @@ TEST_F(test_ucx_gatherv, gatherv_linear)
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 
-    ucg_plan_ucx_op_t *trigger_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
+    ucg_planc_ucx_op_t *trigger_op = ucg_derived_of(op, ucg_planc_ucx_op_t);
     trigger_op->super.vgroup->myrank = 1;
     status = op->trigger(op);
     EXPECT_EQ(status, UCG_OK);
 
-    op->discard(op);
+    status = op->discard(op);
     EXPECT_EQ(status, UCG_OK);
 }

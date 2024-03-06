@@ -21,7 +21,7 @@ extern "C" {
 using namespace std;
 
 class test_ucx_allreduce : public testing::Test {
-private :
+private:
     static void fill_config()
     {
         static ucg_planc_ucx_config_bundle_t config_bundle[UCG_COLL_TYPE_LAST][UCX_MODULE_LAST];
@@ -43,7 +43,7 @@ public:
     static void SetUpTestCase()
     {
         uint32_t size = 16;
-        ucg_tank_map_t  map = {
+        ucg_rank_map_t map = {
             .type = UCG_RANK_MAP_TYPE_FULL,
             .size = size,
         };
@@ -73,7 +73,7 @@ public:
         };
         static ucs_mpool_t meta_mpool = {
             .freelist = NULL,
-            .deta = &meta_mpool_data,
+            .data = &meta_mpool_data,
         };
         static ucg_context_t group_context = {
             .meta_op_mp = {
@@ -113,7 +113,7 @@ public:
         };
         static ucs_mpool_t op_mpool = {
             .freelist = NULL,
-            .deta = &op_mpool_data,
+            .data = &op_mpool_data,
         };
         ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
         ucx_group->context->op_mp.super = op_mpool;
@@ -156,7 +156,7 @@ ucg_planc_ucx_config_t test_ucx_allreduce::m_config;
 ucg_planc_ucx_group_t test_ucx_allreduce::m_group;
 ucg_coll_args_t test_ucx_allreduce::m_args;
 
-TEST_F(test_ucx_allreduce, allrecude_get_rd_args)
+TEST_F(test_ucx_allreduce, allreduce_get_rd_args)
 {
     ucg_status_t status;
     int32_t count;
@@ -266,9 +266,9 @@ TEST_F(test_ucx_allreduce, allreduce_na_rabenseifner_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 
     ucg_plan_op_t *op6 = NULL;
-    m_group.super.super.group->topo->ppn = UCG_TOPO_PPX_UNKNOWN;
+    m_group.super.super.group->topo->pps = UCG_TOPO_PPX_UNKNOWN;
     status = ucg_planc_ucx_allreduce_na_rabenseifner_prepare(&m_group.super.super, &m_args, &op6);
-    m_group.super.super.group->topo->ppn = 2;
+    m_group.super.super.group->topo->pps = 2;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 
     ucg_plan_op_t *op7 = NULL;
@@ -295,7 +295,7 @@ TEST_F(test_ucx_allreduce, allreduce_na_rabenseifner_init_error)
     EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
 
     ucg_plan_op_t *op1 = NULL;
-    status = ucg_planc_ucx_allreduce_na_rabenseifner_prepare(&m_group.super.super, &m_args, &op);
+    status = ucg_planc_ucx_allreduce_na_rabenseifner_prepare(&m_group.super.super, &m_args, &op1);
     EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
 }
 
@@ -347,7 +347,7 @@ TEST_F(test_ucx_allreduce, allreduce_na_rd_and_kntree_check_error)
 
     ucg_plan_op_t *op1 = NULL;
     m_group.super.super.group->topo->ppn = UCG_TOPO_PPX_UNKNOWN;
-    status = ucg_planc_ucx_allreduce_na_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op);
+    status = ucg_planc_ucx_allreduce_na_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op1);
     m_group.super.super.group->topo->ppn = 2;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 
@@ -393,7 +393,7 @@ TEST_F(test_ucx_allreduce, allreduce_nta_kntree_init_error)
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
     m_group.super.super.group->context->meta_op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_nta_kntree_prepare(&m_group.super.super, &m_args, &op1);
+    status = ucg_planc_ucx_allreduce_nta_kntree_prepare(&m_group.super.super, &m_args, &op);
     m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
     EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
 }
@@ -409,14 +409,14 @@ TEST_F(test_ucx_allreduce, allreduce_rabenseifner_check_error)
 
     ucg_plan_op_t *op1 = NULL;
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED);
-    status = ucg_planc_ucx_allreduce_rabenseifner_prepare(&m_group.super.super, &m_args, &op);
+    status = ucg_planc_ucx_allreduce_rabenseifner_prepare(&m_group.super.super, &m_args, &op1);
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 
     ucg_plan_op_t *op2 = NULL;
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED | UCG_OP_FLAG_IS_COMMUTATIVE);
     ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
     ucx_group->context->config.reduce_consistency = 1;
-    status = ucg_planc_ucx_allreduce_nta_kntree_prepare(&m_group.super.super, &m_args, &op);
+    status = ucg_planc_ucx_allreduce_rabenseifner_prepare(&m_group.super.super, &m_args, &op2);
     ucx_group->context->config.reduce_consistency = 0;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
@@ -435,7 +435,7 @@ TEST_F(test_ucx_allreduce, allreduce_rd_init_error)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
-    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
+    ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
     ucx_group->context->op_mp.super.data->quota = 0;
     status = ucg_planc_ucx_allreduce_rd_prepare(&m_group.super.super, &m_args, &op);
     ucx_group->context->op_mp.super.data->quota = 2000;
@@ -460,7 +460,7 @@ TEST_F(test_ucx_allreduce, allreduce_ring_check_error)
 
     ucg_plan_op_t *op2 = NULL;
     m_args.allreduce.count = 6;
-    status = ucg_planc_ucx_allreduce_ring_prepare(&m_group.super.super, &m_args, &op1);
+    status = ucg_planc_ucx_allreduce_ring_prepare(&m_group.super.super, &m_args, &op2);
     m_args.allreduce.count = 16;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
@@ -472,8 +472,8 @@ TEST_F(test_ucx_allreduce, allreduce_ring_init_error)
     ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
     ucx_group->context->op_mp.super = m_group.super.super.group->context->meta_op_mp.super;
     ucx_group->context->op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_ring_prepare(&m_group.super.super, &m_args, &op1);
-    ucx_group->context->op_mp.super.data->quota = 0;
+    status = ucg_planc_ucx_allreduce_ring_prepare(&m_group.super.super, &m_args, &op);
+    ucx_group->context->op_mp.super.data->quota = 2000;
     EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
 }
 
@@ -504,6 +504,7 @@ TEST_F(test_ucx_allreduce, allreduce_sa_kntree_check_error)
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED);
     status = ucg_planc_ucx_allreduce_sa_kntree_prepare(&m_group.super.super, &m_args, &op3);
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED | UCG_OP_FLAG_IS_COMMUTATIVE);
+    m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
@@ -511,7 +512,7 @@ TEST_F(test_ucx_allreduce, allreduce_sa_kntree_init_error)
 {
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
-    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
+    ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
     ucx_group->context->op_mp.super.data->quota = 0;
     status = ucg_planc_ucx_allreduce_sa_kntree_prepare(&m_group.super.super, &m_args, &op);
     ucx_group->context->op_mp.super.data->quota = 2000;
@@ -572,7 +573,7 @@ TEST_F(test_ucx_allreduce, allreduce_sa_rabenseifner_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 
     ucg_plan_op_t *op8 = NULL;
-    m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED)
+    m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED);
     status = ucg_planc_ucx_allreduce_sa_rabenseifner_prepare(&m_group.super.super, &m_args, &op8);
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED | UCG_OP_FLAG_IS_COMMUTATIVE);
     m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
@@ -646,18 +647,18 @@ TEST_F(test_ucx_allreduce, allreduce_sa_rd_and_kntree_check_error)
     ucg_plan_op_t *op1 = NULL;
     m_group.super.super.group->topo->ppn = UCG_TOPO_PPX_UNKNOWN;
     status = ucg_planc_ucx_allreduce_sa_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op1);
-    m_group.super.super.group->topo->ppn = UCG_TOPO_PPX_UNKNOWN;
+    m_group.super.super.group->topo->ppn = 2;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 
     ucg_plan_op_t *op2 = NULL;
     m_group.super.super.group->topo->pps = UCG_TOPO_PPX_UNKNOWN;
     status = ucg_planc_ucx_allreduce_sa_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op2);
-    m_group.super.super.group->topo->pps = UCG_TOPO_PPX_UNKNOWN;
+    m_group.super.super.group->topo->pps = 2;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 
     ucg_plan_op_t *op3 = NULL;
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED);
-    status = ucg_planc_ucx_allreduce_sa_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op2);
+    status = ucg_planc_ucx_allreduce_sa_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op3);
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED | UCG_OP_FLAG_IS_COMMUTATIVE);
     m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
@@ -668,7 +669,7 @@ TEST_F(test_ucx_allreduce, allreduce_sa_rd_and_kntree_init_error)
     ucg_plan_op_t *op = NULL;
     ucg_status_t status;
     m_group.super.super.group->context->meta_op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_sa_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op2);
+    status = ucg_planc_ucx_allreduce_sa_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op);
     m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
     EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
 }
@@ -698,7 +699,7 @@ TEST_F(test_ucx_allreduce, allreduce_na_rabenseifner)
     EXPECT_EQ(status, UCG_OK);
 
     ucg_plan_meta_op_t *meta_op = (ucg_plan_meta_op_t *)op;
-    ucg_plan_op_t *reben_op = meta_op->ops[0];
+    ucg_plan_op_t *raben_op = meta_op->ops[0];
     raben_op->super.id = 1;
     status = raben_op->trigger(raben_op);
     EXPECT_EQ(status, UCG_OK);
@@ -718,7 +719,7 @@ TEST_F(test_ucx_allreduce, allreduce_na_rabenseifner)
     raben_trigger_op->super.vgroup->size = 0;
     EXPECT_EQ(status, UCG_OK);
 
-    status  = op->discard(op);
+    status = op->discard(op);
     EXPECT_EQ(status, UCG_OK);
 }
 
@@ -767,16 +768,16 @@ TEST_F(test_ucx_allreduce, allreduce_nta_kntree)
     EXPECT_EQ(status, UCG_OK);
 
     op2->super.id = 1;
-    status = op1->trigger(op2);
+    status = op2->trigger(op2);
     EXPECT_EQ(status, UCG_OK);
 
     status = op->discard(op);
     EXPECT_EQ(status, UCG_OK);
 
-    status = op1->discard(op1);
+    status = op->discard(op1);
     EXPECT_EQ(status, UCG_OK);
 
-    status = op2->discard(op2);
+    status = op->discard(op2);
     EXPECT_EQ(status, UCG_OK);
 }
 
@@ -874,7 +875,7 @@ TEST_F(test_ucx_allreduce, allreduce_sa_rabenseifner)
     raben_trigger_op->allreduce.rabenseifner.rank_type = 2;
     EXPECT_EQ(status, UCG_OK);
 
-    op->discard(op);
+    status = op->discard(op);
     EXPECT_EQ(status, UCG_OK);
 }
 
