@@ -1,11 +1,11 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #ifndef UCG_PLANC_UCX_GATHERV_H_
 #define UCG_PLANC_UCX_GATHERV_H_
 
-#include "planc_ucx_def.h"
+#include "planc/ucx/planc_ucx_def.h"
 #include "core/ucg_plan.h"
 
 const ucg_plan_policy_t *ucg_planc_ucx_get_gatherv_plan_policy(ucg_planc_ucx_node_level_t node_level,
