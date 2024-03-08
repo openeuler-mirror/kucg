@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include "gatherv.h"
@@ -132,12 +132,25 @@ err:
     return NULL;
 }
 
+static ucg_status_t ucg_planc_ucx_gatherv_linear_check(ucg_vgroup_t *vgroup)
+{
+    uint32_t group_size = vgroup->size;
+    if(group_size != 256) {
+        ucg_info("Gatherv linear is slower than OpenMPI in these scenarios, so roll back to OpenMPI");
+        return UCG_ERR_UNSUPPORTED;
+    }
+    return UCG_OK;
+}
 ucg_status_t ucg_planc_ucx_gatherv_linear_prepare(ucg_vgroup_t *vgroup,
                                                   const ucg_coll_args_t *args,
                                                   ucg_plan_op_t **op)
 {
     UCG_CHECK_NULL_INVALID(vgroup, args, op);
-
+    ucg_status_t status;
+    status = ucg_planc_ucx_gatherv_linear_check(vgroup);
+    if (status != UCG_OK) {
+        return status;
+    }
     ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(vgroup, ucg_planc_ucx_group_t);
     ucg_planc_ucx_op_t *linear_op = ucg_planc_ucx_gatherv_linear_op_new(ucx_group, vgroup, args);
     if (linear_op == NULL) {
