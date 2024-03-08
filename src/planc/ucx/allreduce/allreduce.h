@@ -1,13 +1,13 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #ifndef UCG_PLANC_UCX_ALLREDUCE_H_
 #define UCG_PLANC_UCX_ALLREDUCE_H_
 
-#include "planc_ucx_def.h"
-#include "planc_ucx_context.h"
-#include "planc_ucx_group.h"
+#include "planc/ucx/planc_ucx_def.h"
+#include "planc/ucx/planc_ucx_context.h"
+#include "planc/ucx/planc_ucx_group.h"
 #include "core/ucg_plan.h"
 #include "util/algo/ucg_kntree.h"
 #include "util/algo/ucg_rd.h"
