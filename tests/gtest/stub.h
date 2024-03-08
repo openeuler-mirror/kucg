@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 #ifndef TEST_STUB_H_
 #define TEST_STUB_H_
@@ -12,6 +12,12 @@
 
 extern "C" {
 #include "planc/ucg_planc.h"
+#include "planc/ucg_planc.h"
+#include "planc/ucx/planc_ucx_p2p.h"
+#include "planc/ucx/planc_ucx_group.h"
+#include "core/ucg_dt.h"
+#include "ucs/type/status.h"
+#include "ucs/datastruct/mpool.h"
 }
 
 namespace test {
@@ -81,5 +87,22 @@ extern ucg_group_params_t test_stub_group_params;
 extern void *test_stub_acl_buffer;
 
 ucg_status_t test_stub_allgather(const void *sendbuf, void *recvbuf, int32_t count, void *group);
+ucs_status_t fake_ucs_mpool_chunk_malloc(ucs_mpool_t *mp, size_t *size_p, void **chunk_p);
+void fake_ucs_mpool_chunk_free(ucs_mpool_t *mp, void *chunk);
+
+void ucg_mpool_put(void *obj);
+
+ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
+                                     ucg_dt_t *dt, ucg_rank_t vrank,
+                                     int tag, ucg_vgroup_t *vgroup,
+                                     ucg_planc_ucx_p2p_params_t *params);
+
+ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,
+                                     ucg_dt_t *dt, ucg_rank_t vrank,
+                                     int tag, ucg_vgroup_t *vgroup,
+                                     ucg_planc_ucx_p2p_params_t *params);
+
+ucg_status_t ucg_planc_ucx_p2p_testall(ucg_planc_ucx_group_t *ucx_group,
+                                       ucg_planc_ucx_p2p_state_t *state);
 }
 #endif
