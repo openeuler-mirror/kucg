@@ -47,7 +47,7 @@ static ucg_plan_attr_t ucg_planc_ucx_bcast_plan_attr[] = {
      13, "increasing-2-ring(modified)", PLAN_DOMAIN},
 
     {ucg_planc_ucx_bcast_long_m_prepare,
-     14, "Long(modified)", PLAN_DOMAIN};
+     14, "Long(modified)", PLAN_DOMAIN},
 
     {NULL},
 };
