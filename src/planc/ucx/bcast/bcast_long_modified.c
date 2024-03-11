@@ -104,7 +104,7 @@ static ucg_status_t ucg_planc_ucx_bcast_long_m_allgather_op_progress(ucg_planc_u
         }
 
         if (ucg_test_and_clear_flags(&op->flags, UCG_BCAST_LONG_M_SEND)) {
-            send_cout = (send_block < division) ? quotient + 1 : quotient;
+            send_count = (send_block < division) ? quotient + 1 : quotient;
             send_offset = (send_block < division) ?
                           (int64_t)send_block * (quotient + 1) * extent :
                           (int64_t)(division + send_block * quotient) * extent;
