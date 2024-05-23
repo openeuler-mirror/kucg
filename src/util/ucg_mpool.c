@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 #include "ucg_mpool.h"
 #include "ucg_helper.h"
@@ -43,34 +43,45 @@ static void ucg_mpool_obj_cleanup_wrapper(ucs_mpool_t *ucs_mp, void *obj)
     ucg_mp->ops->obj_cleanup(ucg_mp, obj);
 }
 
+static ucs_mpool_ops_t ucs_ops = {
+    .chunk_alloc        = ucg_mpool_chunk_alloc_wrapper,
+    .chunk_release      = ucg_mpool_chunk_release_wrapper,
+    .obj_init           = ucg_mpool_obj_init_wrapper,
+    .obj_cleanup        = ucg_mpool_obj_cleanup_wrapper,
+    .obj_str            = NULL
+};
+
 ucg_status_t ucg_mpool_init(ucg_mpool_t *mp, size_t priv_size,
                             size_t elem_size, size_t align_offset, size_t alignment,
                             unsigned elems_per_chunk, unsigned max_elems,
                             ucg_mpool_ops_t *ops, const char *name)
 {
-    ucs_mpool_ops_t *ucs_ops = NULL;
     ucg_status_t status;
+    ucs_mpool_params_t mp_params;
 
     if (mp == NULL || name == NULL) {
         return UCG_ERR_INVALID_PARAM;
     }
 
-    ucs_ops = ucg_calloc(1, sizeof(ucs_mpool_ops_t), "ucs_ops");
-    if (ucs_ops == NULL) {
-        return UCG_ERR_NO_MEMORY;
+    mp->ops = (ops == NULL) ? &ucg_default_mpool_ops : ops;
+    if (mp->ops->obj_init == NULL) {
+        ucs_ops.obj_init = NULL;
+    }
+    if (mp->ops->obj_cleanup == NULL) {
+        ucs_ops.obj_cleanup = NULL;
     }
 
-    mp->ops = (ops == NULL) ? &ucg_default_mpool_ops : ops;
+    ucs_mpool_params_reset(&mp_params);
+    mp_params.priv_size         = priv_size;
+    mp_params.elem_size         = elem_size;
+    mp_params.align_offset      = align_offset;
+    mp_params.alignment         = alignment;
+    mp_params.elems_per_chunk   = elems_per_chunk;
+    mp_params.max_elems         = max_elems;
+    mp_params.ops               = &ucs_ops;
+    mp_params.name              = name;
 
-    ucs_ops->chunk_alloc = ucg_mpool_chunk_alloc_wrapper;
-    ucs_ops->chunk_release = ucg_mpool_chunk_release_wrapper;
-    ucs_ops->obj_init = (mp->ops->obj_init == NULL) ? NULL : ucg_mpool_obj_init_wrapper;
-    ucs_ops->obj_cleanup = (mp->ops->obj_cleanup == NULL) ? NULL : ucg_mpool_obj_cleanup_wrapper;
-
-    status = ucg_status_s2g(ucs_mpool_init(&mp->super, priv_size, elem_size,
-                                           align_offset, alignment,
-                                           elems_per_chunk, max_elems,
-                                           ucs_ops, name));
+    status = ucg_status_s2g(ucs_mpool_init(&mp_params, &mp->super));
     if (status != UCG_OK) {
         return status;
     }
@@ -96,14 +107,11 @@ ucg_status_t ucg_mpool_init_mt(ucg_mpool_t *mp, size_t priv_size,
 
 void ucg_mpool_cleanup(ucg_mpool_t *mp, int check_leak)
 {
-    ucs_mpool_ops_t *ucs_ops = NULL;
     if (mp == NULL) {
         return;
     }
 
-    ucs_ops = mp->super.data->ops;
     ucs_mpool_cleanup(&mp->super, check_leak);
-    ucg_free(ucs_ops);
     ucg_lock_destroy(&mp->lock);
     return;
 }
