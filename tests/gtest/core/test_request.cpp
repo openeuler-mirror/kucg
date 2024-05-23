@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include <gtest/gtest.h>
@@ -63,12 +63,21 @@ TEST_F(test_ucg_request, bcast)
         .field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE,
         .mem_type = UCG_MEM_TYPE_HOST,
     };
+    // bcast
     ucg_request_h request = nullptr;
     ASSERT_EQ(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
-                                     &info, &request), UCG_OK);
+                                     &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_start(request), UCG_OK);
     ASSERT_EQ(ucg_request_test(request), UCG_OK);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
+
+    // ibcast
+    ucg_request_h non_request = nullptr;
+    ASSERT_EQ(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
+                                     &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_start(non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_test(non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_cleanup(non_request), UCG_OK);
 }
 
 TEST_F(test_ucg_request, bcast_init_unknown_mem_type)
@@ -80,22 +89,37 @@ TEST_F(test_ucg_request, bcast_init_unknown_mem_type)
         .type = UCG_DT_TYPE_INT32,
     };
     ucg_request_info_t info;
-    ucg_request_h request = nullptr;
 
     // For bcast, UCG will check the memory type of send buffer internally
+    // bcast
+    ucg_request_h request = nullptr;
     // case 1: Unspecified field
     info.field_mask = 0;
     ASSERT_EQ(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
-                                     &info, &request), UCG_OK);
+                                     &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
 
     // case 2: specified field, but unknown type.
     info.field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE;
     info.mem_type = UCG_MEM_TYPE_UNKNOWN;
     ASSERT_EQ(ucg_request_bcast_init(&buffer, count, &dt, root, m_group,
-                                     &info, &request), UCG_OK);
-
+                                     &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
+
+    // ibcast
+    // case 1: Unspecified field
+    ucg_request_h non_request = nullptr;
+    info.field_mask = 0;
+    ASSERT_EQ(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
+                                     &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_cleanup(non_request), UCG_OK);
+    // case 2: specified field, but unknown type.
+    info.field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE;
+    info.mem_type = UCG_MEM_TYPE_UNKNOWN;
+    ASSERT_EQ(ucg_request_bcast_init(&buffer, count, &dt, root, m_group,
+                                     &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_cleanup(non_request), UCG_OK);
+
 }
 
 TEST_F(test_ucg_request, allreduce)
@@ -113,12 +137,21 @@ TEST_F(test_ucg_request, allreduce)
         .field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE,
         .mem_type = UCG_MEM_TYPE_HOST,
     };
+    // allreduce
     ucg_request_h request = nullptr;
     ASSERT_EQ(ucg_request_allreduce_init(sendbuf, recvbuf, count, &dt,
-                                         &op, m_group, &info, &request), UCG_OK);
+                                         &op, m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_start(request), UCG_OK);
     ASSERT_EQ(ucg_request_test(request), UCG_OK);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
+
+    // iallreduce
+    ucg_request_h non_request = nullptr;
+    ASSERT_EQ(ucg_request_allreduce_init(sendbuf, recvbuf, count, &dt,
+                                         &op, m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_start(non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_test(non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_cleanup(non_request), UCG_OK);
 }
 
 TEST_F(test_ucg_request, allreduce_init_unknown_mem_type)
@@ -133,25 +166,40 @@ TEST_F(test_ucg_request, allreduce_init_unknown_mem_type)
         .type = UCG_OP_TYPE_MAX,
     };
     ucg_request_info_t info;
-    ucg_request_h request = nullptr;
 
     // For allreduce, UCG will check the memory type internally
+    // allreduce
     // case 1: Unspecified field
+    ucg_request_h request = nullptr;
     info.field_mask = 0;
     ASSERT_EQ(ucg_request_allreduce_init(sendbuf, recvbuf, count, &dt,
-                                         &op, m_group, &info, &request), UCG_OK);
+                                         &op, m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
-
     // case 2: specified field, but unknown type.
     info.field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE;
     info.mem_type = UCG_MEM_TYPE_UNKNOWN;
     ASSERT_EQ(ucg_request_allreduce_init(sendbuf, recvbuf, count, &dt,
-                                         &op, m_group, &info, &request), UCG_OK);
+                                         &op, m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
-
     // case 3: Inconsistent memory types are not supported.
     ASSERT_NE(ucg_request_allreduce_init(sendbuf, test_stub_acl_buffer, count, &dt,
-                                         &op, m_group, &info, &request), UCG_OK);
+                                         &op, m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
+    // iallreduce
+    // case 1: Unspecified field
+    ucg_request_h non_request = nullptr;
+    info.field_mask = 0;
+    ASSERT_EQ(ucg_request_allreduce_init(sendbuf, recvbuf, count, &dt,
+                                         &op, m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_cleanup(non_request), UCG_OK);
+    // case 2: specified field, but unknown type.
+    info.field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE;
+    info.mem_type = UCG_MEM_TYPE_UNKNOWN;
+    ASSERT_EQ(ucg_request_allreduce_init(sendbuf, recvbuf, count, &dt,
+                                         &op, m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_cleanup(non_request), UCG_OK);
+    // case 3: Inconsistent memory types are not supported.
+    ASSERT_NE(ucg_request_allreduce_init(sendbuf, test_stub_acl_buffer, count, &dt,
+                                         &op, m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
 }
 
 TEST_F(test_ucg_request, barrier)
@@ -160,24 +208,50 @@ TEST_F(test_ucg_request, barrier)
         .field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE,
         .mem_type = UCG_MEM_TYPE_HOST,
     };
+    // barrier
     ucg_request_h request = nullptr;
-    ASSERT_EQ(ucg_request_barrier_init(m_group, &info, &request), UCG_OK);
+    ASSERT_EQ(ucg_request_barrier_init(m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_start(request), UCG_OK);
     ASSERT_EQ(ucg_request_test(request), UCG_OK);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
+
+    // ibarrier
+    ucg_request_h non_request = nullptr;
+    ASSERT_EQ(ucg_request_barrier_init(m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_start(non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_test(non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_cleanup(non_request), UCG_OK);
 }
 
 TEST_F(test_ucg_request, barrier_init_unknown_mem_type)
 {
     ucg_request_info_t info;
-    ucg_request_h request = nullptr;
     // For barrier, user must specify the field.
+    // barrier
+    ucg_request_h request = nullptr;
     info.field_mask = 0;
-    ASSERT_NE(ucg_request_barrier_init(m_group, &info, &request), UCG_OK);
+    ASSERT_NE(ucg_request_barrier_init(m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
+
+    ASSERT_NE(ucg_request_barrier_init(m_group, &info, UCG_REQUEST_NONBLOCKING, &request), UCG_OK);
 
     info.field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE;
     info.mem_type = UCG_MEM_TYPE_UNKNOWN;
-    ASSERT_NE(ucg_request_barrier_init(m_group, &info, &request), UCG_OK);
+    ASSERT_NE(ucg_request_barrier_init(m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
+
+    ASSERT_NE(ucg_request_barrier_init(m_group, &info, UCG_REQUEST_NONBLOCKING, &request), UCG_OK);
+
+    // ibarrier
+    ucg_request_h non_request = nullptr;
+    info.field_mask = 0;
+    ASSERT_NE(ucg_request_barrier_init(m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+
+    ASSERT_NE(ucg_request_barrier_init(m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+
+    info.field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE;
+    info.mem_type = UCG_MEM_TYPE_UNKNOWN;
+    ASSERT_NE(ucg_request_barrier_init(m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+
+    ASSERT_NE(ucg_request_barrier_init(m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
 }
 
 TEST_F(test_ucg_request, alltoallv)
@@ -199,13 +273,24 @@ TEST_F(test_ucg_request, alltoallv)
         .field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE,
         .mem_type = UCG_MEM_TYPE_HOST,
     };
+    // alltoallv
     ucg_request_h request = nullptr;
     ASSERT_EQ(ucg_request_alltoallv_init(sendbuf, sendcounts, sdispls, &sendtype,
                                          recvbuf, recvcounts, rdispls, &recvtype,
-                                         m_group, &info, &request), UCG_OK);
+                                         m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_start(request), UCG_OK);
     ASSERT_EQ(ucg_request_test(request), UCG_OK);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
+
+    // ialltoallv
+    ucg_request_h non_request = nullptr;
+
+    ASSERT_EQ(ucg_request_alltoallv_init(sendbuf, sendcounts, sdispls, &sendtype,
+                                         recvbuf, recvcounts, rdispls, &recvtype,
+                                         m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_start(non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_test(non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_cleanup(non_request), UCG_OK);
 }
 
 TEST_F(test_ucg_request, alltoallv_init_unknow_mem_type)
@@ -224,28 +309,46 @@ TEST_F(test_ucg_request, alltoallv_init_unknow_mem_type)
         .type = UCG_DT_TYPE_INT32,
     };
     ucg_request_info_t info;
-    ucg_request_h request = nullptr;
-
     // For alltoallv, UCG will check the memory type internally
+    // alltoallv
     // case 1: Unspecified field
+    ucg_request_h request = nullptr;
     info.field_mask = 0;
     ASSERT_EQ(ucg_request_alltoallv_init(sendbuf, sendcounts, sdispls, &sendtype,
                                          recvbuf, recvcounts, rdispls, &recvtype,
-                                         m_group, &info, &request), UCG_OK);
+                                         m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
-
     // case 2: specified field, but unknown type.
     info.field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE;
     info.mem_type = UCG_MEM_TYPE_UNKNOWN;
     ASSERT_EQ(ucg_request_alltoallv_init(sendbuf, sendcounts, sdispls, &sendtype,
                                          recvbuf, recvcounts, rdispls, &recvtype,
-                                         m_group, &info, &request), UCG_OK);
+                                         m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
-
     // case 3: Inconsistent memory types are not supported.
     ASSERT_NE(ucg_request_alltoallv_init(sendbuf, sendcounts, sdispls, &sendtype,
                                          test_stub_acl_buffer, recvcounts, rdispls, &recvtype,
-                                         m_group, &info, &request), UCG_OK);
+                                         m_group, &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
+
+    // ialltoallv
+    // case 1: Unspecified field
+    ucg_request_h non_request = nullptr;
+    info.field_mask = 0;
+    ASSERT_EQ(ucg_request_alltoallv_init(sendbuf, sendcounts, sdispls, &sendtype,
+                                         recvbuf, recvcounts, rdispls, &recvtype,
+                                         m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_cleanup(non_request), UCG_OK);
+    // case 2: specified field, but unknown type.
+    info.field_mask = UCG_REQUEST_INFO_FIELD_MEM_TYPE;
+    info.mem_type = UCG_MEM_TYPE_UNKNOWN;
+    ASSERT_EQ(ucg_request_alltoallv_init(sendbuf, sendcounts, sdispls, &sendtype,
+                                         recvbuf, recvcounts, rdispls, &recvtype,
+                                         m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
+    ASSERT_EQ(ucg_request_cleanup(non_request), UCG_OK);
+    // case 3: Inconsistent memory types are not supported.
+    ASSERT_NE(ucg_request_alltoallv_init(sendbuf, sendcounts, sdispls, &sendtype,
+                                         test_stub_acl_buffer, recvcounts, rdispls, &recvtype,
+                                         m_group, &info, UCG_REQUEST_NONBLOCKING, &non_request), UCG_OK);
 }
 
 TEST_F(test_ucg_request, init_fail_prepare)
@@ -263,7 +366,7 @@ TEST_F(test_ucg_request, init_fail_prepare)
     ucg_request_h request = nullptr;
     stub::mock(stub::PLAN_PREPARE, {stub::FAILURE});
     ASSERT_NE(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
-                                     &info, &request), UCG_OK);
+                                     &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
 }
 
 TEST_F(test_ucg_request, start_inprogress)
@@ -280,7 +383,7 @@ TEST_F(test_ucg_request, start_inprogress)
     };
     ucg_request_h request = nullptr;
     ASSERT_EQ(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
-                                     &info, &request), UCG_OK);
+                                     &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_start(request), UCG_OK);
     // The request that is in progress cannot be started again.
     ASSERT_NE(ucg_request_start(request), UCG_OK);
@@ -303,7 +406,7 @@ TEST_F(test_ucg_request, start_multi_times)
     };
     ucg_request_h request = nullptr;
     ASSERT_EQ(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
-                                     &info, &request), UCG_OK);
+                                     &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
 
     for (int i = 0; i < 10; ++i) {
         ASSERT_EQ(ucg_request_start(request), UCG_OK);
@@ -326,7 +429,7 @@ TEST_F(test_ucg_request, test_ok)
     };
     ucg_request_h request = nullptr;
     ASSERT_EQ(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
-                                     &info, &request), UCG_OK);
+                                     &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_start(request), UCG_OK);
     // For a request that has been completed, the test routine can still be invoked.
     for (int i = 0; i < 5; ++i) {
@@ -349,7 +452,7 @@ TEST_F(test_ucg_request, cleanup_inprogress)
     };
     ucg_request_h request = nullptr;
     ASSERT_EQ(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
-                                     &info, &request), UCG_OK);
+                                     &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_start(request), UCG_OK);
     // Cannot cleanup an active request.
     ASSERT_NE(ucg_request_cleanup(request), UCG_OK);
@@ -372,7 +475,7 @@ TEST_F(test_ucg_request, with_context_progress)
     };
     ucg_request_h request = nullptr;
     ASSERT_EQ(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
-                                     &info, &request), UCG_OK);
+                                     &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_start(request), UCG_OK);
     ASSERT_EQ(ucg_progress(m_context), 1);
     ASSERT_EQ(ucg_request_cleanup(request), UCG_OK);
@@ -397,7 +500,7 @@ TEST_F(test_ucg_request, complete_cb)
     };
     ucg_request_h request = nullptr;
     ASSERT_EQ(ucg_request_bcast_init(buffer, count, &dt, root, m_group,
-                                     &info, &request), UCG_OK);
+                                     &info, UCG_REQUEST_BLOCKING, &request), UCG_OK);
     ASSERT_EQ(ucg_request_start(request), UCG_OK);
     ASSERT_EQ(ucg_progress(m_context), 1);
     ASSERT_EQ(complete, 1);
@@ -409,13 +512,13 @@ TEST_F(test_ucg_request, init_invalid_args)
 {
     ucg_request_h request = nullptr;
 
-    ASSERT_EQ(ucg_request_bcast_init(NULL, 0, NULL, 0, NULL, NULL, &request),
+    ASSERT_EQ(ucg_request_bcast_init(NULL, 0, NULL, 0, NULL, NULL, UCG_REQUEST_BLOCKING, &request),
               UCG_ERR_INVALID_PARAM);
-    ASSERT_EQ(ucg_request_barrier_init(NULL, NULL, &request), UCG_ERR_INVALID_PARAM);
-    ASSERT_EQ(ucg_request_allreduce_init(NULL, NULL, 0, NULL, NULL, NULL, NULL, &request),
+    ASSERT_EQ(ucg_request_barrier_init(NULL, NULL, UCG_REQUEST_BLOCKING, &request), UCG_ERR_INVALID_PARAM);
+    ASSERT_EQ(ucg_request_allreduce_init(NULL, NULL, 0, NULL, NULL, NULL, NULL, UCG_REQUEST_BLOCKING, &request),
               UCG_ERR_INVALID_PARAM);
     ASSERT_EQ(ucg_request_alltoallv_init(NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-              NULL, NULL, NULL, &request), UCG_ERR_INVALID_PARAM);
+              NULL, NULL, NULL, UCG_REQUEST_BLOCKING, &request), UCG_ERR_INVALID_PARAM);
 }
 
 TEST_F(test_ucg_request, start_invalid_args)

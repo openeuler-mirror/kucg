@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #ifndef UCG_H_
@@ -1062,6 +1062,15 @@ void ucg_group_destroy(ucg_group_h group);
 
 /**
  * @ingroup UCG_REQUEST
+ * @brief UCG request type (blocking or nonblocking).
+ */
+typedef enum {
+    UCG_REQUEST_BLOCKING,
+    UCG_REQUEST_NONBLOCKING,
+} ucg_request_type_t;
+
+/**
+ * @ingroup UCG_REQUEST
  * @brief Create a persistent broadcast request.
  *
  * Create a request that broadcasts a message from the process with rank root
@@ -1077,6 +1086,7 @@ void ucg_group_destroy(ucg_group_h group);
  * @param [in]    root      Rank of broadcast root
  * @param [in]    group     Communication group
  * @param [in]    info      Informations for creating request
+ * @param [in]    nb        Nonblocking or blocking request
  * @param [out]   request   Collective request
  * @retval UCG_OK Success.
  * @retval Otherwise Failure.
@@ -1084,6 +1094,7 @@ void ucg_group_destroy(ucg_group_h group);
 ucg_status_t ucg_request_bcast_init(void *buffer, int32_t count, ucg_dt_h dt,
                                     ucg_rank_t root, ucg_group_h group,
                                     const ucg_request_info_t *info,
+                                    ucg_request_type_t nb,
                                     ucg_request_h *request);
 
 /**
@@ -1103,6 +1114,7 @@ ucg_status_t ucg_request_bcast_init(void *buffer, int32_t count, ucg_dt_h dt,
  * @param [in]  op          Operation
  * @param [in]  group       Communication group
  * @param [in]  info        Informations for creating request
+ * @param [in]  nb          Nonblocking or blocking request
  * @param [out] request     Collective request
  * @retval UCG_OK Success.
  * @retval Otherwise Failure.
@@ -1111,6 +1123,7 @@ ucg_status_t ucg_request_allreduce_init(const void *sendbuf, void *recvbuf,
                                         int32_t count, ucg_dt_h dt,
                                         ucg_op_h op, ucg_group_h group,
                                         const ucg_request_info_t *info,
+                                        ucg_request_type_t nb,
                                         ucg_request_h *request);
 
 /**
@@ -1124,12 +1137,14 @@ ucg_status_t ucg_request_allreduce_init(const void *sendbuf, void *recvbuf,
  *
  * @param [in]  group   Communication group
  * @param [in]  info    Informations for creating request
+ * @param [in]  nb      Nonblocking or blocking request
  * @param [out] request Collective request
  * @retval UCG_OK Success.
  * @retval Otherwise Failure.
  */
 ucg_status_t ucg_request_barrier_init(ucg_group_h group,
                                       const ucg_request_info_t *info,
+                                      ucg_request_type_t nb,
                                       ucg_request_h *request);
 
 /**
@@ -1159,6 +1174,7 @@ ucg_status_t ucg_request_barrier_init(ucg_group_h group,
  * @param [in]  recvtype        Data type of receive buffer elements
  * @param [in]  group           Communication group
  * @param [in]  info            Informations for creating request
+ * @param [in]  nb              Nonblocking or blocking request
  * @param [out] request         Collective request
  * @retval UCG_OK Success.
  * @retval Otherwise Failure.
@@ -1168,7 +1184,7 @@ ucg_status_t ucg_request_alltoallv_init(const void *sendbuf, const int32_t sendc
                                         void *recvbuf, const int32_t recvcounts[],
                                         const int32_t rdispls[], ucg_dt_h recvtype,
                                         ucg_group_h group, const ucg_request_info_t *info,
-                                        ucg_request_h *request);
+                                        ucg_request_type_t nb, ucg_request_h *request);
 
 /**
  * @ingroup UCG_REQUEST
@@ -1191,6 +1207,7 @@ ucg_status_t ucg_request_alltoallv_init(const void *sendbuf, const int32_t sendc
  * @param [in]  root            Rank of sending process
  * @param [in]  group           Communication group
  * @param [in]  info            Informations for creating request
+ * @param [in]  nb              Nonblocking or blocking request
  * @param [out] request         Collective request
  * @retval UCG_OK Success.
  * @retval Otherwise Failure.
@@ -1200,7 +1217,7 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
                                        void *recvbuf, int32_t recvcount,
                                        ucg_dt_h recvtype, ucg_rank_t root,
                                        ucg_group_h group, const ucg_request_info_t *info,
-                                       ucg_request_h *request);
+                                       ucg_request_type_t nb, ucg_request_h *request);
 
 /**
  * @ingroup UCG_REQUEST
@@ -1222,6 +1239,7 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
  * @param [in]  root            Rank of receiving process
  * @param [in]  group           Communication group
  * @param [in]  info            Informations for creating request
+ * @param [in]  nb              Nonblocking or blocking request
  * @param [out] request         Collective request
  * @retval UCG_OK Success.
  * @retval Otherwise Failure.
@@ -1231,7 +1249,7 @@ ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcou
                                       const int32_t* recvcounts, const int32_t* displs,
                                       ucg_dt_h recvtype, ucg_rank_t root,
                                       ucg_group_h group, const ucg_request_info_t *info,
-                                      ucg_request_h *request);
+                                      ucg_request_type_t nb, ucg_request_h *request);
 
 /**
  * @ingroup UCG_REQUEST
@@ -1254,6 +1272,7 @@ ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcou
  * @param [in]  recvtype        Datatype of receive buffer elements
  * @param [in]  group           Communication group
  * @param [in]  info            Informations for creating request
+ * @param [in]  nb              Nonblocking or blocking request
  * @param [out] request         Collective request
  * @retval UCG_OK Success.
  * @retval Otherwise Failure.
@@ -1263,7 +1282,7 @@ ucg_status_t ucg_request_allgatherv_init(const void *sendbuf, int sendcount,
                                          const int32_t *recvcounts, const int32_t *displs,
                                          ucg_dt_h recvtype, ucg_group_h group,
                                          const ucg_request_info_t *info,
-                                         ucg_request_h *request);
+                                         ucg_request_type_t nb, ucg_request_h *request);
 /**
  * @ingroup UCG_REQUEST
  * @brief Start the request.
