@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #ifndef UCG_PLANC_UCX_CONTEXT_H_
@@ -24,7 +24,7 @@ typedef enum {
 
 typedef struct ucg_planc_ucx_config_bundle {
     ucg_config_field_t *table;
-    char data[];
+    char data[1];
 } ucg_planc_ucx_config_bundle_t;
 
 typedef struct ucg_planc_ucx_config {

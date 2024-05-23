@@ -47,7 +47,7 @@ public:
             .type = UCG_RANK_MAP_TYPE_FULL,
             .size = size,
         };
-        static ucg_topo_location_t locations[UCG_COLL_TYPE_LAST];
+        static ucg_topo_location_t locations[16];
         for (int i = 0; i < 16; i++) {
             locations[i].node_id = i;
             locations[i].socket_id = i;
