@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 #define _GNU_SOURCE // For dladdr()
 
@@ -96,8 +96,8 @@ ucg_status_t ucg_planc_load()
 
     ucg_planc_config_t config;
     ucg_status_t status;
-    status = ucg_config_parser_fill_opts(&config, ucg_planc_config_table,
-                                         UCG_DEFAULT_ENV_PREFIX, NULL, 0);
+    status = ucg_config_parser_fill_opts(&config, UCG_CONFIG_GET_TABLE(ucg_planc_config_table),
+                                         UCG_DEFAULT_ENV_PREFIX, 0);
     if (status != UCG_OK) {
         ucg_error("Failed to read PlanC configuration");
         return status;

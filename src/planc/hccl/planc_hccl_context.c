@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include <stdlib.h>
@@ -101,8 +101,8 @@ ucg_status_t ucg_planc_hccl_config_read(const char *env_prefix,
         snprintf(full_env_prefix, full_env_prefix_len, "%s_%s", env_prefix, UCG_DEFAULT_ENV_PREFIX);
     }
 
-    status = ucg_config_parser_fill_opts(cfg, ucg_planc_hccl_config_table,
-                                         full_env_prefix, PLANC_HCCL_CONFIG_PREFIX, 0);
+    status = ucg_config_parser_fill_opts(cfg, UCG_CONFIG_GET_TABLE(ucg_planc_hccl_config_table),
+                                         full_env_prefix, 0);
     ucg_free(full_env_prefix);
     if (status != UCG_OK) {
         ucg_error("Failed to read PlanC HCCL configuration");

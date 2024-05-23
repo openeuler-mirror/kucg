@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #ifndef UCG_PARSER_H_
@@ -20,8 +20,10 @@
 #define ucg_config_global_list_entry_t  ucs_config_global_list_entry_t
 
 #define UCG_CONFIG_TYPE_LOG_COMP        UCS_CONFIG_TYPE_LOG_COMP
+#define UCG_CONFIG_DECLARE_TABLE        UCS_CONFIG_DECLARE_TABLE
 #define UCG_CONFIG_REGISTER_TABLE       UCS_CONFIG_REGISTER_TABLE
 #define UCG_CONFIG_REGISTER_TABLE_ENTRY UCS_CONFIG_REGISTER_TABLE_ENTRY
+#define UCG_CONFIG_GET_TABLE            UCS_CONFIG_GET_TABLE
 #define UCG_CONFIG_TYPE_STRING          UCS_CONFIG_TYPE_STRING
 #define UCG_CONFIG_TYPE_INT             UCS_CONFIG_TYPE_INT
 #define UCG_CONFIG_TYPE_UINT            UCS_CONFIG_TYPE_UINT
@@ -42,12 +44,10 @@
 #define UCG_ULUNITS_AUTO                UCS_ULUNITS_AUTO
 
 static inline ucg_status_t
-ucg_config_parser_fill_opts(void *opts, ucg_config_field_t *fields,
-                            const char *env_prefix, const char *table_prefix,
-                            int ignore_errors)
+ucg_config_parser_fill_opts(void *opts, ucg_config_global_list_entry_t *entry,
+                            const char *env_prefix, int ignore_errors)
 {
-    ucs_status_t status = ucs_config_parser_fill_opts(opts, fields, env_prefix,
-        table_prefix, ignore_errors);
+    ucs_status_t status = ucs_config_parser_fill_opts(opts, entry, env_prefix, ignore_errors);
     return ucg_status_s2g(status);
 }
 

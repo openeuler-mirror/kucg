@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include "ucg_context.h"
@@ -495,8 +495,8 @@ ucg_status_t ucg_config_read(const char *env_prefix, const char *filename,
         goto err_free_cfg;
     }
 
-    status = ucg_config_parser_fill_opts(cfg, ucg_context_config_table,
-                                         cfg->env_prefix, NULL, 0);
+    status = ucg_config_parser_fill_opts(cfg, UCG_CONFIG_GET_TABLE(ucg_context_config_table),
+                                         cfg->env_prefix, 0);
     if (status != UCG_OK) {
         goto err_free_env_prefix;
     }
