@@ -39,6 +39,30 @@ static ucg_config_field_t ucg_planc_ucx_config_table[] = {
      ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_ALLGATHERV]),
      UCG_CONFIG_TYPE_STRING},
 
+    {"IBCAST_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t,  plan_attr[UCG_COLL_TYPE_IBCAST]),
+     UCG_CONFIG_TYPE_STRING},
+
+    {"IALLREDUCE_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_IALLREDUCE]),
+     UCG_CONFIG_TYPE_STRING},
+
+    {"IBARRIER_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_IBARRIER]),
+     UCG_CONFIG_TYPE_STRING},
+
+    {"IALLTOALLV_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_IALLTOALLV]),
+     UCG_CONFIG_TYPE_STRING},
+
+    {"ISCATTERV_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_ISCATTERV]),
+     UCG_CONFIG_TYPE_STRING},
+
+    {"IALLGATHERV_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_IALLGATHERV]),
+     UCG_CONFIG_TYPE_STRING},
+
     {"NPOLLS", "3",
      "Number of ucp progress polling cycles for p2p requests testing",
      ucg_offsetof(ucg_planc_ucx_config_t, n_polls),
