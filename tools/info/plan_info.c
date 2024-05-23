@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include "ucg_info.h"
@@ -32,11 +32,8 @@ static ucg_status_t get_proc_info(ucg_rank_t rank, ucg_proc_info_t **proc)
     return UCG_OK;
 }
 
-static void init_context(ucg_context_h *context)
+static void init_context(ucg_config_h config, ucg_context_h *context)
 {
-    ucg_config_h config;
-    UCG_CHECK(ucg_config_read(NULL, NULL, &config));
-
     ucg_params_t params;
     params.field_mask = UCG_PARAMS_FIELD_OOB_GROUP |
                         UCG_PARAMS_FIELD_LOCATION_CB |
@@ -75,8 +72,11 @@ static void create_group(ucg_context_h context, ucg_group_h *group)
 
 void print_plans()
 {
+    ucg_config_h config;
+    ucg_config_read(NULL, NULL, &config);
+
     ucg_context_h context;
-    init_context(&context);
+    init_context(config, &context);
 
     ucg_group_h group;
     create_group(context, &group);
@@ -84,7 +84,9 @@ void print_plans()
     ucg_plans_print(group->plans, stdout);
 
     ucg_group_destroy(group);
-    ucg_cleanup(context);
 
+    ucg_config_release(config);
+
+    ucg_cleanup(context);
     return;
 }

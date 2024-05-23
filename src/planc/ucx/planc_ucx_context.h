@@ -24,7 +24,7 @@ typedef enum {
 
 typedef struct ucg_planc_ucx_config_bundle {
     ucg_config_field_t *table;
-    char data[1];
+    char data[];
 } ucg_planc_ucx_config_bundle_t;
 
 typedef struct ucg_planc_ucx_config {
