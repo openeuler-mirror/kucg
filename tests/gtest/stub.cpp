@@ -493,7 +493,7 @@ void ucg_mpool_put(void *obj)
 
 ucs_status_t fake_ucs_mpool_chunk_malloc(ucs_mpool_t *mp, size_t *size_p, void **chunk_p)
 {
-    mp->data->elems_per_chunk = (unsigned)1000,
+    mp->data->elems_per_chunk = (unsigned)1000;
     *chunk_p = ucg_malloc(*size_p, mp->data->name);
     return (*chunk_p == NULL) ? UCS_ERR_NO_MEMORY : UCS_OK;
 }

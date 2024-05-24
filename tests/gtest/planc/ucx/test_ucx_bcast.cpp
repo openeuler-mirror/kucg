@@ -45,37 +45,12 @@ public:
         static ucg_topo_t topo = {
             .ppn = 2,
         };
-        static ucs_mpool_ops_t ops = {
-            fake_ucs_mpool_chunk_malloc,
-            fake_ucs_mpool_chunk_free,
-            NULL,
-            NULL,
-        };
-        static const size_t header_size = 30;
-        static const size_t data_size = 152;
-        static const size_t align = 128;
-        static ucs_mpool_data_t mpool_data = {
-            .elem_size = sizeof(ucs_mpool_elem_t) + (header_size + data_size),
-            .alignment = align,
-            .align_offset = sizeof(ucs_mpool_elem_t) + header_size,
-            .elems_per_chunk = (unsigned)1,
-            .quota = (unsigned)2000,
-            .tail = NULL,
-            .chunks = NULL,
-            .ops = &ops,
-            .name = strdup("test"),
-        };
-        static ucs_mpool_t mpool = {
-            .freelist = NULL,
-            .data = &mpool_data,
-        };
+        static ucg_mpool_t meta_mpool;
+        (void)ucg_mpool_init(&meta_mpool, 0, sizeof(ucg_plan_meta_op_t),
+                             0, 64, UCG_ELEMS_PER_CHUNK,
+                             UINT_MAX, NULL, "meta op mpool");
         static ucg_context_t group_context = {
-            .meta_op_mp = {
-                .super = mpool,
-                .lock = {
-                    .type = UCG_LOCK_TYPE_NONE,
-                },
-            },
+            .meta_op_mp = meta_mpool,
         };
         static ucg_group_t group = {
             .context = &group_context,
@@ -92,23 +67,12 @@ public:
         m_group.super.super.group = &group;
         m_group.context = &context;
 
-        static ucs_mpool_data_t mp_op_mpool_data = {
-            .elem_size = sizeof(ucs_mpool_elem_t) + (header_size + data_size),
-            .alignment = align,
-            .align_offset = sizeof(ucs_mpool_elem_t) + header_size,
-            .elems_per_chunk = (unsigned)1,
-            .quota = (unsigned)2000,
-            .tail = NULL,
-            .chunks = NULL,
-            .ops = &ops,
-            .name = strdup("test"),
-        };
-        static ucs_mpool_t mp_op_mpool = {
-            .freelist = NULL,
-            .data = &mp_op_mpool_data,
-        };
+        static ucg_mpool_t op_mpool;
+        (void)ucg_mpool_init(&op_mpool, 0, sizeof(ucg_plan_meta_op_t),
+                             0, 64, UCG_ELEMS_PER_CHUNK,
+                             UINT_MAX, NULL, "meta op mpool");
         ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
-        ucx_group->context->op_mp.super = mp_op_mpool;
+        ucx_group->context->op_mp = op_mpool;
 
         static int buf[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
         const int count = 16;
