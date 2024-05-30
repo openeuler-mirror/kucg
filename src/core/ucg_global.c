@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include "ucg_global.h"
@@ -78,8 +78,8 @@ ucg_status_t ucg_global_init(const ucg_global_params_t *params)
     ucg_config_compatible();
 
     ucg_global_config_t config;
-    status = ucg_config_parser_fill_opts(&config, ucg_global_config_table,
-                                         UCG_DEFAULT_ENV_PREFIX, NULL, 0);
+    status = ucg_config_parser_fill_opts(&config, UCG_CONFIG_GET_TABLE(ucg_global_config_table),
+                                         UCG_DEFAULT_ENV_PREFIX, 0);
     if (status != UCG_OK) {
         ucg_error("Failed to read global configuration");
         goto out;

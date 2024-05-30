@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #ifndef UCG_REQUEST_H_
@@ -50,6 +50,14 @@ typedef enum {
     UCG_COLL_TYPE_GATHERV,
     UCG_COLL_TYPE_ALLGATHERV,
     UCG_COLL_TYPE_REDUCE,
+    UCG_COLL_TYPE_IBCAST,
+    UCG_COLL_TYPE_IALLREDUCE,
+    UCG_COLL_TYPE_IBARRIER,
+    UCG_COLL_TYPE_IALLTOALLV,
+    UCG_COLL_TYPE_ISCATTERV,
+    UCG_COLL_TYPE_IGATHERV,
+    UCG_COLL_TYPE_IALLGATHERV,
+    UCG_COLL_TYPE_IREDUCE,
     UCG_COLL_TYPE_LAST,
 } ucg_coll_type_t;
 
