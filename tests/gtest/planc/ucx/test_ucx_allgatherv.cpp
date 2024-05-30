@@ -21,7 +21,7 @@ extern "C" {
 using namespace std;
 
 class test_ucx_allgatherv : public testing::Test {
-private :
+private:
     static void fill_config()
     {
         static ucg_planc_ucx_config_bundle_t config_bundle[UCG_COLL_TYPE_LAST][UCX_MODULE_LAST];
@@ -47,12 +47,12 @@ public:
             .type = UCG_RANK_MAP_TYPE_FULL,
             .size = size,
         };
-        static ucg_topo_location_t locations[UCG_COLL_TYPE_LAST];
+        static ucg_topo_location_t locations[16];
         for (int i = 0; i < 16; i++) {
             locations[i].node_id = i;
             locations[i].socket_id = i;
         }
-        static ucg_topo_detail_t detail= {
+        static ucg_topo_detail_t detail = {
             .locations = locations,
         };
         static ucg_topo_t topo = {
@@ -60,37 +60,12 @@ public:
             .ppn = 2,
             .pps = 2,
         };
-        static ucs_mpool_ops_t ops = {
-            fake_ucs_mpool_chunk_malloc,
-            fake_ucs_mpool_chunk_free,
-            NULL,
-            NULL,
-        };
-        static const size_t header_size = 30;
-        static const size_t data_size = 152;
-        static const size_t align = 128;
-        static ucs_mpool_data_t meta_mpool_data = {
-            .elem_size = sizeof(ucs_mpool_elem_t) + (header_size + data_size),
-            .alignment = align,
-            .align_offset = sizeof(ucs_mpool_elem_t) + header_size,
-            .elems_per_chunk = (unsigned)1,
-            .quota = (unsigned)2000,
-            .tail = NULL,
-            .chunks = NULL,
-            .ops = &ops,
-            .name = strdup("test"),
-        };
-        static ucs_mpool_t meta_mpool = {
-            .freelist = NULL,
-            .data = &meta_mpool_data,
-        };
+        static ucg_mpool_t meta_mpool;
+        (void)ucg_mpool_init(&meta_mpool, 0, sizeof(ucg_plan_meta_op_t),
+                             0, 64, UCG_ELEMS_PER_CHUNK,
+                             UINT_MAX, NULL, "meta op mpool");
         static ucg_context_t group_context = {
-            .meta_op_mp = {
-                .super = meta_mpool,
-                .lock = {
-                    .type = UCG_LOCK_TYPE_NONE,
-                },
-            },
+            .meta_op_mp = meta_mpool,
         };
         static ucg_group_t group = {
             .context = &group_context,
@@ -109,23 +84,12 @@ public:
         m_group.super.super.group = &group;
         m_group.context = &context;
 
-        static ucs_mpool_data_t op_mpool_data = {
-            .elem_size = sizeof(ucs_mpool_elem_t) + (header_size + data_size),
-            .alignment = align,
-            .align_offset = sizeof(ucs_mpool_elem_t) + header_size,
-            .elems_per_chunk = (unsigned)1,
-            .quota = (unsigned)2000,
-            .tail = NULL,
-            .chunks = NULL,
-            .ops = &ops,
-            .name = strdup("test"),
-        };
-        static ucs_mpool_t op_mpool = {
-            .freelist = NULL,
-            .data = &op_mpool_data,
-        };
+        static ucg_mpool_t op_mpool;
+        (void)ucg_mpool_init(&op_mpool, 0, sizeof(ucg_plan_meta_op_t),
+                             0, 64, UCG_ELEMS_PER_CHUNK,
+                             UINT_MAX, NULL, "meta op mpool");
         ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
-        ucx_group->context->op_mp.super = op_mpool;
+        ucx_group->context->op_mp = op_mpool;
 
         static int buf[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
         static int recvcounts[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -145,7 +109,7 @@ public:
             .displs = displs,
             .recvtype = &dt,
         };
-        return ;
+        return;
     }
 
     static void TearDownTestCase()
@@ -338,5 +302,3 @@ TEST_F(test_ucx_allgatherv, allgatherv_ring_hpl)
     status = op->discard(op);
     EXPECT_EQ(status, UCG_OK);
 }
-
-

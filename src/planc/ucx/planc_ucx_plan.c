@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 
@@ -14,24 +14,31 @@ static const ucg_plan_policy_t* ucg_planc_ucx_get_plan_policy(ucg_coll_type_t co
     const ucg_plan_policy_t *policy = NULL;
     switch (coll_type) {
         case UCG_COLL_TYPE_BCAST:
+        case UCG_COLL_TYPE_IBCAST:
             policy = ucg_planc_ucx_get_bcast_plan_policy(node_level, ppn_level);
             break;
         case UCG_COLL_TYPE_ALLREDUCE:
+        case UCG_COLL_TYPE_IALLREDUCE:
             policy = ucg_planc_ucx_get_allreduce_plan_policy(node_level, ppn_level);
             break;
         case UCG_COLL_TYPE_BARRIER:
+        case UCG_COLL_TYPE_IBARRIER:
             policy = ucg_planc_ucx_get_barrier_plan_policy(node_level, ppn_level);
             break;
         case UCG_COLL_TYPE_SCATTERV:
+        case UCG_COLL_TYPE_ISCATTERV:
             policy = ucg_planc_ucx_get_scatterv_plan_policy(node_level, ppn_level);
             break;
         case UCG_COLL_TYPE_GATHERV:
+        case UCG_COLL_TYPE_IGATHERV:
             policy = ucg_planc_ucx_get_gatherv_plan_policy(node_level, ppn_level);
             break;
         case UCG_COLL_TYPE_ALLGATHERV:
+        case UCG_COLL_TYPE_IALLGATHERV:
             policy = ucg_planc_ucx_get_allgatherv_plan_policy(node_level, ppn_level);
             break;
         case UCG_COLL_TYPE_REDUCE:
+        case UCG_COLL_TYPE_IREDUCE:
             policy = ucg_planc_ucx_get_reduce_plan_policy(node_level, ppn_level);
             break;
         default:
@@ -40,6 +47,36 @@ static const ucg_plan_policy_t* ucg_planc_ucx_get_plan_policy(ucg_coll_type_t co
     return policy;
 }
 
+static ucg_coll_type_t ucg_planc_ucx_coll_nonblock_2_block(ucg_coll_type_t coll)
+{
+    ucg_coll_type_t new_coll = coll;
+    switch (coll) {
+        case UCG_COLL_TYPE_IBCAST:
+            new_coll = UCG_COLL_TYPE_BCAST;
+            break;
+        case UCG_COLL_TYPE_IALLREDUCE:
+            new_coll = UCG_COLL_TYPE_ALLREDUCE;
+            break;
+        case UCG_COLL_TYPE_IBARRIER:
+            new_coll = UCG_COLL_TYPE_BARRIER;
+            break;
+        case UCG_COLL_TYPE_ISCATTERV:
+            new_coll = UCG_COLL_TYPE_SCATTERV;
+            break;
+        case UCG_COLL_TYPE_IGATHERV:
+            new_coll = UCG_COLL_TYPE_GATHERV;
+            break;
+        case UCG_COLL_TYPE_IALLGATHERV:
+            new_coll = UCG_COLL_TYPE_ALLGATHERV;
+            break;
+        case UCG_COLL_TYPE_IREDUCE:
+            new_coll = UCG_COLL_TYPE_REDUCE;
+            break;
+        default:
+            break;
+    }
+    return new_coll;
+}
 static ucg_status_t ucg_planc_ucx_set_plan_attr(ucg_vgroup_t *vgroup,
                                                 ucg_coll_type_t coll_type,
                                                 const ucg_plan_policy_t *policy,
@@ -49,6 +86,12 @@ static ucg_status_t ucg_planc_ucx_set_plan_attr(ucg_vgroup_t *vgroup,
     attr->range = policy->range;
     attr->score = policy->score;
     attr->vgroup = vgroup;
+
+    /**
+     * Non-blocking is treated as blocking because the @ucg_planc_ucx_xxx_plan_attr
+     * array is registered as blocking mode only.
+     */
+    coll_type = ucg_planc_ucx_coll_nonblock_2_block(coll_type);
 
     ucg_plan_attr_t *plan_attr = UCG_PLAN_ATTR_ARRAY(ucg_planc_ucx, coll_type);
     if (plan_attr == NULL) {

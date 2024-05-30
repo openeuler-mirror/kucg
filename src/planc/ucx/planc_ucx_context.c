@@ -39,6 +39,30 @@ static ucg_config_field_t ucg_planc_ucx_config_table[] = {
      ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_ALLGATHERV]),
      UCG_CONFIG_TYPE_STRING},
 
+    {"IBCAST_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t,  plan_attr[UCG_COLL_TYPE_IBCAST]),
+     UCG_CONFIG_TYPE_STRING},
+
+    {"IALLREDUCE_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_IALLREDUCE]),
+     UCG_CONFIG_TYPE_STRING},
+
+    {"IBARRIER_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_IBARRIER]),
+     UCG_CONFIG_TYPE_STRING},
+
+    {"IALLTOALLV_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_IALLTOALLV]),
+     UCG_CONFIG_TYPE_STRING},
+
+    {"ISCATTERV_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_ISCATTERV]),
+     UCG_CONFIG_TYPE_STRING},
+
+    {"IALLGATHERV_ATTR", "", UCG_PLAN_ATTR_DESC,
+     ucg_offsetof(ucg_planc_ucx_config_t, plan_attr[UCG_COLL_TYPE_IALLGATHERV]),
+     UCG_CONFIG_TYPE_STRING},
+
     {"NPOLLS", "3",
      "Number of ucp progress polling cycles for p2p requests testing",
      ucg_offsetof(ucg_planc_ucx_config_t, n_polls),
@@ -95,8 +119,16 @@ static ucg_status_t ucg_planc_ucx_config_bundle_read(ucg_planc_ucx_config_bundle
     }
 
     config_bundle->table = config_table;
-    status = ucg_config_parser_fill_opts(config_bundle->data, config_table,
-                                         env_prefix, cfg_prefix, 0);
+
+    ucg_config_global_list_entry_t entry = {
+        .table  = config_table,
+        .prefix = cfg_prefix,
+        .flags  = 0
+    };
+
+    status = ucg_config_parser_fill_opts(config_bundle->data,
+                                         &entry,
+                                         env_prefix, 0);
     if (status != UCG_OK) {
         goto err_free_bundle;
     }
@@ -170,8 +202,9 @@ ucg_status_t ucg_planc_ucx_config_read(const char *env_prefix,
         snprintf(full_env_prefix, full_env_prefix_len, "%s_%s", env_prefix, UCG_DEFAULT_ENV_PREFIX);
     }
 
-    status = ucg_config_parser_fill_opts(cfg, ucg_planc_ucx_config_table,
-                                         full_env_prefix, PLANC_UCX_CONFIG_PREFIX, 0);
+    status = ucg_config_parser_fill_opts(cfg,
+                                         UCG_CONFIG_GET_TABLE(ucg_planc_ucx_config_table),
+                                         full_env_prefix, 0);
     if (status != UCG_OK) {
         ucg_error("Failed to read PlanC UCX configuration");
         goto err_free_cfg;

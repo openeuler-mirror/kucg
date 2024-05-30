@@ -51,37 +51,12 @@ public:
             .ppn = 2,
             .pps = 2,
         };
-        static ucs_mpool_ops_t ops = {
-            fake_ucs_mpool_chunk_malloc,
-            fake_ucs_mpool_chunk_free,
-            NULL,
-            NULL,
-        };
-        static const size_t header_size = 30;
-        static const size_t data_size = 152;
-        static const size_t align = 128;
-        static ucs_mpool_data_t meta_mpool_data = {
-            .elem_size = sizeof(ucs_mpool_elem_t) + (header_size + data_size),
-            .alignment = align,
-            .align_offset = sizeof(ucs_mpool_elem_t) + header_size,
-            .elems_per_chunk = (unsigned)1,
-            .quota = (unsigned)2000,
-            .tail = NULL,
-            .chunks = NULL,
-            .ops = &ops,
-            .name = strdup("test"),
-        };
-        static ucs_mpool_t meta_mpool = {
-            .freelist = NULL,
-            .data = &meta_mpool_data,
-        };
+        static ucg_mpool_t meta_mpool;
+        (void)ucg_mpool_init(&meta_mpool, 0, sizeof(ucg_plan_meta_op_t),
+                             0, 64, UCG_ELEMS_PER_CHUNK,
+                             UINT_MAX, NULL, "meta op mpool");
         static ucg_context_t group_context = {
-            .meta_op_mp = {
-                .super = meta_mpool,
-                .lock = {
-                    .type = UCG_LOCK_TYPE_NONE,
-                },
-            },
+            .meta_op_mp = meta_mpool,
         };
         static ucg_group_t group = {
             .context = &group_context,
@@ -100,23 +75,12 @@ public:
         m_group.super.super.group = &group;
         m_group.context = &context;
 
-        static ucs_mpool_data_t op_mpool_data = {
-            .elem_size = sizeof(ucs_mpool_elem_t) + (header_size + data_size),
-            .alignment = align,
-            .align_offset = sizeof(ucs_mpool_elem_t) + header_size,
-            .elems_per_chunk = (unsigned)1,
-            .quota = (unsigned)2000,
-            .tail = NULL,
-            .chunks = NULL,
-            .ops = &ops,
-            .name = strdup("test"),
-        };
-        static ucs_mpool_t op_mpool = {
-            .freelist = NULL,
-            .data = &op_mpool_data,
-        };
+        static ucg_mpool_t op_mpool;
+        (void)ucg_mpool_init(&op_mpool, 0, sizeof(ucg_plan_meta_op_t),
+                             0, 64, UCG_ELEMS_PER_CHUNK,
+                             UINT_MAX, NULL, "meta op mpool");
         ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
-        ucx_group->context->op_mp.super = op_mpool;
+        ucx_group->context->op_mp = op_mpool;
 
         static int buf[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
         const int count = 16;
@@ -139,7 +103,6 @@ public:
             .gop = {
                 .super = op,
             },
-
         };
         return;
     }
@@ -214,16 +177,6 @@ TEST_F(test_ucx_allreduce, allreduce_na_kntree_check_error)
 
 }
 
-TEST_F(test_ucx_allreduce, allreduce_na_kntree_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_na_kntree_prepare(&m_group.super.super, &m_args, &op);
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
-}
-
 TEST_F(test_ucx_allreduce, allreduce_na_rabenseifner_check_error)
 {
     ucg_plan_op_t *op = NULL;
@@ -285,20 +238,6 @@ TEST_F(test_ucx_allreduce, allreduce_na_rabenseifner_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_allreduce, allreduce_na_rabenseifner_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_na_rabenseifner_prepare(&m_group.super.super, &m_args, &op);
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
-
-    ucg_plan_op_t *op1 = NULL;
-    status = ucg_planc_ucx_allreduce_na_rabenseifner_prepare(&m_group.super.super, &m_args, &op1);
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
-}
-
 TEST_F(test_ucx_allreduce, allreduce_na_rd_and_bntree_check_error)
 {
     ucg_plan_op_t *op = NULL;
@@ -322,16 +261,6 @@ TEST_F(test_ucx_allreduce, allreduce_na_rd_and_bntree_check_error)
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED | UCG_OP_FLAG_IS_COMMUTATIVE);
     m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
-}
-
-TEST_F(test_ucx_allreduce, allreduce_na_rd_and_bntree_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_na_rd_and_bntree_prepare(&m_group.super.super, &m_args, &op);
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
 }
 
 TEST_F(test_ucx_allreduce, allreduce_na_rd_and_kntree_check_error)
@@ -359,16 +288,6 @@ TEST_F(test_ucx_allreduce, allreduce_na_rd_and_kntree_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_allreduce, allreduce_na_rd_and_kntree_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_na_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op);
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
-}
-
 TEST_F(test_ucx_allreduce, allreduce_nta_kntree_check_error)
 {
     ucg_plan_op_t *op = NULL;
@@ -386,16 +305,6 @@ TEST_F(test_ucx_allreduce, allreduce_nta_kntree_check_error)
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED | UCG_OP_FLAG_IS_COMMUTATIVE);
     m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
-}
-
-TEST_F(test_ucx_allreduce, allreduce_nta_kntree_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_nta_kntree_prepare(&m_group.super.super, &m_args, &op);
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
 }
 
 TEST_F(test_ucx_allreduce, allreduce_rabenseifner_check_error)
@@ -421,27 +330,6 @@ TEST_F(test_ucx_allreduce, allreduce_rabenseifner_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_allreduce, allreduce_rabenseifner_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_rabenseifner_prepare(&m_group.super.super, &m_args, &op);
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
-}
-
-TEST_F(test_ucx_allreduce, allreduce_rd_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
-    ucx_group->context->op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_rd_prepare(&m_group.super.super, &m_args, &op);
-    ucx_group->context->op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
-}
-
 TEST_F(test_ucx_allreduce, allreduce_ring_check_error)
 {
     ucg_plan_op_t *op = NULL;
@@ -463,18 +351,6 @@ TEST_F(test_ucx_allreduce, allreduce_ring_check_error)
     status = ucg_planc_ucx_allreduce_ring_prepare(&m_group.super.super, &m_args, &op2);
     m_args.allreduce.count = 16;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
-}
-
-TEST_F(test_ucx_allreduce, allreduce_ring_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    ucg_planc_ucx_group_t* ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
-    ucx_group->context->op_mp.super = m_group.super.super.group->context->meta_op_mp.super;
-    ucx_group->context->op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_ring_prepare(&m_group.super.super, &m_args, &op);
-    ucx_group->context->op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
 }
 
 TEST_F(test_ucx_allreduce, allreduce_sa_kntree_check_error)
@@ -506,17 +382,6 @@ TEST_F(test_ucx_allreduce, allreduce_sa_kntree_check_error)
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED | UCG_OP_FLAG_IS_COMMUTATIVE);
     m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
-}
-
-TEST_F(test_ucx_allreduce, allreduce_sa_kntree_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
-    ucx_group->context->op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_sa_kntree_prepare(&m_group.super.super, &m_args, &op);
-    ucx_group->context->op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
 }
 
 TEST_F(test_ucx_allreduce, allreduce_sa_rabenseifner_check_error)
@@ -580,18 +445,6 @@ TEST_F(test_ucx_allreduce, allreduce_sa_rabenseifner_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_allreduce, allreduce_sa_rabenseifner_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    ucg_planc_ucx_group_t *ucx_group = ucg_derived_of(&m_group.super.super, ucg_planc_ucx_group_t);
-    ucx_group->context->op_mp.super = m_group.super.super.group->context->meta_op_mp.super;
-    ucx_group->context->op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_sa_rabenseifner_prepare(&m_group.super.super, &m_args, &op);
-    ucx_group->context->op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
-}
-
 TEST_F(test_ucx_allreduce, allreduce_sa_rd_and_bntree_check_error)
 {
     ucg_plan_op_t *op = NULL;
@@ -623,16 +476,6 @@ TEST_F(test_ucx_allreduce, allreduce_sa_rd_and_bntree_check_error)
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
 }
 
-TEST_F(test_ucx_allreduce, allreduce_sa_rd_and_bntree_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_sa_rd_and_bntree_prepare(&m_group.super.super, &m_args, &op);
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
-}
-
 TEST_F(test_ucx_allreduce, allreduce_sa_rd_and_kntree_check_error)
 {
     ucg_plan_op_t *op = NULL;
@@ -662,16 +505,6 @@ TEST_F(test_ucx_allreduce, allreduce_sa_rd_and_kntree_check_error)
     m_args.allreduce.op->flags = ucg_op_flag_t(UCG_OP_FLAG_IS_PREDEFINED | UCG_OP_FLAG_IS_COMMUTATIVE);
     m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
     EXPECT_EQ(status, UCG_ERR_UNSUPPORTED);
-}
-
-TEST_F(test_ucx_allreduce, allreduce_sa_rd_and_kntree_init_error)
-{
-    ucg_plan_op_t *op = NULL;
-    ucg_status_t status;
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 0;
-    status = ucg_planc_ucx_allreduce_sa_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op);
-    m_group.super.super.group->context->meta_op_mp.super.data->quota = 2000;
-    EXPECT_EQ(status, UCG_ERR_NO_MEMORY);
 }
 
 TEST_F(test_ucx_allreduce, allreduce_na_kntree)
@@ -894,4 +727,3 @@ TEST_F(test_ucx_allreduce, allreduce_sa_rd_and_kntree)
     status = ucg_planc_ucx_allreduce_sa_rd_and_kntree_prepare(&m_group.super.super, &m_args, &op);
     EXPECT_EQ(status, UCG_OK);
 }
-

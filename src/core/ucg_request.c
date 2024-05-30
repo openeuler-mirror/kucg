@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #include "ucg_group.h"
@@ -144,12 +144,17 @@ static inline void ucg_request_complete(ucg_request_t *request, ucg_status_t sta
 ucg_status_t ucg_request_bcast_init(void *buffer, int32_t count, ucg_dt_t *dt,
                                     ucg_rank_t root, ucg_group_h group,
                                     const ucg_request_info_t *info,
+                                    ucg_request_type_t nb,
                                     ucg_request_h *request)
 {
     UCG_CHECK_NULL_INVALID(buffer, dt, group, request);
 
+    /* Treat ucg_coll as blocking and non-blocking based on parameter nb */
+    ucg_coll_type_t type = (nb == UCG_REQUEST_NONBLOCKING) ?
+                           UCG_COLL_TYPE_IBCAST :
+                           UCG_COLL_TYPE_BCAST;
     ucg_coll_args_t args = {
-        .type = UCG_COLL_TYPE_BCAST,
+        .type = type,
         .bcast.buffer = buffer,
         .bcast.count = count,
         .bcast.dt = dt,
@@ -164,12 +169,17 @@ ucg_status_t ucg_request_allreduce_init(const void *sendbuf, void *recvbuf,
                                         int32_t count, ucg_dt_t *dt,
                                         ucg_op_t *op, ucg_group_h group,
                                         const ucg_request_info_t *info,
+                                        ucg_request_type_t nb,
                                         ucg_request_h *request)
 {
     UCG_CHECK_NULL_INVALID(sendbuf, recvbuf, dt, op, group, request);
 
+    /* Treat ucg_coll as blocking and non-blocking based on parameter nb */
+    ucg_coll_type_t type = (nb == UCG_REQUEST_NONBLOCKING) ?
+                           UCG_COLL_TYPE_IALLREDUCE :
+                           UCG_COLL_TYPE_ALLREDUCE;
     ucg_coll_args_t args = {
-        .type = UCG_COLL_TYPE_ALLREDUCE,
+        .type = type,
         .allreduce.sendbuf = sendbuf,
         .allreduce.recvbuf = recvbuf,
         .allreduce.count = count,
@@ -183,12 +193,17 @@ ucg_status_t ucg_request_allreduce_init(const void *sendbuf, void *recvbuf,
 
 ucg_status_t ucg_request_barrier_init(ucg_group_h group,
                                       const ucg_request_info_t *info,
+                                      ucg_request_type_t nb,
                                       ucg_request_h *request)
 {
     UCG_CHECK_NULL_INVALID(group, request);
 
+    /* Treat ucg_coll as blocking and non-blocking based on parameter nb */
+    ucg_coll_type_t type = (nb == UCG_REQUEST_NONBLOCKING) ?
+                           UCG_COLL_TYPE_IBARRIER :
+                           UCG_COLL_TYPE_BARRIER;
     ucg_coll_args_t args = {
-        .type = UCG_COLL_TYPE_BARRIER,
+        .type = type,
     };
     UCG_REQUEST_APPLY_INFO_RETURN(&args.info, info);
 
@@ -200,7 +215,7 @@ ucg_status_t ucg_request_alltoallv_init(const void *sendbuf, const int32_t sendc
                                         void *recvbuf, const int32_t recvcounts[],
                                         const int32_t rdispls[], ucg_dt_t *recvtype,
                                         ucg_group_h group, const ucg_request_info_t *info,
-                                        ucg_request_h *request)
+                                        ucg_request_type_t nb, ucg_request_h *request)
 {
 #ifdef UCG_ENABLE_CHECK_PARAMS
     if (sendbuf == UCG_IN_PLACE) {
@@ -210,8 +225,12 @@ ucg_status_t ucg_request_alltoallv_init(const void *sendbuf, const int32_t sendc
                                recvcounts, rdispls, recvtype, group, request);
     }
 #endif
+    /* Treat ucg_coll as blocking and non-blocking based on parameter nb */
+    ucg_coll_type_t type = (nb == UCG_REQUEST_NONBLOCKING) ?
+                           UCG_COLL_TYPE_IALLTOALLV :
+                           UCG_COLL_TYPE_ALLTOALLV;
     ucg_coll_args_t args = {
-        .type = UCG_COLL_TYPE_ALLTOALLV,
+        .type = type,
         .alltoallv.sendbuf = sendbuf,
         .alltoallv.sendcounts = sendcounts,
         .alltoallv.sdispls = sdispls,
@@ -231,7 +250,7 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
                                        void *recvbuf, int32_t recvcount,
                                        ucg_dt_t *recvtype, ucg_rank_t root,
                                        ucg_group_h group, const ucg_request_info_t *info,
-                                       ucg_request_h *request)
+                                       ucg_request_type_t nb, ucg_request_h *request)
 {
 #ifdef UCG_ENABLE_CHECK_PARAMS
     if (group->myrank == root) {
@@ -247,8 +266,12 @@ ucg_status_t ucg_request_scatterv_init(const void *sendbuf, const int32_t *sendc
     }
 #endif
 
+    /* Treat ucg_coll as blocking and non-blocking based on parameter nb */
+    ucg_coll_type_t type = (nb == UCG_REQUEST_NONBLOCKING) ?
+                           UCG_COLL_TYPE_ISCATTERV :
+                           UCG_COLL_TYPE_SCATTERV;
     ucg_coll_args_t args = {
-        .type = UCG_COLL_TYPE_SCATTERV,
+        .type = type,
         .scatterv.sendbuf = sendbuf,
         .scatterv.sendcounts = sendcounts,
         .scatterv.displs = displs,
@@ -277,7 +300,7 @@ ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcou
                                       const int32_t* recvcounts, const int32_t* displs,
                                       ucg_dt_t *recvtype, ucg_rank_t root,
                                       ucg_group_h group, const ucg_request_info_t *info,
-                                      ucg_request_h *request)
+                                      ucg_request_type_t nb, ucg_request_h *request)
 {
 #ifdef UCG_ENABLE_CHECK_PARAMS
     if (group->myrank == root) {
@@ -292,8 +315,12 @@ ucg_status_t ucg_request_gatherv_init(const void *sendbuf, const int32_t sendcou
     }
 #endif
 
+    /* Treat ucg_coll as blocking and non-blocking based on parameter nb */
+    ucg_coll_type_t type = (nb == UCG_REQUEST_NONBLOCKING) ?
+                           UCG_COLL_TYPE_IGATHERV :
+                           UCG_COLL_TYPE_GATHERV;
     ucg_coll_args_t args = {
-        .type = UCG_COLL_TYPE_GATHERV,
+        .type = type,
         .gatherv.sendbuf = sendbuf,
         .gatherv.sendcount = sendcount,
         .gatherv.sendtype = sendtype,
@@ -322,13 +349,18 @@ ucg_status_t ucg_request_allgatherv_init(const void *sendbuf, int sendcount,
                                          const int *recvcounts, const int *displs,
                                          ucg_dt_t *recvtype, ucg_group_h group,
                                          const ucg_request_info_t *info,
+                                         ucg_request_type_t nb,
                                          ucg_request_h *request)
 {
     UCG_CHECK_NULL_INVALID(sendbuf, sendtype, recvbuf, recvcounts, displs,
                            recvtype, group, request);
 
+        /* Treat ucg_coll as blocking and non-blocking based on parameter nb */
+    ucg_coll_type_t type = (nb == UCG_REQUEST_NONBLOCKING) ?
+                           UCG_COLL_TYPE_IALLGATHERV :
+                           UCG_COLL_TYPE_ALLGATHERV;
     ucg_coll_args_t args = {
-        .type = UCG_COLL_TYPE_ALLGATHERV,
+        .type = type,
         .allgatherv.sendbuf = sendbuf,
         .allgatherv.sendcount = sendcount,
         .allgatherv.sendtype = sendtype,
@@ -423,18 +455,25 @@ ucg_status_t ucg_request_msg_size(const ucg_coll_args_t *args, const uint32_t si
     uint64_t dt_size;
     switch (args->type) {
         case UCG_COLL_TYPE_BCAST:
+        case UCG_COLL_TYPE_IBCAST:
             *msize = ucg_dt_size(args->bcast.dt) * args->bcast.count;
             break;
         case UCG_COLL_TYPE_ALLREDUCE:
+        case UCG_COLL_TYPE_IALLREDUCE:
             *msize = ucg_dt_size(args->allreduce.dt) * args->allreduce.count;
             break;
         case UCG_COLL_TYPE_BARRIER:
+        case UCG_COLL_TYPE_IBARRIER:
         case UCG_COLL_TYPE_ALLTOALLV:
+        case UCG_COLL_TYPE_IALLTOALLV:
         case UCG_COLL_TYPE_SCATTERV:
+        case UCG_COLL_TYPE_ISCATTERV:
         case UCG_COLL_TYPE_GATHERV:
+        case UCG_COLL_TYPE_IGATHERV:
             *msize = 0;
             break;
         case UCG_COLL_TYPE_ALLGATHERV:
+        case UCG_COLL_TYPE_IALLGATHERV:
             /* The message size of each process is different, so using 0. */
             dt_size = (args->allgatherv.sendbuf != UCG_IN_PLACE) ?
                       ucg_dt_size(args->allgatherv.sendtype) :
@@ -446,6 +485,7 @@ ucg_status_t ucg_request_msg_size(const ucg_coll_args_t *args, const uint32_t si
             *msize = total_size / size;
             break;
         case UCG_COLL_TYPE_REDUCE:
+        case UCG_COLL_TYPE_IREDUCE:
             *msize = ucg_dt_size(args->reduce.dt) * args->reduce.count;
             break;
         default:
@@ -474,6 +514,22 @@ const char* ucg_coll_type_string(ucg_coll_type_t coll_type)
             return "allgatherv";
         case UCG_COLL_TYPE_REDUCE:
             return "reduce";
+        case UCG_COLL_TYPE_IBCAST:
+            return "ibcast";
+        case UCG_COLL_TYPE_IALLREDUCE:
+            return "iallreduce";
+        case UCG_COLL_TYPE_IBARRIER:
+            return "ibarrier";
+        case UCG_COLL_TYPE_IALLTOALLV:
+            return "ialltoallv";
+        case UCG_COLL_TYPE_ISCATTERV:
+            return "iscatterv";
+        case UCG_COLL_TYPE_IGATHERV:
+            return "igatherv";
+        case UCG_COLL_TYPE_IALLGATHERV:
+            return "iallgatherv";
+        case UCG_COLL_TYPE_IREDUCE:
+            return "ireduce";
         default:
             return "unknown";
     }
