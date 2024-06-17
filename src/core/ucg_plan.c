@@ -791,29 +791,31 @@ err:
 static const char *ucg_plan_true_domain(ucg_coll_type_t coll_type, const char *domain)
 {
     const char *last_space = strrchr(domain, ' ');
-
     if (last_space == NULL) {
         // If there is no space, return the original domain
         return domain;
     }
 
     size_t domain_length = last_space - doamin + 1;
-    char *modified_domain = (char *)malloc(domain_length + 1); // Add 1 for null terminator
-    if (modified_domain == NULL) {
-        return NULL;
-    }
-
-    strncpy(modified_domain, domain, domain_length);
-    modified_domain[domain_length] = '\0';
+    size_t modified_domain_length = domain_length;
 
     // Look for the suffix string corresponding to coll_type
     const char *suffix = NULL;
     for (size_t i = 0; i < sizeof(coll_suffix_map) / sizeof(coll_suffix_map[0]); ++i) {
         if (coll_suffix_map[i].coll_type == coll_type) {
             suffix = coll_suffix_map[i].suffix;
+            modified_domain_length += strlen(suffix);
             break;
         }
     }
+
+    char *modified_domain = (char *)malloc(modified_domain_length + 1); // Add 1 for null terminnator
+    if (modified_domain == NULL) {
+        retirn NULL;
+    }
+
+    strncpy(modified_domain, domain, domain_length);
+    modified_domain[domain_length] = '\0';
 
     // If the suffix string is found, append it to the modified_domain
     if (suffix != NULL) {
