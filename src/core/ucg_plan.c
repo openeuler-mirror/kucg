@@ -12,6 +12,23 @@
 #include "util/ucg_malloc.h"
 #include "util/ucg_mpool.h"
 
+// Define a mapping structure to map coll_type to corresponding suffix strings
+typedef struct {
+    ucg_coll_type_t coll_type;
+    const char *suffix;
+} coll_suffix_map_t;
+
+// Mapping table to map coll_type to corresponding suffix strings
+const coll_suffix_map_t coll_suffix_map[] = {
+    {UCG_COLL_TYPE_IBCAST, "ibcast"},
+    {UCG_COLL_TYPE_IALLREDUCE, "iallreduce"},
+    {UCG_COLL_TYPE_IBARRIER, "ibarrier"},
+    {UCG_COLL_TYPE_ISCATTERV, "iscatterv"},
+    {UCG_COLL_TYPE_IGATHERV, "igatherv"},
+    {UCG_COLL_TYPE_IALLGATHERV, "iallgatherv"},
+    {UCG_COLL_TYPE_IREDUCE, "ireduce"},
+};
+
 static ucg_plan_policy_t invalid_policy = {.id = UCG_PLAN_INVALID_POLICY_ID};
 
 static ucg_status_t ucg_plan_op_ctor(ucg_plan_op_t *self,
@@ -771,6 +788,47 @@ err:
     return status;
 }
 
+static const char *ucg_plan_true_domain(ucg_coll_type_t coll_type, const char *domain)
+{
+    const char *last_space = strrchr(domain, ' ');
+    if (last_space == NULL) {
+        // If there is no space, return the original domain
+        return domain;
+    }
+
+    size_t domain_length = last_space - doamin + 1;
+    size_t modified_domain_length = domain_length;
+
+    // Look for the suffix string corresponding to coll_type
+    const char *suffix = NULL;
+    for (size_t i = 0; i < sizeof(coll_suffix_map) / sizeof(coll_suffix_map[0]); ++i) {
+        if (coll_suffix_map[i].coll_type == coll_type) {
+            suffix = coll_suffix_map[i].suffix;
+            modified_domain_length += strlen(suffix);
+            break;
+        }
+    }
+
+    char *modified_domain = (char *)malloc(modified_domain_length + 1); // Add 1 for null terminnator
+    if (modified_domain == NULL) {
+        retirn NULL;
+    }
+
+    strncpy(modified_domain, domain, domain_length);
+    modified_domain[domain_length] = '\0';
+
+    // If the suffix string is found, append it to the modified_domain
+    if (suffix != NULL) {
+        strcat(modified_domain, suffix);
+    } else {
+        free(modified_domain);
+        modified_domain = NULL;
+        return domain;
+    }
+
+    return modified_domain;
+}
+
 ucg_status_t ucg_plans_prepare(const ucg_plans_t *plans, const ucg_coll_args_t *args,
                                const uint32_t size, ucg_plan_op_t **op)
 {
@@ -804,7 +862,13 @@ ucg_status_t ucg_plans_prepare(const ucg_plans_t *plans, const ucg_coll_args_t *
 
     status = plan->attr.prepare(plan->attr.vgroup, args, op);
     if (status == UCG_OK) {
-        ucg_info("select plan '%s' in '%s'", plan->attr.name, plan->attr.domain);
+        const char *modified_domain = ucg_plan_true_domain(args->type, plan->attr.domain);
+        if (modified_domain != NULL && modified_domain != plan->attr.domain) {
+            ucg_info("select plan '%s' in '%s'", plan->attr.name, modified_domain);
+            free((void *)modified_domain);
+        } else {
+            ucg_info("select plan '%s' in '%s'", plan->attr.name, plan->attr.domain);
+        }
         return UCG_OK;
     }
 
