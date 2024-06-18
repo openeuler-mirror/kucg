@@ -796,7 +796,7 @@ static const char *ucg_plan_true_domain(ucg_coll_type_t coll_type, const char *d
         return domain;
     }
 
-    size_t domain_length = last_space - doamin + 1;
+    size_t domain_length = last_space - domain + 1;
     size_t modified_domain_length = domain_length;
 
     // Look for the suffix string corresponding to coll_type
@@ -811,7 +811,7 @@ static const char *ucg_plan_true_domain(ucg_coll_type_t coll_type, const char *d
 
     char *modified_domain = (char *)malloc(modified_domain_length + 1); // Add 1 for null terminnator
     if (modified_domain == NULL) {
-        retirn NULL;
+        return NULL;
     }
 
     strncpy(modified_domain, domain, domain_length);
