@@ -193,7 +193,7 @@ static ucg_status_t ucg_planc_ucx_bcast_long_scatterv_op_progress(ucg_planc_ucx_
 
 send:
     /* send to my children */
-    if (ucg_test_and_clear_flags(&op->flags, UCG_BCAST_LONG_SEND)) {
+    if (ucg_test_flags(op->flags, UCG_BCAST_LONG_SEND)) {
         while ((peer = ucg_algo_kntree_iter_child_value(iter)) != UCG_INVALID_RANK) {
             ucg_rank_t peer_vrank = (peer - root + group_size) % group_size;
             send_blocks = op->bcast._long.curr_blocks - peer_vrank + my_vrank;
@@ -214,9 +214,12 @@ send:
                                              args->dt, peer, op->tag,
                                              vgroup, &params);
             UCG_CHECK_GOTO(status, out);
+            status = ucg_planc_ucx_p2p_testall(ucx_group, params.state);
+
             op->bcast._long.curr_blocks -= send_blocks;
             ucg_algo_kntree_iter_child_inc(iter);
         }
+        ucg_clear_flags(&op->flags, UCG_BCAST_LONG_SEND);
     }
     status = ucg_planc_ucx_p2p_testall(ucx_group, params.state);
 out:

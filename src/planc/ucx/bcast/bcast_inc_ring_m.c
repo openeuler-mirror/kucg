@@ -28,7 +28,7 @@ static ucg_status_t ucg_planc_ucx_bcast_inc_ring_m_op_progress(ucg_plan_op_t *uc
     ucg_rank_t peer;
 
     ucg_rank_t recv_from_root_rank1 = (root + UCG_BCAST_RING_M_RANK_OFFSET2) % group_size;
-    /* ring 1 : if group size is 2, root proc doesn't need to send to rank 2 */
+    /* ring 1: if group size is 2, root proc doesn't need to send to rank 2*/
     if (group_size < UCG_BCAST_RING_M_RING1_SIZE3) {
         recv_from_root_rank1 = UCG_INVALID_RANK;
     }
@@ -82,7 +82,7 @@ static ucg_status_t ucg_planc_ucx_bcast_inc_ring_m_op_trigger(ucg_plan_op_t *ucg
     ucg_rank_t left_peer = ucg_algo_ring_iter_left_value(iter);
     if (myrank == args->root) {
         op->flags = UCG_BCAST_INC_RING_M_SEND;
-    } else if (right_peer == args->root || left_peer == args->root) {
+    } else if (right_peer == args->root || left_peer == args->root){
         op->flags = UCG_BCAST_INC_RING_M_RECV;
     } else {
         op->flags = UCG_BCAST_INC_RING_M_RECV | UCG_BCAST_INC_RING_M_SEND;

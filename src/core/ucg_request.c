@@ -38,7 +38,7 @@
     ucg_request_apply_info(_dst, _src); \
     UCG_REQUEST_CHECK_MEM_TYPE_RETURN(_dst, ##__VA_ARGS__)
 
-static ucg_status_t ucg_request_check_mem_type(const void *buffers[], uint32_t count, ucg_mem_type_t *type)
+static ucg_status_t ucg_request_check_mem_type(const void **buffers, uint32_t count, ucg_mem_type_t *type)
 {
     if (count == 0) {
         ucg_error("No buffer, unable to determine the memory type");
@@ -97,8 +97,8 @@ static ucg_status_t ucg_request_ctor(ucg_request_t *self, const ucg_coll_args_t 
     self->args = *args;
     self->id = UCG_GROUP_BASE_REQ_ID;
     /** trade-off, get more information from comments of @ref ucg_op_init */
-    if ((args->type == UCG_COLL_TYPE_ALLREDUCE || args->type == UCG_COLL_TYPE_IALLREDUCE) 
-        && args->allreduce.op != NULL) {
+    if ((args->type == UCG_COLL_TYPE_ALLREDUCE || args->type == UCG_COLL_TYPE_IALLREDUCE) &&
+        args->allreduce.op != NULL) {
         if (!ucg_op_is_persistent(args->allreduce.op)) {
             self->args.allreduce.op = &self->args.allreduce.gop.super;
             ucg_op_copy(self->args.allreduce.op, args->allreduce.op);

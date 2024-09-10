@@ -75,8 +75,6 @@ ucg_status_t ucg_global_init(const ucg_global_params_t *params)
         goto out;
     }
 
-    ucg_config_compatible();
-
     ucg_global_config_t config;
     status = ucg_config_parser_fill_opts(&config, UCG_CONFIG_GET_TABLE(ucg_global_config_table),
                                          UCG_DEFAULT_ENV_PREFIX, 0);
@@ -86,6 +84,8 @@ ucg_status_t ucg_global_init(const ucg_global_params_t *params)
     }
     ucg_log_configure(config.log_level, "UCG");
     ucg_config_parser_release_opts(&config, ucg_global_config_table);
+
+	ucg_config_compatible();
 
     status = ucg_planc_load();
     if (status != UCG_OK) {

@@ -9,6 +9,7 @@
 
 #include <dlfcn.h>
 #include <libgen.h>
+#include <stdlib.h>
 
 /* Default directory for planc library. */
 #ifndef UCG_PLANC_DIR
@@ -87,6 +88,15 @@ static void ucg_planc_group_dtor(ucg_planc_group_t *self)
     return;
 }
 
+int compare_planc(const void *ptr_a, const void *ptr_b)
+{
+    ucg_component_t *cmpt_a = *(ucg_component_t **)ptr_a;
+    ucg_component_t *cmpt_b = *(ucg_component_t **)ptr_b;
+    ucg_planc_t *planc_a = ucg_derived_of(cmpt_a, ucg_planc_t);
+    ucg_planc_t *planc_b = ucg_derived_of(cmpt_b, ucg_planc_t);
+    return planc_a->priority > planc_b->priority;
+}
+
 ucg_status_t ucg_planc_load()
 {
     if (ucg_planc.num != 0) {
@@ -118,6 +128,9 @@ ucg_status_t ucg_planc_load()
     if (status != UCG_OK) {
         ucg_error("Failed to load planc");
     }
+
+    qsort(ucg_planc.components, ucg_planc.num,
+          sizeof(ucg_component_t *), compare_planc);
 
     for (int i = 0; i < ucg_planc.num; ++i) {
         ucg_info("Success to load planc %s", ucg_planc.components[i]->name);

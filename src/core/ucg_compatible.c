@@ -192,5 +192,3 @@ void ucg_config_compatible()
 
     return;
 }
-
-

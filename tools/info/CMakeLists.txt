@@ -1,5 +1,5 @@
 #
-# Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
+# Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
 #
 
 # Build ucg_info
@@ -19,9 +19,9 @@ if (SUPPORT_CMAKE3 MATCHES "ON")
     endif()
 
     if (UCG_BUILD_PLANC_HCCL MATCHES "ON")
-    add_definitions(-DUCG_BUILD_PLANC_HCCL)
-    target_include_directories(ucg_info PRIVATE
-                               ${CMAKE_SOURCE_DIR}/src/planc/hccl)
+        add_definitions(-DUCG_BUILD_PLANC_HCCL)
+        target_include_directories(ucg_info PRIVATE
+                                   ${CMAKE_SOURCE_DIR}/src/planc/hccl)
         if (IS_DIRECTORY ${UCG_BUILD_WITH_HCCL})
             target_include_directories(ucg_info PRIVATE ${UCG_BUILD_WITH_HCCL}/include)
             target_link_directories(ucg_info PRIVATE ${UCG_BUILD_WITH_HCCL}/lib64)

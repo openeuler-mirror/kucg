@@ -58,7 +58,7 @@ typedef struct ucg_planc_hccl_op {
 
 UCG_PLAN_ATTR_TABLE_DECLARE(ucg_planc_hccl);
 
-static inline void* ucg_planc_hccl_op_set_rt(void *rt)
+static inline void *ucg_planc_hccl_op_set_rt(void *rt)
 {
     /* Ignore the error. If the runtime setting fails, subsequent operations will fail.*/
     aclrtContext old_acl_context = NULL;

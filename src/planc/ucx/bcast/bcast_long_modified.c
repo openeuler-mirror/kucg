@@ -5,7 +5,7 @@
 #include "bcast.h"
 #include "planc_ucx_plan.h"
 
-enum {
+ enum {
     UCG_BCAST_LONG_M_ROOT_TO_NEAR_PHASE = UCG_BIT(0), // rank 0 send to near phase
     UCG_BCAST_LONG_M_SCATTER_PHASE      = UCG_BIT(1), // scatter phase
     UCG_BCAST_LONG_M_ALLGATHER_PHASE    = UCG_BIT(2), // allgather phase
@@ -29,8 +29,8 @@ enum {
                                     UCG_BCAST_LONG_M_SEND
 
 #define UCG_BCAST_LONG_M_ROOT_SIZE2_FLAGS UCG_BCAST_LONG_M_ROOT_TO_NEAR_PHASE | \
-                                          UCG_BCAST_LONG_M_SENDRECV | \
-                                          UCG_BCAST_LONG_M_SEND
+                                    UCG_BCAST_LONG_M_SENDRECV | \
+                                    UCG_BCAST_LONG_M_SEND
 
 #define UCG_BCAST_LONG_M_RANK_NEAR_FLAGS UCG_BCAST_LONG_M_ROOT_TO_NEAR_PHASE | \
                                          UCG_BCAST_LONG_M_SENDRECV | \
