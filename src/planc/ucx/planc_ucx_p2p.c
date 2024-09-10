@@ -24,14 +24,14 @@ static ucp_tag_t ucg_planc_ucx_make_tag(int tag, ucg_rank_t rank,
             (((uint64_t)(group_id)) << UCG_P2P_ID_BITS_OFFSET));
 }
 
-static void* ucg_planc_ucx_p2p_start_pack(void *context, const void *buffer,
+static void *ucg_planc_ucx_p2p_start_pack(void *context, const void *buffer,
                                           size_t count)
 {
     ucg_dt_t *dt = (ucg_dt_t*)context;
     return (void*)ucg_dt_start_pack(buffer, dt, count);
 }
 
-static void* ucg_planc_ucx_p2p_start_unpack(void *context, void *buffer,
+static void *ucg_planc_ucx_p2p_start_unpack(void *context, void *buffer,
                                             size_t count)
 {
     ucg_dt_t *dt = (ucg_dt_t*)context;
@@ -126,7 +126,7 @@ static ucp_ep_h ucg_planc_ucx_p2p_get_ucp_ep(ucg_vgroup_t *vgroup, ucg_rank_t vr
 
     ucp_ep_h ep = NULL;
     if (ucx_context->config.use_oob == UCG_YES) {
-        void* group = vgroup->group->oob_group.group;
+        void *group = vgroup->group->oob_group.group;
         ep = ucg_planc_ucx_get_oob_ucp_ep(group, group_rank);
     } else {
         ucg_context_t *context = vgroup->group->context;
@@ -285,6 +285,50 @@ ucg_status_t ucg_planc_ucx_p2p_isend(const void *buffer, int32_t count,
         }
     }
     return UCG_OK;
+}
+
+void *ucg_planc_ucx_get_ucp_ep(void *arg, void *group, int rank)
+{
+    ucg_planc_ucx_context_t *ucx_context = (ucg_planc_ucx_context_t *)arg;
+    ucg_vgroup_t *vgroup = (ucg_vgroup_t *)group;
+    ucg_rank_t vrank = (ucg_rank_t)rank;
+    ucg_rank_t group_rank = ucg_rank_map_eval(&vgroup->rank_map, vrank);
+    ucg_rank_t ctx_rank = ucg_group_get_ctx_rank(vgroup->group, group_rank);
+    ucg_context_t *context = vgroup->group->context;
+    ucg_planc_ucx_t *planc_ucx = ucg_planc_ucx_instance();
+    ucg_proc_info_t *proc_info = NULL;
+    ucp_ep_h ep = NULL;
+
+    if (ucx_context->config.use_oob == UCG_YES) {
+        void *group = vgroup->group->oob_group.group;
+        return ucg_planc_ucx_get_oob_ucp_ep(group, group_rank);
+    }
+
+    if (ucx_context->eps[ctx_rank] != NULL) {
+        return ucx_context->eps[ctx_rank];
+    }
+
+    void *ucp_addr = ucg_context_get_proc_addr(context, ctx_rank, &planc_ucx->super, &proc_info);
+    if (!ucp_addr) {
+        ucg_error("Failed to get ucp addr for proc %d!", ctx_rank);
+        goto free_proc_info;
+    }
+
+    ucp_ep_params_t params = {
+            .field_mask = UCP_EP_PARAM_FIELD_REMOTE_ADDRESS,
+            .address = (ucp_address_t*)ucp_addr
+    };
+
+    ucs_status_t status = ucp_ep_create(ucx_context->ucp_worker, &params, &ep);
+    if (status != UCS_OK) {
+        ucg_error("Failed to create ucp ep, %s", ucs_status_string(status));
+        goto free_proc_info;
+    }
+
+    ucx_context->eps[ctx_rank] = ep;
+free_proc_info:
+    ucg_free_proc_info(proc_info);
+    return ep;
 }
 
 ucg_status_t ucg_planc_ucx_p2p_irecv(void *buffer, int32_t count,

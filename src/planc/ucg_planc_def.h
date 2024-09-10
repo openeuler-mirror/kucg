@@ -13,13 +13,13 @@
  * @ingroup UCG_PLANC
  * @brief PlanC configuration descriptor.
  */
-typedef void* ucg_planc_config_h;
+typedef void *ucg_planc_config_h;
 
 /**
  * @ingroup UCG_PLANC
  * @brief PlanC context descriptor.
  */
-typedef void* ucg_planc_context_h;
+typedef void *ucg_planc_context_h;
 
 /**
  * @ingroup UCG_PLANC

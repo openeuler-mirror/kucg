@@ -164,6 +164,8 @@ typedef enum {
     UCG_ERR_INCOMPATIBLE = -6,
     UCG_ERR_IO_ERROR = -7,
     UCG_ERR_TRUNCATE = -8,
+    UCG_ERR_INVALID_ADDR = -9,
+    UCG_ERR_UNREACHABLE = -10
 } ucg_status_t;
 
 /**
@@ -431,7 +433,7 @@ typedef struct {
      * @param [in] count        Number of elements in buffer
      * @return Packing state.
      */
-    void* (*start_pack)(const void *buffer, void *user_dt, int32_t count);
+    void *(*start_pack)(const void *buffer, void *user_dt, int32_t count);
 
     /**
      * @brief Pack data to dst buffer.
@@ -452,7 +454,7 @@ typedef struct {
      * @param [in] count        Number of elements in buffer.
      * @return Unpacking state.
      */
-    void* (*start_unpack)(void *buffer, void *user_dt, int32_t count);
+    void *(*start_unpack)(void *buffer, void *user_dt, int32_t count);
 
     /**
      * @brief Unpack data from src buffer.
@@ -699,15 +701,21 @@ typedef struct {
      * @brief Callback to get the ucp_ep.
      * @param [in] oob_group     Communication group derived from ucg_group_params_t::oob_group::group
      * @param [in] rank          Rank in communication group derived from oob_group::myrank
-     * @return Return ucp_ep. Use void* to hide specific resources.
+     * @return Return ucp_ep. Use void *to hide specific resources.
      */
-    void* (*get_ucp_ep)(void *arg, void *oob_group, int rank);
+    void *(*get_ucp_ep)(void *arg, void *oob_group, int rank);
 
     /**
      * @brief Callback to get the ucp_worker.
-     * @return Return ucp_worker. Use void* to hide specific resources.
+     * @return Return ucp_worker. Use void *to hide specific resources.
      */
-    void* (*get_ucp_worker)(void *arg);
+    void *(*get_ucp_worker)(void *arg);
+
+    /**
+     * @brief Callback to get the ucp_context.
+     * @return Return ucp_context. Use void *to hide specific resources.
+     */
+    void *(*get_ucp_context)(void *arg);
 
     /**
      * The user identifies the returned ucp_worker based on the field

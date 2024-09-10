@@ -19,10 +19,12 @@ static void ucg_planc_ucx_global_fill_oob_resource(const ucg_global_params_t *pa
         const ucg_oob_resource_t *ucg_oob_resource = &params->oob_resource;
         ucx_oob_resource->get_ucp_ep = ucg_oob_resource->get_ucp_ep;
         ucx_oob_resource->get_ucp_worker = ucg_oob_resource->get_ucp_worker;
+        ucx_oob_resource->get_ucp_context = ucg_oob_resource->get_ucp_context;
         ucx_oob_resource->arg = ucg_oob_resource->arg;
     } else {
         ucx_oob_resource->get_ucp_ep = (ucg_planc_ucx_get_ucp_ep_cb_t)ucg_empty_function_return_null;
         ucx_oob_resource->get_ucp_worker = (ucg_planc_ucx_get_ucp_worker_cb_t)ucg_empty_function_return_null;
+        ucx_oob_resource->get_ucp_context = (ucg_planc_ucx_get_ucp_context_cb_t)ucg_empty_function_return_null;
         ucx_oob_resource->arg = NULL;
     }
     return;
@@ -49,6 +51,11 @@ static void ucg_planc_ucx_global_cleanup()
     return;
 }
 
+static void *ucg_planc_ucx_get_context()
+{
+    return (void *)ucg_planc_ucx_instance()->super.context;
+}
+
 ucg_planc_ucx_t UCG_PLANC_OBJNAME(ucx) = {
     .super.super.name       = "ucx",
     .super.mem_query        = ucg_planc_ucx_mem_query,
@@ -69,6 +76,13 @@ ucg_planc_ucx_t UCG_PLANC_OBJNAME(ucx) = {
     .super.group_destroy    = ucg_planc_ucx_group_destroy,
 
     .super.get_plans        = ucg_planc_ucx_get_plans,
+
+    .export_resource.get_planc_context  = ucg_planc_ucx_get_context,
+    .export_resource.get_ucp_worker     = ucg_planc_ucx_get_ucp_worker,
+    .export_resource.get_ucp_context    = ucg_planc_ucx_get_ucp_context,
+    .export_resource.get_ucp_ep         = ucg_planc_ucx_get_ucp_ep,
+
+    .super.priority           = 0,
 };
 
 ucg_planc_ucx_t *ucg_planc_ucx_instance()

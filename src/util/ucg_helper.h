@@ -58,7 +58,7 @@
 #define UCG_OR() ||
 #define UCG_COMMA() ,
 #define UCG_SEMICOLON() ;
-#define UCG_IS_NULL(_a) ((_a) == NULL)
+#define UCG_IS_NULL(_a) ((void *)(_a) == NULL)
 
 #ifdef UCG_ENABLE_CHECK_PARAMS
 /* Any parameter is NULL, it will return _rc. */
@@ -199,7 +199,7 @@ static inline int ucg_test_and_clear_flags(uint64_t *flags, uint64_t mask)
     return rc;
 }
 
-static inline void* ucg_empty_function_return_null()
+static inline void *ucg_empty_function_return_null()
 {
     return NULL;
 }
