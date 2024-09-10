@@ -21,11 +21,12 @@
     UCG_COPY_OPTIONAL_FIELD(UCG_TOKENPASTE(UCG_PARAMS_FIELD_, _field), _copy, _dst, _src, _default, _err_label)
 
 static ucg_config_field_t ucg_context_config_table[] = {
-    {"PLANC", "all",
+    {"PLANC", "ucx",
      "Comma-separated list of plan component to use. The order is not meaningful\n"
      " - all    : use all available plan component\n"
      " - ucx    : use plan component based-on ucx\n"
-     " - hccl   : use plan component based-on hccl",
+     " - hccl   : use plan component based-on hccl\n"
+     " - stars  : use plan component based-on stars, depending on planc ucx",
      ucg_offsetof(ucg_config_t, planc), UCG_CONFIG_TYPE_STRING_ARRAY},
 
     {"USE_MT_MUTEX", "n",
@@ -165,6 +166,13 @@ static int ucg_context_is_required_planc(ucg_planc_t *planc,
             !strcmp(required.names[i], "all")) {
             return 1;
         }
+
+        if (!strcmp(planc_name, "ucx") && !strcmp(required.names[i], "stars")) {
+            /* The initialization of planc stars depends on planc ucx.
+               Need to initialize planc ucx first specifying just planc stars. */
+            ucg_debug("To run stars, you need to initialize planc ucx first.");
+            return 1;
+        }
     }
     return 0;
 }
@@ -201,7 +209,7 @@ static ucg_status_t ucg_context_fill_resource_planc(ucg_context_t *context,
     for (int i = 0; i < count; ++i) {
         ucg_planc_t *planc = ucg_planc_get_by_idx(i);
         if (!ucg_context_is_required_planc(planc, config->planc)) {
-            ucg_debug("planc %s is not required", planc->super.name);
+            ucg_info("planc %s is not required, skip initialization", planc->super.name);
             continue;
         }
         ucg_resource_planc_t *planc_rscs = &context->planc_rscs[context->num_planc_rscs];
@@ -211,6 +219,7 @@ static ucg_status_t ucg_context_fill_resource_planc(ucg_context_t *context,
             ucg_error("Failed to init context of planc %s", planc->super.name);
             goto err_free_resource;
         }
+        planc->context = planc_rscs->ctx;
         planc_rscs->planc = planc;
         ++context->num_planc_rscs;
     }
@@ -436,7 +445,7 @@ static void ucg_context_cleanup(ucg_context_h context)
     return;
 }
 
-void* ucg_context_get_proc_addr(ucg_context_t *context, ucg_rank_t rank, ucg_planc_t *planc, ucg_proc_info_t **proc_info)
+void *ucg_context_get_proc_addr(ucg_context_t *context, ucg_rank_t rank, ucg_planc_t *planc, ucg_proc_info_t **proc_info)
 {
     ucg_assert(context != NULL && planc != NULL);
     ucg_assert(rank != UCG_INVALID_RANK && rank < context->oob_group.size);

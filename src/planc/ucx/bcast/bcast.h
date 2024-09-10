@@ -48,7 +48,7 @@ typedef struct ucg_planc_ucx_bcast {
             uint32_t step_idx; // step index
             int32_t curr_blocks; // current blocks owned by each process(0~group_size)
             int32_t quotient; // count of msg per block(round down)
-            int32_t division; // count of msg in each block < division is 1 more than that in each block >= division
+            int32_t division; // count of msg in eacg block < division is 1 more than that in each block >= division
         } _long;
     };
 } ucg_planc_ucx_bcast_t;

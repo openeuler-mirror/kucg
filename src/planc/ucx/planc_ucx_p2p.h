@@ -5,12 +5,14 @@
 #ifndef UCG_PLANC_UCX_P2P_H_
 #define UCG_PLANC_UCX_P2P_H_
 
-#include "ucg/api/ucg.h"
-#include "planc_ucx_def.h"
+#include <ucp/api/ucp.h>
+
 #include "core/ucg_dt.h"
 #include "core/ucg_vgroup.h"
+#include "ucg/api/ucg.h"
 
-#include <ucp/api/ucp.h>
+#include "planc/ucx/planc_ucx_def.h"
+#include "planc/ucx/planc_ucx_context.h"
 
 #define UCG_PLANC_UCX_CHECK_GOTO(_cmd, _op, _label) \
     do { \
@@ -133,5 +135,19 @@ static inline void ucg_planc_ucx_p2p_state_reset(ucg_planc_ucx_p2p_state_t *stat
 }
 
 void ucg_planc_ucx_p2p_close_all_ep(ucg_planc_ucx_context_t *context);
+
+void *ucg_planc_ucx_get_ucp_ep(void *arg, void *group, int rank);
+
+static inline void *ucg_planc_ucx_get_ucp_worker(void *arg)
+{
+    ucg_planc_ucx_context_t *context = (ucg_planc_ucx_context_t *)arg;
+    return (void *)context->ucp_worker;
+}
+
+static inline void *ucg_planc_ucx_get_ucp_context(void *arg)
+{
+    ucg_planc_ucx_context_t *context = (ucg_planc_ucx_context_t *)arg;
+    return (void *)context->ucp_context;
+}
 
 #endif

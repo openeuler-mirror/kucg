@@ -147,6 +147,12 @@ typedef struct ucg_planc {
 
     /* Plan */
     ucg_planc_get_plans_func_t get_plans;
+
+    ucg_context_h context;
+    /* Planc initialization priority.
+       A smaller value indicates a higher priority.
+       High-priority planc loaded first. */
+    int priority;
 } ucg_planc_t;
 
 /**

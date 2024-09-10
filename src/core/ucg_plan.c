@@ -809,7 +809,7 @@ static const char *ucg_plan_true_domain(ucg_coll_type_t coll_type, const char *d
         }
     }
 
-    char *modified_domain = (char *)malloc(modified_domain_length + 1); // Add 1 for null terminnator
+    char *modified_domain = (char *)malloc(modified_domain_length + 1); // Add 1 for null terminator
     if (modified_domain == NULL) {
         return NULL;
     }

@@ -1,5 +1,5 @@
 #
-# Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
+# Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
 #
 
 option(UCG_BUILD_PLANC_UCX "Build plan component ucx" ON)
