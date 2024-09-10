@@ -86,7 +86,6 @@ static ucg_status_t ucg_group_create_planc_group(ucg_group_t *group)
     }
 
     ucg_status_t status = UCG_OK;
-
     int32_t num_planc_rscs = group->context->num_planc_rscs;
     ucg_assert(num_planc_rscs > 0);
     group->planc_groups = ucg_calloc(num_planc_rscs, sizeof(ucg_planc_group_h), "planc groups");

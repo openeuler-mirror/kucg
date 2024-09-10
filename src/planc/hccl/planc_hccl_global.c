@@ -25,6 +25,8 @@ ucg_planc_hccl_t UCG_PLANC_OBJNAME(hccl) = {
     .super.group_destroy      = ucg_planc_hccl_group_destroy,
 
     .super.get_plans          = ucg_planc_hccl_get_plans,
+
+    .super.priority           = 0,
 };
 
 ucg_planc_hccl_t *ucg_planc_hccl_instance()

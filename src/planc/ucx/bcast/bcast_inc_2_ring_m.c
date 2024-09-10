@@ -101,7 +101,7 @@ static ucg_status_t ucg_planc_ucx_bcast_inc_2_ring_m_op_trigger(ucg_plan_op_t *u
     ucg_rank_t mid_rank = ((group_size >> 1) + root) % group_size;
     if (myrank == args->root) {
         op->flags = UCG_BCAST_INC_2_RING_M_SEND;
-    } else if (right_peer == root || right_peer == mid_rank || left_peer == root) {
+    } else if (right_peer == root || right_peer == mid_rank || left_peer == root){
         op->flags = UCG_BCAST_INC_2_RING_M_RECV;
     } else {
         op->flags = UCG_BCAST_INC_2_RING_M_RECV | UCG_BCAST_INC_2_RING_M_SEND;

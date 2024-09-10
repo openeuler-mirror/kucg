@@ -509,6 +509,7 @@ ucg_status_t ucg_planc_ucx_context_init(const ucg_planc_params_t *params,
     }
 
     ctx->ucp_worker = NULL;
+    ctx->ucp_context = NULL;
     if (ctx->config.use_oob == UCG_NO) {
         status = ucg_planc_ucx_context_init_ucp_context(ctx);
         if (status != UCG_OK) {
@@ -517,6 +518,19 @@ ucg_status_t ucg_planc_ucx_context_init(const ucg_planc_params_t *params,
 
         status = ucg_planc_ucx_context_init_ucp_worker(ctx);
         if (status != UCG_OK) {
+            goto err_cleanup_context;
+        }
+    } else {
+        ctx->ucp_context = ucg_planc_ucx_get_oob_ucp_context();
+        if (!ctx->ucp_context) {
+            ucg_error("Planc ucx failed to get oob ucp context!");
+            status = UCG_ERR_NO_RESOURCE;
+            goto err_cleanup_context;
+        }
+        ctx->ucp_worker = ucg_planc_ucx_get_oob_ucp_worker();
+        if (!ctx->ucp_worker) {
+            ucg_error("Planc ucx failed to get oob ucp worker!");
+            status = UCG_ERR_NO_RESOURCE;
             goto err_cleanup_context;
         }
     }

@@ -39,7 +39,9 @@ depcomp
 src/ucg/api/ucg_version.h
 src/util/ucg_cpu.h
 build
+cmake-build-debug
 docs/html
 3rd/
+.idea
 .vscode/
 *.patch
