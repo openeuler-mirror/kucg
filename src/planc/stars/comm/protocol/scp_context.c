@@ -198,7 +198,7 @@ static ucg_status_t scp_fill_tl_md(scp_context_h context,
            which don't support open again */
         match_md = scp_context_find_tl_md(ucp_context, md_rsc->md_name);
         if (match_md == NULL) {
-            ucg_warn("Failed to find match md name:%s", md_rsc->md_name);
+            ucg_info("Failed to find match md name:%s", md_rsc->md_name);
         }
     } else if (!strcmp(tl_cmpt->attr.name, SCT_STARS_SDMA_ACC)) {
         if (!scp_is_resc_in_tl_list(STARS_SDMA_TL_NAME, (const char **)config->tls.names,
