@@ -129,8 +129,8 @@ ucs_status_t sct_mem_alloc(size_t length, const uct_alloc_method_t *methods,
                                             &memh);
                     if (status != UCS_OK) {
                         ucg_error("failed to allocate %zu bytes using md %s for %s: %s",
-                                alloc_length, md->component->name,
-                                alloc_name, ucs_status_string(status));
+                                  alloc_length, md->component->name,
+                                  alloc_name, ucs_status_string(status));
                         return status;
                     }
 
@@ -164,13 +164,13 @@ ucs_status_t sct_mem_alloc(size_t length, const uct_alloc_method_t *methods,
 
                 /* Allocate aligned memory using libc allocator */
 
-                /* Fixed option is not supported for heap allocation*/
+                /* Fixed option is not supported for heap allocation */
                 if (flags & UCT_MD_MEM_FLAG_FIXED) {
                     break;
                 }
 
                 address = sct_mem_alloc_params_get_address(params);
-                ret = posix_posix_memalign(&address, ARCH_CACHE_LINE_SIZE, length);
+                ret = posix_memalign(&address, ARCH_CACHE_LINE_SIZE, length);
                 if (ret == 0) {
                     goto allocated_without_md;
                 }
@@ -194,7 +194,7 @@ ucs_status_t sct_mem_alloc(size_t length, const uct_alloc_method_t *methods,
                 }
 
                 ucs_trace("failed to mmap %zu bytes: %s", length,
-                        ucs_status_string(status));
+                          ucs_status_string(status));
                 break;
 
             case UCT_ALLOC_METHOD_HUGE:
@@ -203,7 +203,7 @@ ucs_status_t sct_mem_alloc(size_t length, const uct_alloc_method_t *methods,
                 }
                 status = UCS_ERR_NO_MEMORY;
                 ucs_trace("failed to allocate %zu bytes from hugetlb: %s",
-                        length, ucs_status_string(status));
+                          length, ucs_status_string(status));
                 break;
 
             default:
