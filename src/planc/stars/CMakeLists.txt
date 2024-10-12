@@ -33,6 +33,9 @@ if (UCG_BUILD_PLANC_STARS MATCHES "ON")
                            -fPIC
                            -Wall
                            -Werror
+                           -Wno-format-security
+                           -Wno-unused-function
+                           -Wno-unknown-attributes 
                            -Wno-unused-variable)
 
 
