@@ -22,7 +22,7 @@ typedef struct sct_rc_ofd_ep {
     sct_rc_ep_t            super;
     sct_rc_ofd_txcnt_t     txcnt;
     struct ibv_qp          *qp;
-    uint8_t                sl;
+    uint8_t			       sl;
 } sct_rc_ofd_ep_t;
 
 UCS_CLASS_DECLARE_NEW_FUNC(sct_rc_ofd_ep_t, sct_ep_t, const sct_ep_params_t *);

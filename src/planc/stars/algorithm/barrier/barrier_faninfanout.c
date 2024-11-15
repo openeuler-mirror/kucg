@@ -139,7 +139,7 @@ static inline ucg_status_t UCG_STARS_ALGO_FUN(barrier_faninfanout, check)(ucg_vg
 static ucg_status_t UCG_STARS_ALGO_FUN(barrier_faninfanout, ofd_plan)(ucg_planc_stars_op_t *op)
 {
     stars_comm_dep_h comm_dep = &op->plan.comm_dep;
-    comm_dep->get_ranks = comm_dep->put_ranks = NULL;
+    comm_dep->get_ranks    = comm_dep->put_ranks    = NULL;
     comm_dep->get_rank_num = comm_dep->put_rank_num = 0;
 
     ucg_vgroup_t *vgroup = op->super.vgroup;

@@ -23,23 +23,6 @@
                                          SCP_ADDRESS_FLAG_MD_REG))
 
 static UCS_F_ALWAYS_INLINE
-void print_scp_unpacked_address(scp_unpacked_address_h address)
-{
-    ucg_debug("address_count %d", address->address_count);
-
-    scp_address_entry_h entry;
-
-    for (uint8_t index = 0; index < address->address_count; ++index) {
-        entry = &address->address_list[index];
-        ucg_debug("dev_addr %p iface_addr %p iface_attr %p md_flags %lu dev_num_paths %u, "
-                  "md_index %d dev_index %d",
-                  entry->dev_addr, entry->iface_addr, entry->iface_attr, entry->md_flags,
-                  entry->dev_num_paths, entry->md_index, entry->dev_index);
-    }
-    return;
-}
-
-static UCS_F_ALWAYS_INLINE
 uint64_t scp_worker_iface_can_connect(sct_iface_attr_t *attrs)
 {
     return attrs->cap.flags &

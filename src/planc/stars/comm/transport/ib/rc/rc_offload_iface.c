@@ -162,7 +162,7 @@ static ucs_status_t sct_rc_ofd_iface_query(sct_iface_h tl_iface, sct_iface_attr_
 {
     sct_rc_ofd_iface_t *iface = ucs_derived_of(tl_iface, sct_rc_ofd_iface_t);
     ucs_status_t status = sct_rc_iface_query(&iface->super, iface_attr);
-    UCG_ASSERT_RET(status == UCS_OK, status);
+    UCG_ASSERT_RET(status == UCS_OK, ucg_status_s2g(status));
 
     iface_attr->cap.flags   = UCT_IFACE_FLAG_CONNECT_TO_EP;
     iface_attr->latency.m   += 1e-9;

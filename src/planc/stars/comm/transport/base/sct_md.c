@@ -200,7 +200,7 @@ ucs_status_t sct_iface_open(sct_md_h md, sct_worker_h worker,
 {
     uct_md_attr_t md_attr;
     ucs_status_t status = sct_md_query(md, &md_attr);
-    UCG_ASSERT_RET(status == UCS_OK, status);
+    UCG_ASSERT_RET(status == UCS_OK, ucg_status_s2g(status));
 
     sct_tl_t *tl = sct_find_tl(md->component, md_attr.cap.flags,
                                params->mode.device.tl_name);

@@ -1,5 +1,5 @@
 #
-# Copyright (c) Huawei Technologies Co., Ltd. 2022-2023. All rights reserved.
+# Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
 #
 
 # Build ucg_info
@@ -37,7 +37,7 @@ else()
     endif()
 
     if (UCG_BUILD_PLANC_UCX MATCHES "ON")
-        find_library(UCS ucs HINTS ${UCG_BUILD_WITH_UCX}/lib)
+	    find_library(UCS ucs HINTS ${UCG_BUILD_WITH_UCX}/lib)
         add_definitions(-DUCG_BUILD_PLANC_UCX)
         include_directories(${CMAKE_SOURCE_DIR}/src/planc/ucx)
     endif()

@@ -15,15 +15,13 @@ static ucg_status_t scs_machine_get_core_num_per_socket(scs_machine_920f_t *mach
 {
     machine->core_num = sysconf(_SC_NPROCESSORS_CONF); /* _SC_NPROCESSORS_ONLN */
 
-    char real_path[PATH_CTX_SIZE] = {0};
     char prev_ctx[MAX_CHIP_NUM][PATH_CTX_SIZE] = {0};
     char curr_ctx[PATH_CTX_SIZE] = {0};
     ssize_t size;
 
     machine->chip_num = 0;
     for (int idx = 0; idx < machine->core_num; idx++) {
-        sprintf(real_path, PATH_SYS_CPU, idx);
-        size = ucs_read_file(curr_ctx, sizeof(curr_ctx), 1, real_path);
+        size = ucs_read_file(curr_ctx, sizeof(curr_ctx), 1, PATH_SYS_CPU, idx);
         curr_ctx[size] = '\0';
 
         /* If the same ctx already exists. */

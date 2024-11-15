@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2022-2022. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2022-2024. All rights reserved.
  */
 
 #ifndef UCG_HELPER_H_
@@ -157,6 +157,8 @@ static inline ucg_status_t ucg_status_s2g(ucs_status_t ucs_status)
         CASE_S2G(ERR_INVALID_PARAM)
         CASE_S2G(ERR_NO_RESOURCE)
         CASE_S2G(ERR_NO_MEMORY)
+        CASE_S2G(ERR_IO_ERROR)
+        CASE_S2G(ERR_INVALID_ADDR)
         default:
             return UCG_ERR_NOT_FOUND;
     }
@@ -174,6 +176,7 @@ static inline ucs_status_t ucg_status_g2s(ucg_status_t ucg_status)
         CASE_G2S(ERR_INVALID_PARAM)
         CASE_G2S(ERR_NO_RESOURCE)
         CASE_G2S(ERR_NO_MEMORY)
+        CASE_G2S(ERR_IO_ERROR)
         default:
             return UCS_ERR_NO_MESSAGE;
     }
