@@ -33,11 +33,8 @@ if (UCG_BUILD_PLANC_STARS MATCHES "ON")
                            -fPIC
                            -Wall
                            -Werror
-                           -Wno-format-security
-                           -Wno-enum-conversion
-                           -Wno-unused-function
-                           -Wno-unknown-attributes 
                            -Wno-unused-variable)
+
 
     if (IS_DIRECTORY ${UCG_BUILD_RDMA_CORE_PREFIX})
         target_include_directories(ucg_planc_stars PRIVATE ${UCG_BUILD_RDMA_CORE_PREFIX}/include)

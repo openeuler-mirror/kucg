@@ -12,6 +12,13 @@
 
 #include "sct_md.h"
 
+#if defined(__GNUC__) || defined(__clang__)
+#ifdef __clang__
+#define OPTIMIZE_ATTRIBUTE __attribute__((optnone))
+#else
+#define OPTIMIZE_ATTRIBUTE __attribute__((optimize("O0")))
+#endif
+#endif
 
 #define UCS_SM_IFACE_ADDR_FLAG_EXT UCS_BIT(63)
 
@@ -58,8 +65,8 @@ static uint64_t sct_sm_iface_get_system_id()
 }
 
 /* GCC failed to compile it in release mode */
-ucs_status_t __attribute__((optimize("O0"))) sct_sm_iface_get_device_address(sct_iface_t *tl_iface,
-                                                                             uct_device_addr_t *addr)
+ucs_status_t OPTIMIZE_ATTRIBUTE sct_sm_iface_get_device_address(sct_iface_t *tl_iface,
+                                                                uct_device_addr_t *addr)
 {
     ucs_sm_iface_ext_device_addr_t *ext_addr = (void*)addr;
 
@@ -214,7 +221,7 @@ ucs_status_t sct_sdma_ofd_iface_submit_request(sct_iface_h tl_iface, sct_ofd_req
                                           &req->stars.task_id);
     if (ucg_unlikely(ret != 0)) {
         ucg_error("failded to send stars task, ret %d (%m)", ret);
-        return UCG_ERR_IO_ERROR;
+        return ucg_status_g2s(UCG_ERR_IO_ERROR);
     }
 
     ucg_debug("submit stars task, handle %p, taskid %d, task_cnt %d", req->stars.handle,

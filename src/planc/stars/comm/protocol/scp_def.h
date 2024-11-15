@@ -110,8 +110,8 @@ typedef struct scp_ofd_req {
     uint16_t                req_elem_cnt;
     scp_ofd_req_elem_h      last_req_elem;
     ucg_status_t            result;
-    sct_ofd_req_h           sct_req;            /* mapping to stars handle, current mapping to iface */
-    uint8_t                 sct_req_len;        /* arrary size */
+    sct_ofd_req_h           sct_req;                  /* mapping to stars handle, current mapping to iface */
+    uint8_t                 sct_req_len;              /* arrary size */
     uint8_t                 submit_elem_cnt;
     uint8_t                 finish_elem_cnt;
     uint8_t                 flag_array[SCP_MAX_LANE]; /* use to record the last elem of each iface */
