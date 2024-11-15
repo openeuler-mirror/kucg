@@ -52,7 +52,7 @@ ucs_status_t sct_rc_iface_query(sct_rc_iface_t *iface, sct_iface_attr_t *iface_a
 {
     ucs_status_t status =
         sct_ib_iface_query(&iface->super, SCT_IB_RETH_LEN, iface_attr);
-    UCG_ASSERT_RET(status == UCS_OK, status);
+    UCG_ASSERT_RET(status == UCS_OK, ucg_status_s2g(status));
 
     iface_attr->iface_addr_len  = 0;
     iface_attr->cap.flags       = UCT_IFACE_FLAG_CONNECT_TO_EP;

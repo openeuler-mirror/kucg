@@ -23,7 +23,7 @@ static ucg_mpool_t g_stars_trans_pool;
         if (ptr == NULL) \
         { \
             ucg_fatal("Failed to load function %s with error %s ", name, dlerror()); \
-            status = UCS_ERR_INVALID_ADDR; \
+            status = ucg_status_s2g(UCS_ERR_INVALID_ADDR); \
             goto out; \
         } \
     } while (0)
@@ -70,7 +70,7 @@ ucg_status_t sct_stars_init()
     int ret = api_stars_get_info(&sct_stars_info.driver);
     if (ret != 0) {
         ucg_error("Failed to get stars info, ret %d", ret);
-        return UCS_ERR_NO_DEVICE;
+        return ucg_status_s2g(UCS_ERR_NO_DEVICE);
     }
 
     sct_stars_print_info(&sct_stars_info.driver);
@@ -135,7 +135,7 @@ ucg_status_t sct_stars_load()
     sct_stars_handle = dlopen(STARS_DRIVER_SO, RTLD_NOW);
     if (sct_stars_handle == NULL) {
         ucg_debug("Failed to open library %s with error %s ", STARS_DRIVER_SO, dlerror());
-        status = UCS_ERR_IO_ERROR;
+        status = ucg_status_s2g(UCS_ERR_IO_ERROR);
         goto out;
     }
 
@@ -168,7 +168,7 @@ ucg_status_t sct_stars_load()
     ++sct_stars_ref;
     ucs_spin_unlock(&stars_load_lock);
     ucg_debug("Success to load stars library.");
-    return UCS_OK;
+    return ucg_status_s2g(UCS_OK);
 
 do_dclose:
     dlclose(sct_stars_handle);

@@ -1250,7 +1250,7 @@ ucs_status_t sct_ib_iface_query(sct_ib_iface_t *iface, size_t xport_hdr_len,
 
     double numa_latency;
     ucs_status_t status = sct_ib_iface_get_numa_latency(iface, &numa_latency);
-    UCG_ASSERT_RET(status == UCS_OK, status);
+    UCG_ASSERT_RET(status == UCS_OK, ucg_status_s2g(status));
 
     iface_attr->latency.c += (numa_latency + 200e-9);
     iface_attr->latency.m  = 0;

@@ -37,7 +37,8 @@ static inline ucs_status_t sct_ib_query_device(struct ibv_context *ctx,
 #  define IBV_ACCESS_ON_DEMAND          0
 #endif
 
-#define UCT_IB_HAVE_ODP_IMPLICIT(_attr)           ((_attr)->odp_caps.general_caps & IBV_ODP_SUPPORT_IMPLICIT)
+#define UCT_IB_HAVE_ODP_IMPLICIT(_attr)         ((_attr)->odp_caps.general_caps & IBV_ODP_SUPPORT_IMPLICIT)
+
 
 /* Ethernet link layer */
 #define IBV_PORT_IS_LINK_LAYER_ETHERNET(_attr)    ((_attr)->link_layer == IBV_LINK_LAYER_ETHERNET)
