@@ -7,6 +7,7 @@
 #include "rc_offload_iface.h"
 #include "rc_offload_md.h"
 
+
 #define HNS_ROCE_WR_WRITE_WITH_NOTIFY 22
 
 ucs_status_t sct_rc_ofd_ep_alloc_event(sct_ep_h tl_ep, sct_event_h event, uint8_t flag)

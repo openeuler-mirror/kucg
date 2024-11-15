@@ -39,8 +39,8 @@ typedef struct scp_context_config {
     unsigned                                max_worker_name;
     /** If use mutex for MT support or not */
     int                                     use_mt_mutex;
-    uint8_t                                 multirails;
-    size_t                                  multirails_threshold;
+    uint8_t 							   	multirails;
+    size_t 								    multirails_threshold;
     int                                     scp_ep_cache_enabled;
 } scp_context_config_t;
 

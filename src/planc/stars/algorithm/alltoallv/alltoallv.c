@@ -9,7 +9,7 @@
 
 static ucg_plan_attr_t ucg_planc_stars_alltoallv_plan_attr[] = {
     {UCG_STARS_ALGO_PRE_NAME(alltoallv_pairwise),
-     1, "alltoallv pairwise", PLAN_DOMAIN},
+    1, "alltoallv pairwise", PLAN_DOMAIN},
 
     {NULL}
 };

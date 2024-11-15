@@ -6,6 +6,7 @@
 
 #include "sys/sys.h"
 
+
 #define PATH_SYS_NUMA_ONLINE "/sys/devices/system/node/online"
 #define PATH_SYS_NUMA_CPU_LIST "/sys/devices/system/node/node%d/cpulist"
 #define PATH_SYS_NUMA_DISTANCE "/sys/devices/system/node/node%d/distance"
@@ -50,7 +51,7 @@ static ucg_status_t scs_numa_get_distance(uint8_t node_id, uint8_t *distance, ui
     char curr_ctx[PATH_CTX_SIZE] = {0};
     char real_path[PATH_CTX_SIZE] = {0};
     sprintf(real_path, PATH_SYS_NUMA_DISTANCE, node_id);
-    ssize_t size = ucs_read_file(curr_ctx, sizeof(curr_ctx), 1, real_path);
+    ssize_t size = ucs_read_file(curr_ctx, sizeof(curr_ctx), 1, PATH_SYS_NUMA_DISTANCE, node_id);
     if (ucg_unlikely(size < 2)) {
         ucg_error("failed to read file: %s", real_path);
         return UCG_ERR_INVALID_PARAM;
@@ -99,9 +100,9 @@ uint8_t scs_numa_get_node_id_by_dev(char *dev_name)
     char curr_ctx[PATH_CTX_SIZE] = {0};
     char real_path[PATH_CTX_SIZE] = {0};
     sprintf(real_path, PATH_SYS_IB_DEV_NUMA_NODE, dev_name);
-    ssize_t size = ucs_read_file(curr_ctx, sizeof(curr_ctx), 1, real_path);
+    ssize_t size = ucs_read_file(curr_ctx, sizeof(curr_ctx), 1, PATH_SYS_IB_DEV_NUMA_NODE, dev_name);
     if (ucg_unlikely(size < 2)) {
-        ucg_error("failed to read file: %s", PATH_SYS_IB_DEV_NUMA_NODE);
+        ucg_error("failed to read file: %s", real_path);
         return UINT8_MAX;
     }
     /* last char is LF in ASCII Table */
@@ -124,7 +125,7 @@ static ucg_status_t scs_numa_get_cpu_list(uint8_t node_id, scs_numa_cpu_list_t *
     char curr_ctx[PATH_CTX_SIZE] = {0};
     char real_path[PATH_CTX_SIZE] = {0};
     sprintf(real_path, PATH_SYS_NUMA_CPU_LIST, node_id);
-    ssize_t size = ucs_read_file(curr_ctx, sizeof(curr_ctx), 1, real_path);
+    ssize_t size = ucs_read_file(curr_ctx, sizeof(curr_ctx), 1, PATH_SYS_NUMA_CPU_LIST, node_id);
     if (ucg_unlikely(size < 3)) {
         ucg_warn("failed to read file: %s", real_path);
         cpu_list->first = 0;
