@@ -829,6 +829,21 @@ static const char *ucg_plan_true_domain(ucg_coll_type_t coll_type, const char *d
     return modified_domain;
 }
 
+static int check_need_reselect(const ucg_coll_args_t *args, uint64_t *msize)
+{
+    int ret = 0;
+    switch (args->type) {
+        case UCG_COLL_TYPE_ALLTOALLV:
+        case UCG_COLL_TYPE_IALLTOALLV:
+            *msize = 0;
+            ret = 1;
+            break;
+        default:
+            break;
+    }
+    return ret;
+}
+
 ucg_status_t ucg_plans_prepare(const ucg_plans_t *plans, const ucg_coll_args_t *args,
                                const uint32_t size, ucg_plan_op_t **op)
 {
@@ -840,10 +855,16 @@ ucg_status_t ucg_plans_prepare(const ucg_plans_t *plans, const ucg_coll_args_t *
     if (status != UCG_OK) {
         return status;
     }
+    int reselect_flag = 0;
+    int8_t found;
+    ucg_plan_t *plan;
+    const ucg_list_link_t *head;
+    ucg_plan_t *plan_fb;
 
-    int8_t found = 0;
-    ucg_plan_t *plan = NULL;
-    const ucg_list_link_t *head = &plans->plans[args->type][args->info.mem_type];
+reselect:
+    found = 0;
+    plan = NULL;
+    head = &plans->plans[args->type][args->info.mem_type];
     ucg_list_for_each(plan, head, list) {
         ucg_plan_range_t *range = &plan->attr.range;
         if (msg_size < range->start) {
@@ -871,9 +892,14 @@ ucg_status_t ucg_plans_prepare(const ucg_plans_t *plans, const ucg_coll_args_t *
         }
         return UCG_OK;
     }
+    // For alltoallv/ialltoallv, confirm all ranks fallback to the same algo
+    if (!reselect_flag && check_need_reselect(args, &msg_size)) {
+        reselect_flag = 1;
+        goto reselect;
+    }
 
     ucg_assert(plan->type == UCG_PLAN_TYPE_FIRST_CLASS);
-    ucg_plan_t *plan_fb = NULL;
+    plan_fb = NULL;
     ucg_list_for_each(plan_fb, &plan->fallback, fallback) {
         if (plan_fb->attr.prepare == plan->attr.prepare) {
             continue;
