@@ -465,8 +465,19 @@ ucg_status_t ucg_request_msg_size(const ucg_coll_args_t *args, const uint32_t si
             break;
         case UCG_COLL_TYPE_BARRIER:
         case UCG_COLL_TYPE_IBARRIER:
+            *msize = 0;
+            break;
         case UCG_COLL_TYPE_ALLTOALLV:
         case UCG_COLL_TYPE_IALLTOALLV:
+            *msize = 0;
+            int64_t total_scount = 0;
+            int64_t total_rcount = 0;
+            for (uint32_t i = 0; i < size; ++i) {
+                total_scount += ucg_dt_size(args->alltoallv.sendtype) * args->alltoallv.sendcounts[i];
+                total_rcount += ucg_dt_size(args->alltoallv.recvtype) * args->alltoallv.recvcounts[i];
+            }
+            *msize = (total_scount + total_rcount) / size / 2;
+            break;
         case UCG_COLL_TYPE_SCATTERV:
         case UCG_COLL_TYPE_ISCATTERV:
         case UCG_COLL_TYPE_GATHERV:
