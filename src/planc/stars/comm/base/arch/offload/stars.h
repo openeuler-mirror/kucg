@@ -9,7 +9,7 @@
 
 #include <stars_interface.h>
 #include "scs.h"
-#include "920f/machine.h"
+#include "offload/machine.h"
 #include "sct.h"
 
 
@@ -73,7 +73,7 @@ static inline void sct_stars_print_wait_output(stars_wait_output_t *output)
 }
 #endif
 
-const scs_machine_920f_t *scs_stars_get_machine_info();
+const scs_machine_offload_t *scs_stars_get_machine_info();
 stars_trans_parm_t* scs_stars_get_trans_parm();
 
 ucs_status_t scs_stars_alloc_events(uint8_t dev_id, uint16_t count, void *event, uint8_t flag);

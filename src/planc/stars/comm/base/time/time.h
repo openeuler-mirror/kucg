@@ -7,7 +7,7 @@
 
 #include "scs.h"
 
-#include "arch/920f/cpu.h"
+#include "arch/offload/cpu.h"
 
 
 BEGIN_C_DECLS

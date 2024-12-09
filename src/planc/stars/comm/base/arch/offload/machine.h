@@ -11,7 +11,7 @@
 #define IO_DIE_NUM_PER_CPU_DIE 2
 #define IO_DIE_NUM_PER_SOCKET (CPU_DIE_NUM_PER_SOCKET * IO_DIE_NUM_PER_CPU_DIE)
 
-typedef struct scs_machine_920f {
+typedef struct scs_machine_offload {
     uint8_t     chip_num;
     uint8_t     cpu_die_num;
     uint16_t    core_num;
@@ -23,8 +23,8 @@ typedef struct scs_machine_920f {
         uint8_t     die_id;       /* die id in the machine */
         uint16_t    core_id;
     } affinity; /* used for process core affinity */
-} scs_machine_920f_t;
+} scs_machine_offload_t;
 
-ucg_status_t scs_machine_920f_init(scs_machine_920f_t *machine);
+ucg_status_t scs_machine_offload_init(scs_machine_offload_t *machine);
 
 #endif
