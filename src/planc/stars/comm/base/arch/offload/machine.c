@@ -11,7 +11,7 @@
 #define PATH_CTX_SIZE 100
 #define MAX_CHIP_NUM  8
 
-static ucg_status_t scs_machine_get_core_num_per_socket(scs_machine_920f_t *machine)
+static ucg_status_t scs_machine_get_core_num_per_socket(scs_machine_offload_t *machine)
 {
     machine->core_num = sysconf(_SC_NPROCESSORS_CONF); /* _SC_NPROCESSORS_ONLN */
 
@@ -49,7 +49,7 @@ static ucg_status_t scs_machine_get_core_num_per_socket(scs_machine_920f_t *mach
     return UCG_OK;
 }
 
-static void scs_machine_920f_clean(scs_machine_920f_t *machine)
+static void scs_machine_offload_clean(scs_machine_offload_t *machine)
 {
     machine->chip_num = 0;
     machine->cpu_die_num = 0;
@@ -63,10 +63,10 @@ static void scs_machine_920f_clean(scs_machine_920f_t *machine)
     machine->affinity.core_id = UINT16_MAX;
 }
 
-ucg_status_t scs_machine_920f_init(scs_machine_920f_t *machine)
+ucg_status_t scs_machine_offload_init(scs_machine_offload_t *machine)
 {
     ucg_status_t status;
-    scs_machine_920f_clean(machine);
+    scs_machine_offload_clean(machine);
 
     status = scs_machine_get_core_num_per_socket(machine);
     UCG_CHECK_GOTO(status, out);
@@ -78,7 +78,7 @@ ucg_status_t scs_machine_920f_init(scs_machine_920f_t *machine)
     machine->affinity.chip_id = machine->affinity.core_id / machine->core_num_per_skt;
     machine->affinity.die_id = machine->affinity.core_id / machine->core_num_per_cpu_die;
     machine->affinity.inner_die_id = machine->affinity.die_id % CPU_DIE_NUM_PER_SOCKET;
-    ucg_debug("machine 920f information { chip_num %d, cpu_die_num %d, core_num %d, "
+    ucg_debug("machine offload information { chip_num %d, cpu_die_num %d, core_num %d, "
               "core_num_per_skt %d, core_num_per_cpu_die %d }, thread location { chip_id %d, "
               "die_id %d die_id_in_chip: %d core_id %d }",
               (int)machine->chip_num, (int)machine->cpu_die_num,

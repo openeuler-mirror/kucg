@@ -10,9 +10,9 @@
 #include <stars_interface.h>
 
 
-#include "920f/stars.h"
-#include "920f/cpu.h"
-#include "920f/numa.h"
+#include "offload/stars.h"
+#include "offload/cpu.h"
+#include "offload/numa.h"
 #include "datastruct/queue.h"
 #include "datastruct/stack.h"
 #include "memory/numa.h"

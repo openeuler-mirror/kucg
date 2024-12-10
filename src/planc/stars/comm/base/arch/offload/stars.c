@@ -5,7 +5,7 @@
 #include "stars.h"
 
 #include "sys/sys.h"
-#include "920f/numa.h"
+#include "offload/numa.h"
 #include "sct_md.h"
 
 
@@ -13,7 +13,7 @@ static scs_stars_info_t sct_stars_info;
 static void *sct_stars_handle = NULL;
 static ucs_spinlock_t stars_load_lock;
 static int sct_stars_ref = 0;
-static scs_machine_920f_t g_machine_920f;
+static scs_machine_offload_t g_machine_offload;
 static scs_numa_info_t g_numa_info;
 static ucg_mpool_t g_stars_trans_pool;
 
@@ -85,15 +85,15 @@ ucg_status_t sct_stars_init()
         }
     }
 
-    status = scs_machine_920f_init(&g_machine_920f);
+    status = scs_machine_offload_init(&g_machine_offload);
     UCG_CHECK_GOTO(status, de_init);
 
-    status = scs_numa_get_information(g_machine_920f.affinity.core_id,
+    status = scs_numa_get_information(g_machine_offload.affinity.core_id,
                                       &g_numa_info);
     UCG_CHECK_GOTO(status, de_init);
 
 #ifdef UCG_STARS_DEBUG
-    ucg_debug("thread run at core_id %d node_id %d numa_node_num %d", (int)g_machine_920f.affinity.core_id,
+    ucg_debug("thread run at core_id %d node_id %d numa_node_num %d", (int)g_machine_offload.affinity.core_id,
               (int)g_numa_info.node_id, (int)g_numa_info.numa_num);
 
     for (uint8_t idx = 0; idx < g_numa_info.numa_num; ++idx) {
@@ -201,9 +201,9 @@ const scs_stars_info_t *sct_stars_get_info(void)
     return &sct_stars_info;
 }
 
-const scs_machine_920f_t *scs_stars_get_machine_info()
+const scs_machine_offload_t *scs_stars_get_machine_info()
 {
-    return &g_machine_920f;
+    return &g_machine_offload;
 }
 
 ucs_status_t scs_stars_alloc_events(uint8_t dev_id, uint16_t count, void *event, uint8_t flag)
