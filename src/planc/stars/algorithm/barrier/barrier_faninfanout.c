@@ -2,12 +2,7 @@
  * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
  */
 
-#include "barrier.h"
-#include "planc_stars_algo.h"
-
-#define SEND_RECV_BYTE 8
-#define KNTREE_ITER_ROOT 0
-#define EID_IDX 0
+#include "barrier_faninfanout.h"
 
 static ucg_status_t UCG_STARS_ALGO_FUN(barrier_faninfanout, iter_init)(ucg_planc_stars_op_t *op,
                                                                        const ucg_planc_stars_barrier_config_t *config)
@@ -24,7 +19,8 @@ static ucg_status_t UCG_STARS_ALGO_FUN(barrier_faninfanout, iter_init)(ucg_planc
     return UCG_OK;
 }
 
-static ucg_status_t ucg_planc_stars_barrier_faninfanout_ofd_put_req(ucg_planc_stars_op_t *op,
+static ucg_status_t ucg_planc_stars_barrier_faninfanout_ofd_put_req(ucg_planc_stars_op_t *meta_op,
+                                                                    ucg_planc_stars_op_t *op,
                                                                     stars_rank_info_h peer_rank)
 {
     scp_ofd_req_elem_h request = ucg_planc_stars_op_get_ofd_req_elem(op);
@@ -38,20 +34,75 @@ static ucg_status_t ucg_planc_stars_barrier_faninfanout_ofd_put_req(ucg_planc_st
 
     ucg_status_t status = ucg_planc_stars_fill_ofd_put_req_elem(EID_IDX, peer_rank, request);
     UCG_ASSERT_CODE_RET(status);
-    ucg_planc_stars_op_push_ofd_req_elem(op, request);
+    if (meta_op == NULL) {
+        ucg_planc_stars_op_push_ofd_req_elem(op, request);
+    } else {
+        ucg_planc_stars_op_push_ofd_req_elem(meta_op, request);
+    }
+
     return UCG_OK;
 }
 
-static ucg_status_t ucg_planc_stars_barrier_faninfanout_ofd_wait_req(ucg_planc_stars_op_t *op,
+static ucg_status_t ucg_planc_stars_barrier_faninfanout_ofd_wait_req(ucg_planc_stars_op_t *meta_op,
+                                                                     ucg_planc_stars_op_t *op,
                                                                      stars_rank_info_h peer_rank)
 {
     scp_ofd_req_elem_h request = ucg_planc_stars_op_get_ofd_req_elem(op);
     UCG_ASSERT_RET(request != NULL, UCG_ERR_NO_MEMORY);
 
     ucg_planc_stars_fill_ofd_wait_req_elem(EID_IDX, peer_rank, request, op->plan.event_elem);
-    ucg_planc_stars_op_push_ofd_req_elem(op, request);
+    if (meta_op == NULL) {
+        ucg_planc_stars_op_push_ofd_req_elem(op, request);
+    } else {
+        ucg_planc_stars_op_push_ofd_req_elem(meta_op, request);
+    }
     return UCG_OK;
 }
+
+static ucg_status_t UCG_STARS_ALGO_FUN(barrier_faninfanout, meta_submit_op)(ucg_planc_stars_op_t *meta_op,
+                                                                            ucg_planc_stars_op_t *op)
+{
+    stars_comm_plan_t *plan = &op->plan;
+    ucg_rank_t myrank = op->super.vgroup->myrank;
+    ucg_status_t status;
+    stars_rank_info_h peer_rank;
+
+    ucg_algo_kntree_iter_t *fanin_iter = &op->barrier.kntree.fanin_iter;
+    if (ucg_algo_kntree_iter_child_value(fanin_iter) != UCG_INVALID_RANK) {
+        int32_t idx = (myrank == KNTREE_ITER_ROOT) ? 0 : 1;
+        for (; idx < plan->comm_dep.get_rank_num; ++idx) {
+            peer_rank = &plan->comm_dep.get_ranks[idx];
+            status = ucg_planc_stars_barrier_faninfanout_ofd_wait_req(meta_op, op, peer_rank);
+            UCG_CHECK_GOTO(status, out);
+        }
+    }
+
+    if (myrank != KNTREE_ITER_ROOT) {
+        peer_rank = &plan->comm_dep.put_ranks[0];
+        status = ucg_planc_stars_barrier_faninfanout_ofd_put_req(meta_op, op, peer_rank);
+        UCG_CHECK_GOTO(status, out);
+    }
+    UCG_CHECK_GOTO_ERR(status, out, "put with notify");
+    if (myrank != KNTREE_ITER_ROOT) {
+        peer_rank = &plan->comm_dep.get_ranks[0];
+        status = ucg_planc_stars_barrier_faninfanout_ofd_wait_req(meta_op, op, peer_rank);
+        UCG_CHECK_GOTO(status, out);
+    }
+
+    ucg_algo_kntree_iter_t *fanout_iter = &op->barrier.kntree.fanout_iter;
+    if (ucg_algo_kntree_iter_child_value(fanout_iter) != UCG_INVALID_RANK) {
+        int32_t idx = (myrank == KNTREE_ITER_ROOT) ? 0 : 1;
+        for (; idx < plan->comm_dep.put_rank_num; ++idx) {
+            peer_rank = &plan->comm_dep.put_ranks[idx];
+            status = ucg_planc_stars_barrier_faninfanout_ofd_put_req(meta_op, op, peer_rank);
+            UCG_CHECK_GOTO(status, out);
+        }
+    }
+
+out:
+    return status;
+}
+
 
 static ucg_status_t ucg_planc_stars_barrier_faninfanout_submit_stars_op(ucg_planc_stars_op_t *op)
 {
@@ -65,20 +116,20 @@ static ucg_status_t ucg_planc_stars_barrier_faninfanout_submit_stars_op(ucg_plan
         int32_t idx = (myrank == KNTREE_ITER_ROOT) ? 0 : 1;
         for (; idx < plan->comm_dep.get_rank_num; ++idx) {
             peer_rank = &plan->comm_dep.get_ranks[idx];
-            status = ucg_planc_stars_barrier_faninfanout_ofd_wait_req(op, peer_rank);
+            status = ucg_planc_stars_barrier_faninfanout_ofd_wait_req(NULL, op, peer_rank);
             UCG_CHECK_GOTO(status, out);
         }
     }
 
     if (myrank != KNTREE_ITER_ROOT) {
         peer_rank = &plan->comm_dep.put_ranks[0];
-        status = ucg_planc_stars_barrier_faninfanout_ofd_put_req(op, peer_rank);
+        status = ucg_planc_stars_barrier_faninfanout_ofd_put_req(NULL, op, peer_rank);
         UCG_CHECK_GOTO(status, out);
     }
     UCG_CHECK_GOTO_ERR(status, out, "put with notify");
     if (myrank != KNTREE_ITER_ROOT) {
         peer_rank = &plan->comm_dep.get_ranks[0];
-        status = ucg_planc_stars_barrier_faninfanout_ofd_wait_req(op, peer_rank);
+        status = ucg_planc_stars_barrier_faninfanout_ofd_wait_req(NULL, op, peer_rank);
         UCG_CHECK_GOTO(status, out);
     }
 
@@ -87,7 +138,7 @@ static ucg_status_t ucg_planc_stars_barrier_faninfanout_submit_stars_op(ucg_plan
         int32_t idx = (myrank == KNTREE_ITER_ROOT) ? 0 : 1;
         for (; idx < plan->comm_dep.put_rank_num; ++idx) {
             peer_rank = &plan->comm_dep.put_ranks[idx];
-            status = ucg_planc_stars_barrier_faninfanout_ofd_put_req(op, peer_rank);
+            status = ucg_planc_stars_barrier_faninfanout_ofd_put_req(NULL, op, peer_rank);
             UCG_CHECK_GOTO(status, out);
         }
     }
@@ -226,6 +277,26 @@ err_destruct_op:
 out:
     op->super.super.status = status;
     return status;
+}
+
+ucg_status_t UCG_STARS_ALGO_FUN(barrier_faninfanout, meta_trigger)(ucg_plan_op_t *meta_op, ucg_plan_op_t *ucg_op)
+{
+    ucg_planc_stars_op_t *op = ucg_derived_of(ucg_op, ucg_planc_stars_op_t);
+    ucg_planc_stars_op_t *meta_stars_op = ucg_derived_of(meta_op, ucg_planc_stars_op_t);
+    ucg_planc_stars_op_reset(op);
+    ucg_algo_kntree_iter_reset(&op->barrier.kntree.fanin_iter);
+    ucg_algo_kntree_iter_reset(&op->barrier.kntree.fanout_iter);
+    op->super.super.status = UCG_ERR_IO_ERROR;
+
+    ucg_status_t status = UCG_STARS_ALGO_FUN(barrier_faninfanout, meta_submit_op)(meta_stars_op, op);
+    if (status != UCG_OK) {
+        op->super.super.status = status;
+        ucg_error("Failed to submit barrier faninfanout stars operation.");
+        return status;
+    }
+
+    op->super.super.status = UCG_INPROGRESS;
+    return UCG_OK;
 }
 
 static ucg_status_t UCG_STARS_ALGO_FUN(barrier_faninfanout, trigger)(ucg_plan_op_t *ucg_op)

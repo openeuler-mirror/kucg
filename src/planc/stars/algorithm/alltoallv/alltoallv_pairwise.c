@@ -3,9 +3,21 @@
  */
 
 #include "alltoallv.h"
-#include "planc_stars_algo.h"
+#include "barrier/barrier_faninfanout.h"
+#include "planc_stars_algo_def.h"
 
 #define PAIRWISE_EID_DIX 0
+
+static ucg_status_t
+UCG_STARS_ALGO_FUN(alltoallv_pairwise, barrier_init)(ucg_planc_stars_op_t *op)
+{
+    ucg_status_t status;
+    ucg_coll_args_t barrier_args;
+    barrier_args.type = UCG_COLL_TYPE_IBARRIER;
+    status = UCG_STARS_ALGO_PRE_NAME(barrier_faninfanout)(op->super.vgroup, &barrier_args,
+                                                          &op->meta_op);
+    return status;
+}
 
 static ucg_status_t
 UCG_STARS_ALGO_FUN(alltoallv_pairwise, offload_plan)(ucg_planc_stars_op_t *op)
@@ -14,10 +26,11 @@ UCG_STARS_ALGO_FUN(alltoallv_pairwise, offload_plan)(ucg_planc_stars_op_t *op)
     uint32_t numprocs = vgroup->size;
     stars_comm_dep_h comm_dep = &op->plan.comm_dep;
     comm_dep->get_ranks = NULL;
-    comm_dep->get_rank_num = numprocs -1;
+    comm_dep->get_rank_num = numprocs - 1;
     comm_dep->put_ranks = NULL;
-    comm_dep->put_rank_num = numprocs -1;
-
+    comm_dep->put_rank_num = numprocs - 1;
+    op->plan.eid_shared_flag = 1;
+    op->plan.eid_shared_stride = 5;
     ucg_status_t status;
     status = ucg_planc_stars_rank_dep_alloc(comm_dep);
     UCG_ASSERT_CODE_RET(status);
@@ -25,7 +38,6 @@ UCG_STARS_ALGO_FUN(alltoallv_pairwise, offload_plan)(ucg_planc_stars_op_t *op)
     ucg_rank_t peer_id;
     uint32_t index = 0;
     ucg_rank_t myid = vgroup->myrank;
-    ucg_planc_stars_context_t *context = op->stars_group->context;
     for (ucg_rank_t offset = 1; offset < numprocs; ++offset, ++index) {
         peer_id = (myid + offset) % numprocs;
         status = ucg_planc_stars_rank_dep_init(op, &comm_dep->put_ranks[index],
@@ -140,6 +152,7 @@ UCG_STARS_ALGO_FUN(alltoallv_pairwise, init)(ucg_plan_op_t *ucg_op)
     ucg_coll_args_t *coll_args = &ucg_op->super.args;
     ucg_vgroup_t *vgroup = op->super.vgroup;
     ucg_status_t status;
+    status = UCG_STARS_ALGO_FUN(alltoallv_pairwise, barrier_init)(op);
     ucg_algo_ring_iter_init(&op->alltoallv.ring_iter, vgroup->size, vgroup->myrank);
     status = ucg_planc_stars_algo_prepare_plan(op, coll_args,
                                                UCG_STARS_ALGO_FUN(alltoallv_pairwise, put_max_size),
@@ -236,6 +249,10 @@ UCG_STARS_ALGO_FUN(alltoallv_pairwise, submit_op)(ucg_planc_stars_op_t *op)
         status = ucg_planc_stars_alltoallv_pairwise_wait_req(op);
         UCG_CHECK_GOTO_ERR(status, out, "stars alltoallv pairwise put req");
         ucg_algo_ring_iter_inc(iter);
+        if (iter->idx % op->plan.eid_shared_stride == 0) {
+            status = UCG_STARS_ALGO_FUN(barrier_faninfanout, meta_trigger)(&op->super, op->meta_op);
+        }
+        UCG_CHECK_GOTO_ERR(status, out, "stars alltoallv pairwise barrier");
     }
 
     return scp_submit_ofd_req(op->stars_group->context->scp_worker,
@@ -290,10 +307,15 @@ UCG_STARS_ALGO_FUN(alltoallv_pairwise, progress)(ucg_plan_op_t *ucg_op)
 static ucg_status_t
 UCG_STARS_ALGO_FUN(alltoallv_pairwise, discard)(ucg_plan_op_t *ucg_op)
 {
+    ucg_status_t status;
     ucg_planc_stars_op_t *op = ucg_derived_of(ucg_op, ucg_planc_stars_op_t);
+    status = op->meta_op->discard(op->meta_op);
+    op->meta_op = NULL;
+    UCG_ASSERT_CODE_RET(status);
     ucg_planc_stars_buf_cleanup(op, STARS_BUFF_SEND);
     ucg_planc_stars_buf_cleanup(op, STARS_BUFF_RECV);
-    ucg_planc_stars_op_discard(ucg_op);
+    status = ucg_planc_stars_op_discard(ucg_op);
+    UCG_ASSERT_CODE_RET(status);
     UCG_CLASS_DESTRUCT(ucg_plan_op_t, ucg_op);
     ucg_stats_dump("bcast_alltoallv_pairwise", &op->stats);
     return UCG_OK;
