@@ -29,7 +29,7 @@
         if (_stars_op == NULL) { \
             return UCG_ERR_NO_MEMORY; \
         } \
-      \
+        memset(_stars_op, 0, sizeof(ucg_planc_stars_op_t)); \
         _status = UCG_CLASS_CONSTRUCT(ucg_plan_op_t, &_stars_op->super, _vgroup, \
                                       UCG_STARS_ALGO_FUN(_algorithm, trigger),  \
                                       UCG_STARS_ALGO_FUN(_algorithm, progress), \
