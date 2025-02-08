@@ -86,8 +86,6 @@ ucs_status_t sct_rc_ofd_md_open(uct_md_h uct_md, struct ibv_device *ibv_device,
     md->super.super.stars_dev_id = attrs_out.hw_id.chip_id * CPU_DIE_NUM_PER_SOCKET +
                                    attrs_out.hw_id.die_id / IO_DIE_NUM_PER_CPU_DIE;
     /* In offload, the subnet arrangement of ifaces[0-8] is {0, 1, 1, 0, 0, 1, 1, 0}*/
-    md->super.super.subnet_id    = (attrs_out.hw_id.die_id / CPU_DIE_NUM_PER_SOCKET +
-                                   attrs_out.hw_id.die_id % IO_DIE_NUM_PER_CPU_DIE) % 2;
     md->dev_attr.pool_id         = attrs_out.hw_id.die_id % 2; /* 2 means location for hns3 and cpu die */
 
     struct ibv_device *device = dev->ibv_context->device;

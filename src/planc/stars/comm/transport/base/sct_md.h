@@ -83,7 +83,7 @@ struct sct_md_ops {
  */
 struct sct_md {
     uint8_t                stars_dev_id;
-    uint8_t                subnet_id;
+    uint64_t               subnet_id;
     sct_md_ops_t           *ops;
     sct_component_t        *component;
 };
