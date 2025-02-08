@@ -24,6 +24,36 @@ static inline uint32_t ucg_planc_stars_cal_elem_num(stars_comm_dep_h comm_dep)
     return elem_num;
 }
 
+static ucg_status_t ucg_planc_stars_algo_alloc_event_shared(ucg_planc_stars_op_t *op)
+{
+    ucg_status_t status;
+    stars_comm_plan_t *plan = &op->plan;
+    stars_rank_info_h rank_info;
+    events_pool_h *events_pool = op->stars_group->context->events_pool;
+    int stride = op->plan.eid_shared_stride;
+
+    stars_event_elem_h elem =
+            ucg_planc_stars_alloc_event_elem(stride);
+    UCG_ASSERT_RET(elem != NULL, UCG_ERR_NO_MEMORY);
+    plan->event_elem = elem;
+
+    rank_info = &plan->comm_dep.get_ranks[0];
+    for (int i = 0; i < stride; i++) {
+        status = scp_ep_alloc_event(rank_info->ep, &elem->event, events_pool);
+        UCG_CHECK_GOTO_ERR(status, out, "Failed to alloc event!");
+        elem++;
+    }
+
+    for (uint32_t idx = 0; idx < plan->comm_dep.get_rank_num; ++idx) {
+        rank_info = &plan->comm_dep.get_ranks[idx];
+        rank_info->offset = idx % stride;
+    }
+    return UCG_OK;
+
+out:
+    return status;
+}
+
 static ucg_status_t ucg_planc_stars_algo_alloc_event_common(ucg_planc_stars_op_t *op)
 {
     ucg_status_t status;
@@ -86,7 +116,12 @@ ucg_status_t ucg_planc_stars_rbuf_init(ucg_planc_stars_op_t *op, void *buffer,
                         op->stats.init.exch_buf.init_rbuf.mkey_pack);
     UCG_ASSERT_CODE_GOTO(status, free_memh);
 
-    status = ucg_planc_stars_algo_alloc_event_common(op);
+    if (plan->eid_shared_flag == 0) {
+        status = ucg_planc_stars_algo_alloc_event_common(op);
+    } else {
+        status = ucg_planc_stars_algo_alloc_event_shared(op);
+    }
+
     UCG_ASSERT_CODE_GOTO(status, free_memh);
 
     return UCG_OK;
@@ -172,6 +207,36 @@ static inline void ucg_planc_stars_event_elem_cleanup(stars_event_elem_h *event_
     return;
 }
 
+static void ucg_planc_stars_shared_events_release(ucg_planc_stars_op_t *op)
+{
+    stars_comm_plan_t *plan = &op->plan;
+    stars_event_elem_h elem = plan->event_elem;
+    stars_rank_info_h rank;
+    events_pool_h *events_pool = op->stars_group->context->events_pool;
+    int stride = op->plan.eid_shared_stride;
+    ucg_status_t status;
+
+    if (op->event_clear_flag == EVENT_CLEARED) {
+        return;
+    }
+    if (plan->comm_dep.get_rank_num <= 0) {
+        return;
+    }
+    rank = &plan->comm_dep.get_ranks[0];
+    for (int i = 0; i < stride; i++) {
+        scp_event_h scp_event = &elem->event;
+        status = scp_ep_free_event(rank->ep, scp_event, events_pool);
+        if (ucg_unlikely(status != UCG_OK)) {
+            ucg_fatal("Failed to free sct ep event");
+        }
+        elem++;
+    }
+    ucg_planc_stars_event_elem_cleanup(&plan->event_elem);
+    op->event_clear_flag = EVENT_CLEARED;
+
+    return;
+}
+
 static void ucg_planc_stars_events_release(ucg_planc_stars_op_t *op)
 {
     stars_comm_plan_t *plan = &op->plan;
@@ -211,7 +276,12 @@ void ucg_planc_stars_buf_cleanup(ucg_planc_stars_op_t *op, uint8_t flags)
 {
     stars_comm_plan_t *plan = &op->plan;
     UCG_STATS_GET_TIME(start_tick);
-    ucg_planc_stars_events_release(op);
+    if (plan->eid_shared_flag == 0) {
+        ucg_planc_stars_events_release(op);
+    } else {
+        ucg_planc_stars_shared_events_release(op);
+    }
+
 
     UCG_STATS_GET_TIME(event_free);
     if (flags & STARS_BUFF_SEND) {
