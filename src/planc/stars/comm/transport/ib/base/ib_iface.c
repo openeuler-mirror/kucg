@@ -404,6 +404,43 @@ ucs_status_t sct_ib_iface_get_device_address(sct_iface_h tl_iface,
     return UCS_OK;
 }
 
+static uint64_t sct_ib_iface_roce_get_subnet_id(const uint8_t *addr, unsigned prefix_bits)
+{
+    size_t length = prefix_bits / 8;
+    unsigned remainder_bits = prefix_bits % 8;
+
+    uint64_t result = 0;
+    if (length > 0) {
+        memcpy(&result, addr, length);
+    }
+
+    result = (result << 8) + (*((uint8_t*)addr + length) & ~UCS_MASK(8 - remainder_bits));
+    return result;
+}
+
+static ucs_status_t sct_ib_iface_init_roce_subnet_id(sct_ib_iface_t *iface)
+{
+    sct_ib_device_gid_info_t *gid_info = &iface->gid_info;
+    ucs_status_t status = UCS_OK;
+    uint8_t *local_addr;
+    size_t addr_offset;
+    size_t addr_size;
+    unsigned prefix_bits = iface->addr_prefix_bits;
+    sa_family_t local_ib_addr_af = gid_info->roce_info.addr_family;
+
+    status = ucs_sockaddr_inet_addr_size(local_ib_addr_af, &addr_size);
+    if (status != UCS_OK) {
+        ucg_error("failed to detect RoCE address size");
+        return UCS_ERR_INVALID_PARAM;
+    }
+
+    addr_offset = sizeof(union ibv_gid) - addr_size;
+    local_addr  = UCS_PTR_BYTE_OFFSET(&gid_info->gid, addr_offset);
+
+    iface->roce_subnet_id = sct_ib_iface_roce_get_subnet_id(local_addr, prefix_bits);
+    return UCS_OK;
+}
+
 static int sct_ib_iface_roce_is_reachable(const sct_ib_device_gid_info_t *local_gid_info,
                                           const sct_ib_address_t *remote_ib_addr,
                                           unsigned prefix_bits)
@@ -1018,6 +1055,12 @@ UCS_CLASS_INIT_FUNC(sct_ib_iface_t, sct_ib_iface_ops_t *ops, sct_md_h md,
     if (status != UCS_OK) {
         goto err;
     }
+
+    status = sct_ib_iface_init_roce_subnet_id(self);
+    if (status != UCS_OK) {
+        goto err;
+    }
+    md->subnet_id = self->roce_subnet_id;
 
     self->config.traffic_class = sct_ib_iface_is_roce_v2(self, dev) ?
                                  SCT_IB_DEFAULT_ROCEV2_DSCP : 0;
