@@ -31,6 +31,7 @@ typedef enum {
 
 typedef struct ucg_planc_stars_op {
     ucg_plan_op_t               super;
+    ucg_plan_op_t               *meta_op;
     ucg_planc_stars_group_t     *stars_group;
     ucg_planc_stars_p2p_state_t p2p_state;
     ucg_mpool_t                 ofd_req_elem_pool;
@@ -100,6 +101,7 @@ static inline ucg_status_t ucg_planc_stars_op_init(ucg_planc_stars_op_t *op,
     op->flags               = 0;
     op->staging_area        = NULL;
     op->event_clear_flag    = EVENT_USING;
+    op->meta_op             = NULL;
     ucs_queue_head_init(&op->stats.queue);
     ucg_planc_stars_p2p_state_reset(&op->p2p_state);
     scp_init_ofd_req(&op->ofd_req);

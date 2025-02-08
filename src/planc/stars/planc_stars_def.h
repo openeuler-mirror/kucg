@@ -60,6 +60,8 @@ typedef struct stars_comm_plan {
     sct_mem_h                *lrmemh;                // use for local receive buffer
     size_t                   lrbuf_desc_size;        // use for send rbuf_desc to parent
     size_t                   sbuf_size;              // local send buffer size
+    int                      eid_shared_flag;
+    int                      eid_shared_stride;
     stars_event_elem_h       event_elem;
     uint8_t                  max_lanes_num_in_ep;    // Max numbers of lane in EP
 } stars_comm_plan_t;
