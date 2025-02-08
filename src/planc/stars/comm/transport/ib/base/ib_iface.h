@@ -192,6 +192,7 @@ struct sct_ib_iface {
     uint8_t                   addr_size;
     uint8_t                   addr_prefix_bits;
     sct_ib_device_gid_info_t  gid_info;
+    uint64_t                  roce_subnet_id;
 
     struct {
         unsigned              rx_payload_offset;   /* offset from desc to payload */
