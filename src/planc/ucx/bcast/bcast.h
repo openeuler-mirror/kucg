@@ -49,6 +49,7 @@ typedef struct ucg_planc_ucx_bcast {
             int32_t curr_blocks; // current blocks owned by each process(0~group_size)
             int32_t quotient; // count of msg per block(round down)
             int32_t division; // count of msg in eacg block < division is 1 more than that in each block >= division
+            uint32_t inflight;
         } _long;
     };
 } ucg_planc_ucx_bcast_t;

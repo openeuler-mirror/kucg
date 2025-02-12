@@ -13,6 +13,8 @@ enum {
     UCG_BCAST_LONG_SENDRECV         = UCG_BIT(4), /* long algorithm sendrecv operation */
 };
 
+#define BATCH_THRESH (uint32_t)(512 * 1024)
+
 #define UCG_BCAST_LONG_FLAGS UCG_BCAST_LONG_SCATTERV_PHASE | \
                              UCG_BCAST_LONG_ALLGATHERV_PHASE | \
                              UCG_BCAST_LONG_SENDRECV | \
@@ -125,6 +127,66 @@ out:
     return status;
 }
 
+static ucg_status_t ucg_planc_ucx_bcast_long_scatterv_send(ucg_planc_ucx_op_t *op)
+{
+    ucg_status_t status = UCG_OK;
+    ucg_algo_kntree_iter_t *iter = &op->bcast.kntree_iter;
+    ucg_rank_t peer;
+    ucg_vgroup_t *vgroup = op->super.vgroup;
+    uint32_t group_size = vgroup->size;
+    int32_t curr_blocks, send_blocks, send_count;
+    int32_t division = op->bcast._long.division;
+    int32_t quotient = op->bcast._long.quotient;
+    ucg_rank_t my_vrank = iter->myrank;
+    ucg_coll_bcast_args_t *args = &op->super.super.args.bcast;
+    void *buffer = args->buffer;
+    ucg_dt_t *datatype = args->dt;
+    int64_t extent = ucg_dt_extent(datatype);
+    uint64_t send_offset;
+    ucg_planc_ucx_p2p_params_t params;
+    ucg_planc_ucx_op_set_p2p_params(op, &params);
+
+    /* send to children */
+    if (ucg_test_flags(op->flags, UCG_BCAST_LONG_SEND)) {
+        while ((peer = ucg_algo_kntree_iter_child_value(iter)) != UCG_INVALID_RANK) {
+            curr_blocks = op->bcast._long.curr_blocks;
+            ucg_rank_t peer_vrank = (peer - iter->root + group_size) % group_size;
+            send_blocks = curr_blocks - peer_vrank + my_vrank;
+            if (send_blocks <= 0) {
+                ucg_algo_kntree_iter_child_inc(iter);
+                continue;
+            }
+            if (peer_vrank >= division) {
+                send_count = send_blocks * quotient;
+                send_offset = (int64_t)(division + peer_vrank * quotient) * extent;
+            } else {
+                int32_t decrease = (division - peer_vrank >= send_blocks) ?
+                                   0 :
+                                   peer_vrank + send_blocks - division;
+                // sum_blocks * (quotient + 1) - decrease = sum_count;
+                // send_blocks <= sum_blocks, so send_count <= sum_count.
+                send_count = send_blocks * (quotient + 1) - decrease;
+                send_offset = (int64_t)peer_vrank * (quotient + 1) * extent;
+            }
+
+            status = ucg_planc_ucx_p2p_isend(buffer + send_offset, send_count,
+                                             args->dt, peer, op->tag,
+                                             vgroup, &params);
+            UCG_CHECK_GOTO(status, out);
+            op->bcast._long.curr_blocks -= send_blocks;
+            op->bcast._long.inflight += send_count;
+            if (op->bcast._long.inflight >= BATCH_THRESH) {
+                return UCG_INPROGRESS;
+            }
+            ucg_algo_kntree_iter_child_inc(iter);
+        }
+        ucg_clear_flags(&op->flags, UCG_BCAST_LONG_SEND);
+        return op->bcast._long.inflight > 0 ? UCG_INPROGRESS : UCG_OK;
+    }
+    return UCG_OK;
+out:
+    return status;
+}
 
 static ucg_status_t ucg_planc_ucx_bcast_long_scatterv_op_progress(ucg_planc_ucx_op_t *op)
 {
@@ -133,28 +195,23 @@ static ucg_status_t ucg_planc_ucx_bcast_long_scatterv_op_progress(ucg_planc_ucx_
     ucg_coll_bcast_args_t *args = &op->super.super.args.bcast;
     void *buffer = args->buffer;
     ucg_dt_t *datatype = args->dt;
-    uint32_t extent = ucg_dt_extent(datatype);
+    int64_t extent = ucg_dt_extent(datatype);
     ucg_vgroup_t *vgroup = op->super.vgroup;
     ucg_planc_ucx_p2p_params_t params;
     ucg_planc_ucx_op_set_p2p_params(op, &params);
-    int32_t division = op->bcast._long.division;
-    int32_t quotient = op->bcast._long.quotient;
-    ucg_algo_kntree_iter_t *iter = &op->bcast._long.kntree_iter;
+    uint32_t group_size = vgroup->size;
+    int32_t recv_blocks;
+    ucg_algo_kntree_iter_t *iter = &op->bcast.kntree_iter;
     ucg_rank_t my_vrank = iter->myrank;
     ucg_rank_t root = iter->root;
     ucg_rank_t peer = ucg_algo_kntree_iter_parent_value(iter);
-    uint32_t group_size = vgroup->size;
-    int32_t send_blocks, recv_blocks;
-    int32_t send_count, recv_count;
-    int64_t send_offset, recv_offset;
-
-    if (peer == UCG_INVALID_RANK) {
-        /* myrank is root, just need to send */
-        goto send;
-    }
+    uint64_t recv_offset;
+    int32_t recv_count;
+    int32_t quotient = op->bcast._long.quotient;
+    int32_t division = op->bcast._long.division;
 
     /* receive from parent */
-    if (ucg_test_and_clear_flags(&op->flags, UCG_BCAST_LONG_RECV)) {
+    if (peer != UCG_INVALID_RANK && ucg_test_and_clear_flags(&op->flags, UCG_BCAST_LONG_RECV)) {
         ucg_rank_t peer_vrank = (peer - root + group_size) % group_size;
         ucg_rank_t right_sibling_rank = peer_vrank + (my_vrank - peer_vrank) * 2;
         if (right_sibling_rank < group_size) {
@@ -190,38 +247,9 @@ static ucg_status_t ucg_planc_ucx_bcast_long_scatterv_op_progress(ucg_planc_ucx_
     }
     status = ucg_planc_ucx_p2p_testall(ucx_group, params.state);
     UCG_CHECK_GOTO(status, out);
-
-send:
+    op->bcast._long.inflight = 0;
     /* send to my children */
-    if (ucg_test_flags(op->flags, UCG_BCAST_LONG_SEND)) {
-        while ((peer = ucg_algo_kntree_iter_child_value(iter)) != UCG_INVALID_RANK) {
-            ucg_rank_t peer_vrank = (peer - root + group_size) % group_size;
-            send_blocks = op->bcast._long.curr_blocks - peer_vrank + my_vrank;
-            if (send_blocks <= 0) {
-                continue;
-            }
-            if (peer_vrank >= division) {
-                send_count = send_blocks * quotient;
-                send_offset = (int64_t)(division + peer_vrank * quotient) * extent;
-            } else {
-                int32_t decrease = (division - peer_vrank >= send_blocks) ?
-                                   0 :
-                                   peer_vrank + send_blocks - division;
-                send_count = send_blocks * (quotient + 1) - decrease;
-                send_offset = (int64_t)peer_vrank * (quotient + 1) * extent;
-            }
-            status = ucg_planc_ucx_p2p_isend(buffer + send_offset, send_count,
-                                             args->dt, peer, op->tag,
-                                             vgroup, &params);
-            UCG_CHECK_GOTO(status, out);
-            status = ucg_planc_ucx_p2p_testall(ucx_group, params.state);
-
-            op->bcast._long.curr_blocks -= send_blocks;
-            ucg_algo_kntree_iter_child_inc(iter);
-        }
-        ucg_clear_flags(&op->flags, UCG_BCAST_LONG_SEND);
-    }
-    status = ucg_planc_ucx_p2p_testall(ucx_group, params.state);
+    status = ucg_planc_ucx_bcast_long_scatterv_send(op);
 out:
     return status;
 }
