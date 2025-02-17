@@ -108,9 +108,9 @@ static ucg_status_t scp_worker_select_ifaces(scp_worker_h worker)
     uint8_t iface_num = worker->num_ifaces;
     uint8_t md_idx;
 
-    /* sort iface array and mds by lantency*/
+    /* sort iface array and mds by latency*/
     for (uint8_t i = 0; i < iface_num - 1; i++) {
-        for (uint8_t j = 0; j < iface_num - i -1; j++) {
+        for (uint8_t j = 0; j < iface_num - i - 1; j++) {
             if (scp_worker_cmp_iface(&ifaces_p[j]->attr, &ifaces_p[j + 1]->attr)) {
                 scp_worker_exchange_md(context, ifaces_p[j], ifaces_p[j + 1]);
                 // exchange iface
@@ -128,7 +128,7 @@ static ucg_status_t scp_worker_select_ifaces(scp_worker_h worker)
     }
     /* sort selected ifaces and mds by subnet, to avoid crossed link */
     for (uint8_t i = 0; i < iface_num - 1; i++) {
-        for (uint8_t j = 0; j < iface_num - i -1; j++) {
+        for (uint8_t j = 0; j < iface_num - i - 1; j++) {
             if (scp_worker_cmp_md_subnet(context, ifaces_p[j], ifaces_p[j + 1])) {
                 scp_worker_exchange_md(context, ifaces_p[j], ifaces_p[j + 1]);
                 // exchange iface

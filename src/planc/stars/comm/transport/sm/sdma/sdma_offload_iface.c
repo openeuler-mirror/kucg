@@ -289,7 +289,10 @@ UCS_CLASS_INIT_FUNC(sct_sdma_ofd_iface_t, sct_md_h md, sct_worker_h worker,
         ucg_error("iface %p failed to get stars pasid, ret %d", self, ret);
         return UCS_ERR_NO_RESOURCE;
     }
-    md->subnet_id = 0;
+
+    /* set the subnet_id of sdma to maximum so it can always be the last one 
+       when select ifaces in scp_worker_select_ifaces. */ 
+    md->subnet_id = UINT64_MAX;
     self->sdma_md = sdma_md;
     self->config.bw = config->bw;
     ucg_debug("iface create pasid %d in dev %d, sdma bandwidth = %f MB/s",
