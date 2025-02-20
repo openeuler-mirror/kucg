@@ -88,18 +88,17 @@ ucs_status_t sct_sdma_ofd_ep_put_with_notify(sct_ep_h tl_ep, sct_ofd_req_h sct_r
 {
     ucs_status_t status;
     sct_sdma_ofd_iface_t *iface = ucs_derived_of(tl_ep->iface, sct_sdma_ofd_iface_t);
-    sdma_trans_parm_t *sdma_parm =
-        sct_sdma_ofd_md_get_sdma_elem(iface->super.md);
-    if (ucg_unlikely(sdma_parm == NULL)) {
-        ucg_fatal("Invalid resource.");
-    }
-
-    sct_sdma_ofd_ep_t *ep = ucs_derived_of(tl_ep, sct_sdma_ofd_ep_t);
-    sct_sdma_ofd_ep_set_sdma_parm(ep->src_pasid, ep->dst_pasid, (uint64_t)iov->buffer,
-                                  iov->remote_addr, iov->length, sdma_parm);
 
     /* when sdma get zero pack, just skip the SCH_SDMA step */
     if (iov->length > 0) {
+        sdma_trans_parm_t *sdma_parm =
+            sct_sdma_ofd_md_get_sdma_elem(iface->super.md);
+        if (ucg_unlikely(sdma_parm == NULL)) {
+            ucg_fatal("Invalid resource.");
+        }
+        sct_sdma_ofd_ep_t *ep = ucs_derived_of(tl_ep, sct_sdma_ofd_ep_t);
+        sct_sdma_ofd_ep_set_sdma_parm(ep->src_pasid, ep->dst_pasid, (uint64_t)iov->buffer,
+                                      iov->remote_addr, iov->length, sdma_parm);
         ucs_status_t status = sct_sdma_ofd_ep_set_trans_parm(sct_req, STARS_SCH_SDMA, 0, sdma_parm);
         if (ucg_unlikely(status != UCS_OK)) {
             ucg_error("failed to set sdma offload schedule params");
