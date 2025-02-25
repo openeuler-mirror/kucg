@@ -121,8 +121,7 @@ static ucg_plan_policy_t bcast_4_8[] = {
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t bcast_4_16[] = {
-    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10,  {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t bcast_4_32[] = {
@@ -136,7 +135,6 @@ static ucg_plan_policy_t bcast_4_64[] = {
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t bcast_4_LG[] = {
-    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     UCG_PLAN_LAST_POLICY,
 };
