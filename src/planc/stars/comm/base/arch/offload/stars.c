@@ -32,6 +32,7 @@ STARS_DEV_INIT           api_stars_dev_init;
 STARS_DEV_DEINIT         api_stars_dev_deinit;
 STARS_GET_INFO           api_stars_get_info;
 STARS_GET_HANDLE         api_stars_get_handle;
+STARS_GET_HANDLE_EX      api_stars_get_handle_ex;
 STARS_RELEASE_HANDLE     api_stars_release_handle;
 STARS_SEND_TASK          api_stars_send_task;
 STARS_WAIT_CQE           api_stars_wait_cqe;
@@ -50,6 +51,7 @@ static void sct_stars_reset(void)
     api_stars_dev_deinit = NULL;
     api_stars_get_info = NULL;
     api_stars_get_handle = NULL;
+    api_stars_get_handle_ex = NULL;
     api_stars_release_handle = NULL;
     api_stars_send_task = NULL;
     api_stars_wait_cqe = NULL;
@@ -145,6 +147,7 @@ ucg_status_t sct_stars_load()
     LOAD_FUNCTION(api_stars_dev_deinit, STARS_DEV_DEINIT, "stars_dev_deinit");
     LOAD_FUNCTION(api_stars_get_info, STARS_GET_INFO, "stars_get_info");
     LOAD_FUNCTION(api_stars_get_handle, STARS_GET_HANDLE, "stars_get_handle");
+    LOAD_FUNCTION(api_stars_get_handle_ex, STARS_GET_HANDLE_EX, "stars_get_handle_ex");
     LOAD_FUNCTION(api_stars_release_handle, STARS_RELEASE_HANDLE, "stars_release_handle");
     LOAD_FUNCTION(api_stars_send_task, STARS_SEND_TASK, "stars_send_task");
     LOAD_FUNCTION(api_stars_wait_cqe, STARS_WAIT_CQE, "stars_wait_cqe");

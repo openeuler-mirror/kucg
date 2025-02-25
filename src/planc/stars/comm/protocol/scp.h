@@ -8,7 +8,7 @@
 #include "scp_def.h"
 
 
-ucg_status_t scp_worker_create_stars_stream(scp_worker_h worker, scp_ofd_stars_stream_h stream);
+ucg_status_t scp_worker_create_stars_stream(scp_worker_h worker, scp_ofd_stars_stream_h stream, uint16_t stream_depth);
 
 ucg_status_t scp_worker_delete_stars_stream(scp_worker_h worker, scp_ofd_stars_stream_h stream);
 
