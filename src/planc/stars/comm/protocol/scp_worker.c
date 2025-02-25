@@ -249,7 +249,7 @@ ucg_status_t scp_worker_get_address(scp_worker_h worker, scp_address_t **address
     return status;
 }
 
-ucg_status_t scp_worker_create_stars_stream(scp_worker_h worker, scp_ofd_stars_stream_h stream)
+ucg_status_t scp_worker_create_stars_stream(scp_worker_h worker, scp_ofd_stars_stream_h stream, uint16_t stream_depth)
 {
     ucg_status_t status;
 
@@ -260,7 +260,7 @@ ucg_status_t scp_worker_create_stars_stream(scp_worker_h worker, scp_ofd_stars_s
     ucs_status_t ucs_status;
     for (uint8_t idx = 0; idx < worker->num_ifaces; ++idx) {
         ucs_status = sct_iface_create_stars_stream(worker->ifaces[idx]->iface,
-                                                   &stream->stars_handle[idx]);
+                                                   &stream->stars_handle[idx], stream_depth);
         UCG_ASSERT_GOTO(ucs_status == UCS_OK, free_stream, ucg_status_s2g(ucs_status));
         ucg_debug("create stars handle %p", stream->stars_handle[idx]);
         stream->num++;

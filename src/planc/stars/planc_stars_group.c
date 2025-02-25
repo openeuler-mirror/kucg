@@ -4,6 +4,8 @@
 
 #include "planc_stars_group.h"
 
+#define STREAM_MIN_DEPTH 4096
+#define STREAM_MAX_DEPTH 65535
 
 ucg_status_t ucg_planc_stars_group_create(ucg_planc_context_h context,
                                           const ucg_planc_group_params_t *params,
@@ -21,8 +23,19 @@ ucg_status_t ucg_planc_stars_group_create(ucg_planc_context_h context,
     UCG_ASSERT_CODE_GOTO(status, err_free_group);
 
     ucg_planc_stars_context_t *stars_ctx = (ucg_planc_stars_context_t *)context;
+    size_t stream_depth = stars_ctx->scp_context->scp_config->ctx.stream_depth;
+    if (stream_depth < STREAM_MIN_DEPTH) {
+        ucg_warn("Invalid stream_depth %zu, which should be 4096 at least,"
+                 " automatically set to 4096", stream_depth);
+        stream_depth = STREAM_MIN_DEPTH;
+    } else if (stream_depth > STREAM_MAX_DEPTH) {
+        ucg_warn("Invalid stream_depth %zu, which should be 65535 at most,"
+                 " automatically set to 65535", stream_depth);
+        stream_depth = STREAM_MAX_DEPTH;
+    }
+
     status = scp_worker_create_stars_stream(stars_ctx->scp_worker,
-                                            &stars_group->stars_stream);
+                                            &stars_group->stars_stream, stream_depth);
     UCG_ASSERT_CODE_GOTO(status, err_free_group);
 
     *planc_group = (ucg_planc_group_h)stars_group;
