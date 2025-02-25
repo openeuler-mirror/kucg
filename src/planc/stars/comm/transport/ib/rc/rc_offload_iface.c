@@ -240,13 +240,16 @@ ucs_status_t sct_rc_ofd_iface_submit_request(sct_iface_h tl_iface, sct_ofd_req_h
     return UCS_OK;
 }
 
-static ucs_status_t sct_rc_ofd_iface_create_stars_stream(sct_iface_h tl_iface, void **handle_p)
+static ucs_status_t sct_rc_ofd_iface_create_stars_stream(sct_iface_h tl_iface, void **handle_p, uint16_t stream_depth)
 {
     sct_rc_ofd_iface_t *iface = ucs_derived_of(tl_iface, sct_rc_ofd_iface_t);
     sct_md_h tl_md = iface->super.super.super.md;
     sct_rc_ofd_md_t *md = ucs_derived_of(tl_md, sct_rc_ofd_md_t);
+    stars_handle_attrs_t handle_config;
+    handle_config.streamDepth = stream_depth;
 
-    void *handle = api_stars_get_handle(tl_md->stars_dev_id, md->dev_attr.pool_id);
+    void *handle = api_stars_get_handle_ex(tl_md->stars_dev_id, md->dev_attr.pool_id, &handle_config);
+
     if (ucg_unlikely(handle == NULL)) {
         ucg_error("Failed to create stars handle %m");
         return UCS_ERR_NO_RESOURCE;
