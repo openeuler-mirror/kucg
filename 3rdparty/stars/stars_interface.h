@@ -165,6 +165,11 @@ typedef struct stars_info {
     unsigned int        dev_num;
 } stars_info_t;
 
+typedef struct {
+    uint16_t streamDepth;  // stream深度, 范围: [32, 65535]
+    uint16_t reserved[7];
+} stars_handle_attrs_t;
+
 /**
  * @ingroup rt_stars
  * @brief stars设备初始化
@@ -202,6 +207,17 @@ RTS_API int stars_get_info(stars_info_t *info);
  * @return stars handle             stars句柄
  */
 RTS_API void *stars_get_handle(int dev_id, unsigned int pool_id);
+
+/**
+ * @ingroup rt_stars
+ * @brief 分配一个stars rtsq通道
+ * @param [in]  dev_id              设备id
+ * @param [in]  pool_id             die id
+ * @param [in]  config              handle属性参数
+ * @param [out]  stars handle
+ * @return stars handle             stars句柄
+ */
+RTS_API void *stars_get_handle_ex(int dev_id, unsigned int pool_id, stars_handle_attrs_t *config);
 
 /**
  * @ingroup rt_stars
