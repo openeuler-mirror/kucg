@@ -42,6 +42,7 @@ typedef struct scp_context_config {
     uint8_t 							   	multirails;
     size_t 								    multirails_threshold;
     int                                     scp_ep_cache_enabled;
+    size_t                                  stream_depth;
 } scp_context_config_t;
 
 typedef struct scp_config {

@@ -73,6 +73,13 @@ static ucs_config_field_t scp_config_table[] = {
         "Set the multirails enabling threshold(bytes)",
         ucs_offsetof(scp_config_t, ctx.multirails_threshold),
         UCS_CONFIG_TYPE_ULONG},
+    
+    {"STREAM_DEPTH",
+        UCS_PP_MAKE_STRING(4096),
+        "Set the stream depth of stars handle",
+        ucs_offsetof(scp_config_t, ctx.stream_depth),
+        UCS_CONFIG_TYPE_ULONG},
+
     {NULL}};
 
 UCS_CONFIG_REGISTER_TABLE(scp_config_table, "SCP context", NULL, scp_config_t,
