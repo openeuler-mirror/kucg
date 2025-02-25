@@ -232,11 +232,13 @@ ucs_status_t sct_sdma_ofd_iface_submit_request(sct_iface_h tl_iface, sct_ofd_req
     return UCS_OK;
 }
 
-static ucs_status_t sct_sdma_ofd_iface_create_stars_stream(sct_iface_h tl_iface, void **handle_p)
+static ucs_status_t sct_sdma_ofd_iface_create_stars_stream(sct_iface_h tl_iface, void **handle_p, uint16_t stream_depth)
 {
     sct_sdma_ofd_iface_t *iface = ucs_derived_of(tl_iface, sct_sdma_ofd_iface_t);
+    stars_handle_attrs_t handle_config;
+    handle_config.streamDepth = stream_depth;
 
-    void *handle = api_stars_get_handle(iface->sdma_md->super.stars_dev_id, 0);
+    void *handle = api_stars_get_handle_ex(iface->sdma_md->super.stars_dev_id, 0, &handle_config);
     if (ucg_unlikely(handle == NULL)) {
         ucg_error("Failed to create stars handle %m");
         return UCS_ERR_NO_RESOURCE;
