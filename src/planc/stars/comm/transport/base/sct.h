@@ -970,9 +970,9 @@ UCT_INLINE_API void sct_ofd_req_push_trans_tail(sct_ofd_req_h req, stars_trans_p
     req->stars.trans_task.count++;
 }
 
-UCT_INLINE_API ucs_status_t sct_iface_create_stars_stream(sct_iface_h iface, void **handle_p)
+UCT_INLINE_API ucs_status_t sct_iface_create_stars_stream(sct_iface_h iface, void **handle_p, uint16_t stream_depth)
 {
-    return iface->ops.iface_create_stars_stream(iface, handle_p);
+    return iface->ops.iface_create_stars_stream(iface, handle_p, stream_depth);
 }
 
 UCT_INLINE_API ucs_status_t sct_iface_delete_stars_stream(sct_iface_h iface, void *handle_p)

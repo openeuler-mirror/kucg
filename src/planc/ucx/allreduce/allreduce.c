@@ -127,10 +127,7 @@ static ucg_plan_policy_t allreduce_4_8[] = {
 };
 static ucg_plan_policy_t allreduce_4_16[] = {
     {1,  {0, 128}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {14, {128, 8192}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {13, {8192, 32768}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {14, {32768, 131072}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {12, {131072, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {14, {128, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
 
     {3,  {128, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
 
@@ -160,9 +157,8 @@ static ucg_plan_policy_t allreduce_4_64[] = {
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allreduce_4_LG[] = {
-    {6,  {0, 4096}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {3,  {4096, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {14, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {6,  {0, 64}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {14, {64, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
 
     {3,  {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
 

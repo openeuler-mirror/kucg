@@ -23,6 +23,7 @@ typedef RTS_API int (*STARS_DEV_INIT)(int dev_id);
 typedef RTS_API int (*STARS_DEV_DEINIT)(int dev_id);
 typedef RTS_API int (*STARS_GET_INFO)(stars_info_t *info);
 typedef RTS_API void* (*STARS_GET_HANDLE)(int dev_id, unsigned int pool_id);
+typedef RTS_API void* (*STARS_GET_HANDLE_EX)(int dev_id, unsigned int pool_id, stars_handle_attrs_t *config);
 typedef RTS_API int (*STARS_RELEASE_HANDLE)(void *phandle);
 typedef RTS_API int (*STARS_SEND_TASK)(void *phandle, stars_trans_parm_t *trans_parm, unsigned int task_count);
 typedef RTS_API int (*STARS_WAIT_CQE)(void *phandle, unsigned int task_count,
@@ -43,6 +44,7 @@ extern STARS_DEV_INIT           api_stars_dev_init;
 extern STARS_DEV_DEINIT         api_stars_dev_deinit;
 extern STARS_GET_INFO           api_stars_get_info;
 extern STARS_GET_HANDLE         api_stars_get_handle;
+extern STARS_GET_HANDLE_EX      api_stars_get_handle_ex;
 extern STARS_RELEASE_HANDLE     api_stars_release_handle;
 extern STARS_SEND_TASK          api_stars_send_task;
 extern STARS_WAIT_CQE           api_stars_wait_cqe;

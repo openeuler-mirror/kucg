@@ -36,7 +36,7 @@ typedef ucs_status_t (*sct_ep_connect_to_ep_func_t)(sct_ep_h ep,
 
 typedef ucs_status_t (*sct_ep_alloc_event_func_t)(sct_ep_h ep, sct_event_h event, uint8_t flag);
 
-typedef ucs_status_t (*sct_iface_create_stars_stream_func_t)(sct_iface_h iface, void **handle_p);
+typedef ucs_status_t (*sct_iface_create_stars_stream_func_t)(sct_iface_h iface, void **handle_p, uint16_t stream_depth);
 
 typedef ucs_status_t (*sct_iface_delete_stars_stream_func_t)(sct_iface_h iface, void *handle_p);
 

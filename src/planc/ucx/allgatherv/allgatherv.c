@@ -57,11 +57,9 @@ static ucg_plan_policy_t allgatherv_4_8[] = {
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allgatherv_4_16[] = {
-    {1, {0, 2048}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {2, {2048, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {2, {8192, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {1, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
 
-    {2, {0, 2048}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
     {3, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
     UCG_PLAN_LAST_POLICY,
 };
@@ -87,7 +85,7 @@ static ucg_plan_policy_t allgatherv_4_64[] = {
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allgatherv_4_LG[] = {
-    {2, {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {2, {1024, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allgatherv_8_1[] = {
@@ -116,11 +114,8 @@ static ucg_plan_policy_t allgatherv_8_8[] = {
     UCG_PLAN_LAST_POLICY,
 };
 static ucg_plan_policy_t allgatherv_8_16[] = {
-    {1, {0, 2048}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {2, {2048, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {6, {16384, 65536}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {1, {65536, 1048576}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
-    {2, {1048576, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {5, {0, 4096}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {6, {4096, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
 
     {2, {0, 2048}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
     {1, {16384, 65536}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
