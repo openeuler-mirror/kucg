@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 #include "allgatherv.h"
@@ -116,6 +116,47 @@ put_elem:
     return status;
 }
 
+static ucg_status_t ucg_planc_stars_allgatherv_rolling_put_self_data(ucg_planc_stars_op_t *op)
+{
+    ucg_status_t status = UCG_OK;
+    stars_comm_plan_t *plan = &op->plan;
+    ucg_coll_allgatherv_args_t *args = &op->super.super.args.allgatherv;
+    ucg_rank_t myrank = op->super.vgroup->myrank;
+    stars_rank_info_h peer_rank;
+    if (args->sendbuf == UCG_IN_PLACE || args->recvcounts[myrank] == 0) {
+        return UCG_OK;
+    }
+    // Put req.
+    scp_ofd_req_elem_h put_request = ucg_planc_stars_op_get_ofd_req_elem(op);
+    UCG_ASSERT_RET(put_request != NULL, UCG_ERR_NO_MEMORY);
+    peer_rank = &plan->comm_dep.put_ranks[2];
+    int64_t offset = args->displs[myrank] * ucg_dt_extent(args->recvtype);
+
+    put_request->lbuf               = (void*)args->sendbuf;
+    put_request->llen               = args->sendcount * ucg_dt_extent(args->sendtype);
+    put_request->rbuf               = (void *)peer_rank->rbuf_desc->addr + offset;
+    put_request->lmemh              = plan->lsmemh;
+    put_request->scp_event          = NULL;
+    put_request->type               = OFFLOAD_PUT;
+    status = ucg_planc_stars_fill_ofd_put_req_elem(ROLLING_EID_IDX, peer_rank, put_request);
+    UCG_ASSERT_CODE_GOTO(status, free_put_request);
+    ucg_planc_stars_op_push_ofd_req_elem(op, put_request);
+    // Wait req.
+    scp_ofd_req_elem_h wait_request = ucg_planc_stars_op_get_ofd_req_elem(op);
+    UCG_ASSERT_RET(wait_request != NULL, UCG_ERR_NO_MEMORY);
+    peer_rank = &plan->comm_dep.get_ranks[2];
+    status = ucg_planc_stars_fill_ofd_wait_req_elem(ROLLING_EID_IDX, peer_rank, wait_request, op->plan.event_elem);
+    UCG_ASSERT_CODE_GOTO(status, free_wait_request);
+    ucg_planc_stars_op_push_ofd_req_elem(op, wait_request);
+
+    return UCG_OK;
+free_wait_request:
+    ucg_mpool_put(wait_request);
+free_put_request:
+    ucg_mpool_put(put_request);
+    return status;
+}
+
 static ucg_status_t UCG_STARS_ALGO_FUN(allgatherv_rolling, submit_op)(ucg_planc_stars_op_t *op)
 {
     ucg_status_t status;
@@ -125,6 +166,10 @@ static ucg_status_t UCG_STARS_ALGO_FUN(allgatherv_rolling, submit_op)(ucg_planc_
     int step_idx, peer_idx;
 
     ucg_algo_ring_iter_t *iter = &op->allgatherv.ring_iter;
+    // If not in place, put data to self.
+    status = ucg_planc_stars_allgatherv_rolling_put_self_data(op);
+    UCG_CHECK_GOTO(status, out);
+
     while (!ucg_algo_ring_iter_end(iter)) {
         step_idx = ucg_algo_ring_iter_idx(iter);
         peer_idx = (myrank + step_idx + 1) & 1;
@@ -175,7 +220,12 @@ static ucg_status_t UCG_STARS_ALGO_FUN(allgatherv_rolling, init_sbuf)(ucg_planc_
                                                                       ucg_coll_args_t *coll_args)
 {
     // we copy the data of sendbuf to recvbuf and we use recvbuf to communicate, thus we don't need init sendbuf.
-    return UCG_OK;
+    ucg_coll_allgatherv_args_t *args = &op->super.super.args.allgatherv;
+    ucg_status_t myrank = op->super.vgroup->myrank;
+    if (args->sendbuf == UCG_IN_PLACE || args->recvcounts[myrank] == 0) {
+        return UCG_OK;
+    }
+    return ucg_planc_stars_sbuf_init(op, (void *)args->sendbuf, args->sendcount * ucg_dt_extent(args->sendtype));
 }
 
 static inline size_t UCG_STARS_ALGO_FUN(allgatherv_rolling, put_max_size)(ucg_planc_stars_op_t *op,
@@ -261,50 +311,46 @@ static ucg_status_t UCG_STARS_ALGO_FUN(allgatherv_rolling, offload_plan)(ucg_pla
     ucg_rank_t myid = vgroup->myrank;
     ucg_rank_t numprocs = vgroup->size;
     ucg_status_t status;
-    comm_dep->get_ranks = ucg_calloc(ROLLING_PEER_NUM, sizeof(stars_rank_info_t), "comm get ranks");
-    if (comm_dep->get_ranks == NULL) {
-        return UCG_ERR_NO_MEMORY;
+
+    comm_dep->get_ranks = NULL;
+    comm_dep->put_ranks = NULL;
+    comm_dep->get_rank_num = ROLLING_PEER_NUM + 1;
+    comm_dep->put_rank_num = ROLLING_PEER_NUM + 1;
+
+    status = ucg_planc_stars_rank_dep_alloc(comm_dep);
+    UCG_ASSERT_CODE_RET(status);
+
+    ucg_rank_t get_peer_id[3], put_peer_id[3];
+    put_peer_id[0] = (myid + numprocs - 1) % numprocs;
+    put_peer_id[1] = (myid + 1) % numprocs;
+    put_peer_id[2] = myid;
+    get_peer_id[0] = (myid + numprocs - 1) % numprocs;
+    get_peer_id[1] = (myid + 1) % numprocs;
+    get_peer_id[2] = myid;
+
+    for (uint32_t cnt = 0; cnt < comm_dep->get_rank_num; ++cnt) {
+        status = ucg_planc_stars_rank_dep_init(op, &comm_dep->get_ranks[cnt],
+                                               get_peer_id[cnt], 1);
+        UCG_ASSERT_CODE_GOTO(status, err_free_memory);
     }
 
-    comm_dep->put_ranks = ucg_calloc(ROLLING_PEER_NUM, sizeof(stars_rank_info_t), "comm put ranks");
-    if (comm_dep->put_ranks == NULL) {
-        status = UCG_ERR_NO_MEMORY;
-        goto err_free_memory;
-    }
-    comm_dep->put_ranks[0].peer_id = (myid + numprocs - 1) % numprocs;
-    comm_dep->put_ranks[1].peer_id = (myid + 1) % numprocs;
-    comm_dep->put_rank_num = ROLLING_PEER_NUM;
-
-    comm_dep->get_ranks[0].peer_id = (myid + numprocs - 1) % numprocs;
-    comm_dep->get_ranks[1].peer_id = (myid + 1) % numprocs;
-    comm_dep->get_rank_num = ROLLING_PEER_NUM;
-
-    status = ucg_planc_stars_rank_dep_init(op, &comm_dep->get_ranks[0],
-                                           comm_dep->get_ranks[0].peer_id, ROLLING_EID_NUM);
-    if (status != UCG_OK) {
-        goto err_free_memory;
-    }
-    status = ucg_planc_stars_rank_dep_init(op, &comm_dep->get_ranks[1],
-                                           comm_dep->get_ranks[1].peer_id, ROLLING_EID_NUM);
-    if (status != UCG_OK) {
-        goto err_free_memory;
-    }
-
-    status = ucg_planc_stars_rank_dep_init(op, &comm_dep->put_ranks[0],
-                                           comm_dep->put_ranks[0].peer_id, ROLLING_EID_NUM);
-    if (status != UCG_OK) {
-        goto err_free_memory;
-    }
-    status = ucg_planc_stars_rank_dep_init(op, &comm_dep->put_ranks[1],
-                                           comm_dep->put_ranks[1].peer_id, ROLLING_EID_NUM);
-    if (status != UCG_OK) {
-        goto err_free_memory;
+    for (uint32_t cnt = 0; cnt < comm_dep->put_rank_num; ++cnt) {
+        status = ucg_planc_stars_rank_dep_init(op, &comm_dep->put_ranks[cnt],
+                                               put_peer_id[cnt], 1);
+        UCG_ASSERT_CODE_GOTO(status, err_free_memory);
     }
 
     return UCG_OK;
 
 err_free_memory:
-    ucg_free(comm_dep->get_ranks);
+    if (comm_dep->get_ranks) {
+        ucg_free(comm_dep->get_ranks);
+        comm_dep->get_ranks = NULL;
+    }
+    if (comm_dep->put_ranks) {
+        ucg_free(comm_dep->put_ranks);
+        comm_dep->put_ranks = NULL;
+    }
     return status;
 }
 
@@ -351,17 +397,6 @@ UCG_STARS_ALGO_FUN(allgatherv_rolling, trigger)(ucg_plan_op_t *ucg_op)
 
     ucg_status_t status;
     op->super.super.status = UCG_ERR_IO_ERROR;
-
-    ucg_rank_t myrank = op->super.vgroup->myrank;
-    ucg_coll_allgatherv_args_t *args = &op->super.super.args.allgatherv;
-    if (args->sendbuf != UCG_IN_PLACE && args->recvcounts[myrank] != 0) {
-        uint32_t recvtype_extent = ucg_dt_extent(args->recvtype);
-        status = ucg_dt_memcpy((char *)args->recvbuf + args->displs[myrank] * recvtype_extent,
-                               args->recvcounts[myrank], args->recvtype,
-                               args->sendbuf, args->sendcount, args->sendtype);
-        UCG_ASSERT_CODE_RET(status);
-    }
-
     status = ucg_planc_stars_plan_get_stats_elem(op);
     UCG_ASSERT_CODE_RET(status);
 
