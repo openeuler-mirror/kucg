@@ -99,6 +99,7 @@ static ucg_status_t ucg_planc_stars_set_plan_attr(ucg_vgroup_t *vgroup,
 ucg_status_t ucg_planc_stars_op_discard(ucg_plan_op_t *ucg_op)
 {
     ucg_planc_stars_op_t *op = ucg_derived_of(ucg_op, ucg_planc_stars_op_t);
+    scp_release_ofd_req(&op->ofd_req);
     ucg_planc_stars_rkey_bundle_cleanup(op);
     ucg_planc_stars_put_rank_desc_cleanup(op);
     if (op->plan.comm_dep.get_ranks) {
