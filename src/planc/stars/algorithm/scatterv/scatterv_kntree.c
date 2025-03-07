@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 #include "scatterv.h"
@@ -648,11 +648,7 @@ static ucg_status_t UCG_STARS_ALGO_FUN(scatterv_kntree, discard)(ucg_plan_op_t *
 
     UCG_STATS_GET_TIME(buf_cleanup);
     if (op->scatterv.kntree.is_empty == 0) {
-        if (vgroup->myrank == args->root) {
-            ucg_planc_stars_buf_cleanup(op, STARS_BUFF_SEND);
-        } else {
-            ucg_planc_stars_buf_cleanup(op, STARS_BUFF_RECV);
-        }
+        ucg_planc_stars_buf_cleanup(op);
     }
 
     if (op->staging_area != NULL) {

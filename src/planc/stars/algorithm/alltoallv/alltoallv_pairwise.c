@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 #include "alltoallv.h"
@@ -312,8 +312,7 @@ UCG_STARS_ALGO_FUN(alltoallv_pairwise, discard)(ucg_plan_op_t *ucg_op)
     status = op->meta_op->discard(op->meta_op);
     op->meta_op = NULL;
     UCG_ASSERT_CODE_RET(status);
-    ucg_planc_stars_buf_cleanup(op, STARS_BUFF_SEND);
-    ucg_planc_stars_buf_cleanup(op, STARS_BUFF_RECV);
+    ucg_planc_stars_buf_cleanup(op);
     status = ucg_planc_stars_op_discard(ucg_op);
     UCG_ASSERT_CODE_RET(status);
     UCG_CLASS_DESTRUCT(ucg_plan_op_t, ucg_op);

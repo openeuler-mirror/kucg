@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 #include "bcast.h"
@@ -578,7 +578,7 @@ static ucg_status_t UCG_STARS_ALGO_FUN(bcast_long_m, discard)(ucg_plan_op_t *ucg
     UCG_STATS_GET_TIME(start_tick);
     ucg_planc_stars_op_t *op = ucg_derived_of(ucg_op, ucg_planc_stars_op_t);
     UCG_STATS_GET_TIME(buf_cleanup);
-    ucg_planc_stars_buf_cleanup(op, STARS_BUFF_RECV);
+    ucg_planc_stars_buf_cleanup(op);
     UCG_STATS_GET_TIME(op_cleanup);
     kh_init_inplace(rank_idx, &op->bcast.longg.rank_idx_map);
     ucg_planc_stars_op_discard(ucg_op);

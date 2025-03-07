@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 #include "planc_stars_context.h"
@@ -403,25 +403,26 @@ ucg_status_t ucg_planc_stars_context_init(const ucg_planc_params_t *params,
                             UINT_MAX, NULL, "planc stars buf desc mpool");
     UCG_ASSERT_CODE_GOTO(status, err_destory_op_pool);
 
+    kh_init_inplace(scp_ep, &ctx->eps_pool);
+    ucg_planc_stars_events_pool_init(ctx);
+    UCG_ASSERT_CODE_GOTO(status, err_destory_msg_pool);
+
 #ifdef ENABLE_STARS_STATS
     status = ucg_mpool_init(&ctx->stats_pool, 0, sizeof(ofd_stats_elem_t),
                             0, UCG_CACHE_LINE_SIZE, UCG_ELEMS_PER_CHUNK,
                             UINT_MAX, NULL, "planc stars stats mpool");
-    UCG_ASSERT_CODE_GOTO(status, err_destory_msg_pool);
+    UCG_ASSERT_CODE_GOTO(status, err_destory_events_pool);
 #endif
 
-    kh_init_inplace(scp_ep, &ctx->eps_pool);
-    ucg_planc_stars_events_pool_init(ctx);
-    UCG_ASSERT_CODE_GOTO(status, err_destory_events_pool);
     *context = (ucg_planc_context_h)ctx;
     return UCG_OK;
 
+#ifdef ENABLE_STARS_STATS
 err_destory_events_pool:
     ucg_planc_stars_events_pool_destroy(ctx);
-#ifdef ENABLE_STARS_STATS
+#endif
 err_destory_msg_pool:
     ucg_mpool_cleanup(&ctx->msg_mp, 1);
-#endif
 err_destory_op_pool:
     ucg_mpool_cleanup(&ctx->op_mp, 1);
 err_destroy_worker:
