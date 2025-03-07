@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 #include "planc_stars_buffer.h"
@@ -123,14 +123,14 @@ ucg_status_t ucg_planc_stars_rbuf_init(ucg_planc_stars_op_t *op, void *buffer,
     }
 
     UCG_ASSERT_CODE_GOTO(status, free_memh);
-
+    plan->buf_desc_flag |= STARS_BUFF_RECV;
     return UCG_OK;
 
 free_memh:
     ucg_free(plan->lrmemh);
     plan->lrmemh = NULL;
 free_buf:
-    ucg_free(plan->lrbuf_desc);
+    ucg_mpool_put(plan->lrbuf_desc);
     plan->lrbuf_desc = NULL;
     return status;
 }
@@ -180,6 +180,7 @@ ucg_status_t ucg_planc_stars_sbuf_init(ucg_planc_stars_op_t *op, void *buffer,
 
     plan->lsbuf_desc->addr = (uintptr_t)buffer;
     plan->lsbuf_desc->length = length;
+    plan->buf_desc_flag |= STARS_BUFF_SEND;
     return UCG_OK;
 
 free_desc:
@@ -272,7 +273,7 @@ static void ucg_planc_stars_events_release(ucg_planc_stars_op_t *op)
     return;
 }
 
-void ucg_planc_stars_buf_cleanup(ucg_planc_stars_op_t *op, uint8_t flags)
+void ucg_planc_stars_buf_cleanup(ucg_planc_stars_op_t *op)
 {
     stars_comm_plan_t *plan = &op->plan;
     UCG_STATS_GET_TIME(start_tick);
@@ -284,11 +285,11 @@ void ucg_planc_stars_buf_cleanup(ucg_planc_stars_op_t *op, uint8_t flags)
 
 
     UCG_STATS_GET_TIME(event_free);
-    if (flags & STARS_BUFF_SEND) {
+    if (plan->buf_desc_flag  & STARS_BUFF_SEND) {
         ucg_planc_stars_sbuf_deinit(op->stars_group->context->scp_context, plan);
     }
     UCG_STATS_GET_TIME(sbuf_deinit);
-    if (flags & STARS_BUFF_RECV) {
+    if (plan->buf_desc_flag  & STARS_BUFF_RECV) {
         ucg_planc_stars_rbuf_deinit(op->stars_group->context->scp_context, plan, &op->stats);
     }
     UCG_STATS_GET_TIME(rbuf_deinit);
