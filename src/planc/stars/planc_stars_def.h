@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 #ifndef UCG_PLANC_STARS_DEF_H_
@@ -54,6 +54,7 @@ typedef struct stars_event_elem *stars_event_elem_h;
 
 typedef struct stars_comm_plan {
     stars_comm_dep_t         comm_dep;
+    uint8_t                  buf_desc_flag;          // flag indicates whether sbuf and rbuf initialized.
     stars_buf_desc_h         lsbuf_desc;             // local send buffer
     stars_buf_desc_h         lrbuf_desc;             // local recv buffer
     sct_mem_h                *lsmemh;                // use for local send buffer
