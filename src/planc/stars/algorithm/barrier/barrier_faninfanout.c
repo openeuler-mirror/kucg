@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 #include "barrier_faninfanout.h"
@@ -326,7 +326,7 @@ inline static ucg_status_t UCG_STARS_ALGO_FUN(barrier_faninfanout, progress)(ucg
 static ucg_status_t UCG_STARS_ALGO_FUN(barrier_faninfanout, discard)(ucg_plan_op_t *ucg_op)
 {
     ucg_planc_stars_op_t *op = ucg_derived_of(ucg_op, ucg_planc_stars_op_t);
-    ucg_planc_stars_buf_cleanup(op, STARS_BUFF_RECV);
+    ucg_planc_stars_buf_cleanup(op);
     if (op->staging_area != NULL) {
         ucg_free(op->staging_area);
     }
