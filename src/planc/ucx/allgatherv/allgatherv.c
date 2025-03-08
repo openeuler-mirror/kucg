@@ -373,13 +373,16 @@ const ucg_plan_policy_t *ucg_planc_ucx_get_allgatherv_plan_policy(ucg_planc_ucx_
     ucg_assert(idx < NODE_LEVEL_NUMS * PPN_LEVEL_NUMS);
     ucg_plan_policy_t *policy;
     ucg_planc_ucx_allgatherv_config_t *config;
-    config = UCG_PLANC_UCX_CONTEXT_BUILTIN_CONFIG_BUNDLE(ucx_group->context, allgatherv,
-                                                         UCG_COLL_TYPE_ALLGATHERV);
-    
-    if (config->policy_default) {
-        policy = allgatherv_plan_policy_default[idx];
+    if (ucg_planc_ucx_context_config_builtin_check(ucx_group->context, UCG_COLL_TYPE_ALLGATHERV)) {
+        config = UCG_PLANC_UCX_CONTEXT_BUILTIN_CONFIG_BUNDLE(ucx_group->context, allgatherv,
+                                                             UCG_COLL_TYPE_ALLGATHERV);
+        if (config->policy_default) {
+            policy = allgatherv_plan_policy_default[idx];
+        } else {
+            policy = allgatherv_plan_policy[idx];
+        }
     } else {
-        policy = allgatherv_plan_policy[idx];
+        policy = allgatherv_plan_policy_default[idx];
     }
     return policy;
 }

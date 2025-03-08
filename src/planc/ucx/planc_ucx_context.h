@@ -73,6 +73,12 @@ typedef struct ucg_planc_ucx_context {
 
 #define UCG_PLANC_UCX_CONTEXT_CONFIG_BUNDLE(_context, _coll_name, _coll_type, _module_type) \
     _context->config.config_bundle[_coll_type][_module_type]->data
+
+static inline int ucg_planc_ucx_context_config_builtin_check(ucg_planc_ucx_context_t *context, ucg_coll_type_t type)
+{
+    return context->config.config_bundle[type][UCX_BUILTIN] ? 1 : 0;
+}
+
 /** Configuration */
 ucg_status_t ucg_planc_ucx_config_read(const char *env_prefix,
                                        const char *filename,
