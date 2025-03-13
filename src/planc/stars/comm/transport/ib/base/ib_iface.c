@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 #include "ib_iface.h"
@@ -1309,7 +1309,7 @@ ucs_status_t sct_ib_iface_query(sct_ib_iface_t *iface, size_t xport_hdr_len,
                            SCT_IB_VCRC_LEN + SCT_IB_DELIM_LEN + SCT_IB_GRH_LEN + SCT_IB_ROCE_LEN;
 
     sct_ib_md_t *md = sct_ib_iface_md(iface);
-    iface_attr->bandwidth.shared = ucs_min((wire_speed * mtu) / (mtu + extra_pkt_len), md->pci_bw);
+    iface_attr->bandwidth.shared = (wire_speed * mtu) / (mtu + extra_pkt_len);
     iface_attr->bandwidth.dedicated = 0;
 
     sct_ib_device_t *dev = sct_ib_iface_device(iface);
