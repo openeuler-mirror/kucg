@@ -87,6 +87,13 @@ static ucg_config_field_t allreduce_config_table[] = {
      ucg_offsetof(ucg_planc_ucx_allreduce_config_t, nta_kntree_intra_degree),
      UCG_CONFIG_TYPE_INT},
 
+    {"ALLREDUCE_DEFAULT_POLICY", "y",
+     "Enable default policy\n"
+     " - y : use default policy\n"
+     " - n : don't use default policy",
+     ucg_offsetof(ucg_planc_ucx_allreduce_config_t, policy_default),
+     UCG_CONFIG_TYPE_BOOL},
+
     {NULL}
 };
 UCG_PLANC_UCX_BUILTIN_ALGO_REGISTER(UCG_COLL_TYPE_ALLREDUCE, allreduce_config_table,
@@ -134,6 +141,20 @@ static ucg_plan_policy_t allreduce_4_16[] = {
     {1,  {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_3RD},
     UCG_PLAN_LAST_POLICY,
 };
+
+static ucg_plan_policy_t allreduce_4_16_default[] = {
+    {1,  {0, 128}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {14, {128, 8192}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {13, {8192, 32768}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {14, {32768, 131072}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {12, {131072, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {3,  {128, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+
+    {1,  {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_3RD},
+    UCG_PLAN_LAST_POLICY,
+};
+
 static ucg_plan_policy_t allreduce_4_32[] = {
     {1,  {0, 64}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {6,  {64, 256}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
@@ -165,6 +186,18 @@ static ucg_plan_policy_t allreduce_4_LG[] = {
     {1,  {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_3RD},
     UCG_PLAN_LAST_POLICY,
 };
+
+static ucg_plan_policy_t allreduce_4_LG_default[] = {
+    {6,  {0, 4096}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {3,  {4096, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {14, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+
+    {3,  {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_2ND},
+
+    {1,  {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_3RD},
+    UCG_PLAN_LAST_POLICY,
+};
+
 static ucg_plan_policy_t allreduce_8_1[] = {
     {2,  {0, 16}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {7,  {16, 64}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
@@ -459,11 +492,55 @@ static ucg_plan_policy_t* allreduce_plan_policy[] = {
     allreduce_LG_LG,
 };
 
+static ucg_plan_policy_t* allreduce_plan_policy_default[] = {
+    allreduce_4_1,
+    allreduce_4_4,
+    allreduce_4_8,
+    allreduce_4_16_default,
+    allreduce_4_32,
+    allreduce_4_64,
+    allreduce_4_LG_default,
+    allreduce_8_1,
+    allreduce_8_4,
+    allreduce_8_8,
+    allreduce_8_16,
+    allreduce_8_32,
+    allreduce_8_64,
+    allreduce_8_LG,
+    allreduce_16_1,
+    allreduce_16_4,
+    allreduce_16_8,
+    allreduce_16_16,
+    allreduce_16_32,
+    allreduce_16_64,
+    allreduce_16_LG,
+    allreduce_LG_1,
+    allreduce_LG_4,
+    allreduce_LG_8,
+    allreduce_LG_16,
+    allreduce_LG_32,
+    allreduce_LG_64,
+    allreduce_LG_LG,
+};
+
 const ucg_plan_policy_t *ucg_planc_ucx_get_allreduce_plan_policy(ucg_planc_ucx_node_level_t node_level,
-                                                                 ucg_planc_ucx_ppn_level_t ppn_level)
+                                                                 ucg_planc_ucx_ppn_level_t ppn_level,
+                                                                 ucg_planc_ucx_group_t *ucx_group)
 {
     int idx = node_level * PPN_LEVEL_NUMS + ppn_level;
     ucg_assert(idx < NODE_LEVEL_NUMS * PPN_LEVEL_NUMS);
-    ucg_plan_policy_t *policy = allreduce_plan_policy[idx];
+    ucg_plan_policy_t *policy;
+    ucg_planc_ucx_allreduce_config_t *config;
+    if (ucg_planc_ucx_context_config_builtin_check(ucx_group->context, UCG_COLL_TYPE_ALLREDUCE)) {
+        config = UCG_PLANC_UCX_CONTEXT_BUILTIN_CONFIG_BUNDLE(ucx_group->context, allreduce,
+                                                             UCG_COLL_TYPE_ALLREDUCE);
+        if (config->policy_default) {
+            policy = allreduce_plan_policy_default[idx];
+        } else {
+            policy = allreduce_plan_policy[idx];
+        }
+    } else {
+        policy = allreduce_plan_policy_default[idx];
+    }
     return policy;
 }
