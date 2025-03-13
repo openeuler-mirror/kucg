@@ -16,11 +16,11 @@ static const ucg_plan_policy_t* ucg_planc_ucx_get_plan_policy(ucg_coll_type_t co
     switch (coll_type) {
         case UCG_COLL_TYPE_BCAST:
         case UCG_COLL_TYPE_IBCAST:
-            policy = ucg_planc_ucx_get_bcast_plan_policy(node_level, ppn_level);
+            policy = ucg_planc_ucx_get_bcast_plan_policy(node_level, ppn_level, ucx_group);
             break;
         case UCG_COLL_TYPE_ALLREDUCE:
         case UCG_COLL_TYPE_IALLREDUCE:
-            policy = ucg_planc_ucx_get_allreduce_plan_policy(node_level, ppn_level);
+            policy = ucg_planc_ucx_get_allreduce_plan_policy(node_level, ppn_level, ucx_group);
             break;
         case UCG_COLL_TYPE_BARRIER:
         case UCG_COLL_TYPE_IBARRIER:
