@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2024-2024. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2024-2025. All rights reserved.
  */
 
 #include "scp_worker.h"
@@ -37,6 +37,15 @@ static ucg_status_t scp_worker_iface_open(scp_worker_h worker, scp_rsc_index_t t
     /* Get interface attributes */
     ucs_status = sct_iface_query(wiface->iface, &wiface->attr);
     CHKERR_JUMP(UCS_OK != ucs_status, "query iface", error_close_iface);
+
+    /* Filter out ports with speeds below 100Gbps */
+    if (wiface->attr.bandwidth.shared < (100e9 / 8.0f)) {
+        ucg_info("Stars don't support ports (dev name: %s bandwidth: %.4f) with speeds below 100Gbps",
+               worker->context->tl_rscs[wiface->rsc_index].tl_rsc.dev_name,
+               wiface->attr.bandwidth.shared);
+        ucs_status = UCS_ERR_UNSUPPORTED;
+        goto error_close_iface;
+    }
 
     *wiface_p = wiface;
     return UCG_OK;
@@ -80,39 +89,54 @@ static inline uint8_t scp_worker_cmp_md_subnet(scp_context_h context,
            context->tl_mds[md_idx_b].md->subnet_id ? 1 : 0);
 }
 
-static inline void scp_worker_exchange_md(scp_context_h context,
-                                          scp_worker_iface_h left,
-                                          scp_worker_iface_h right)
+static ucg_status_t scp_worker_refill_mds(scp_worker_h worker)
 {
-    scp_tl_md_t md;
-    uint8_t md_idx;
-    // exchange tl_mds
-    uint8_t *md_idx_a = &context->tl_rscs[left->rsc_index].md_index;
-    uint8_t *md_idx_b = &context->tl_rscs[right->rsc_index].md_index;
-    md = context->tl_mds[*md_idx_a];
-    context->tl_mds[*md_idx_a] = context->tl_mds[*md_idx_b];
-    context->tl_mds[*md_idx_b] = md;
-    // exchange md_index
-    md_idx = *md_idx_a;
-    *md_idx_a = *md_idx_b;
-    *md_idx_b = md_idx;
-    return;
+    scp_worker_iface_h *ifaces_p = worker->ifaces;
+    scp_context_h context = worker->context;
+    scp_tl_resource_desc_t* tl_rscs = context->tl_rscs;
+    scp_md_index_t num_mds = context->num_mds;
+    scp_tl_md_t *mds = context->tl_mds;
+    uint8_t iface_num = worker->num_ifaces;
+    scp_rsc_index_t rsc_idx, md_idx, new_md_idx = 0;
+    uint32_t mds_map = 0;
+
+    scp_tl_md_t *temp_mds = (scp_tl_md_t *)ucg_calloc(num_mds, sizeof(scp_tl_md_t), "temp mds");
+    if (!temp_mds) {
+        ucg_error("Failed to alloc memory in mds resill!\n");
+        return UCG_ERR_NO_MEMORY;
+    }
+    // Fill new mds.
+    for (; new_md_idx < iface_num; new_md_idx++) {
+        rsc_idx = ifaces_p[new_md_idx]->rsc_index;
+        md_idx = tl_rscs[rsc_idx].md_index;
+        temp_mds[new_md_idx] = mds[md_idx];
+        tl_rscs[rsc_idx].md_index = new_md_idx;
+        mds_map |= UCS_BIT(md_idx);
+    }
+    // Some iface is closed, fill their mds.
+    for (scp_md_index_t idx = 0; idx < num_mds; idx++) {
+        if (mds_map & UCS_BIT(idx)) {
+            continue;
+        }
+        temp_mds[new_md_idx++] = mds[idx];
+    }
+    memcpy(mds, temp_mds, num_mds * sizeof(scp_tl_md_t));
+    ucg_free(temp_mds);
+    return UCG_OK;
 }
 
 static ucg_status_t scp_worker_select_ifaces(scp_worker_h worker)
 {
+    ucg_status_t status;
     scp_worker_iface_h iface_p = NULL;
     scp_worker_iface_h *ifaces_p = worker->ifaces;
-    scp_tl_md_t md;
     scp_context_h context = worker->context;
     uint8_t iface_num = worker->num_ifaces;
-    uint8_t md_idx;
 
     /* sort iface array and mds by latency*/
     for (uint8_t i = 0; i < iface_num - 1; i++) {
         for (uint8_t j = 0; j < iface_num - i - 1; j++) {
             if (scp_worker_cmp_iface(&ifaces_p[j]->attr, &ifaces_p[j + 1]->attr)) {
-                scp_worker_exchange_md(context, ifaces_p[j], ifaces_p[j + 1]);
                 // exchange iface
                 iface_p = ifaces_p[j];
                 ifaces_p[j] = ifaces_p[j + 1];
@@ -130,13 +154,19 @@ static ucg_status_t scp_worker_select_ifaces(scp_worker_h worker)
     for (uint8_t i = 0; i < iface_num - 1; i++) {
         for (uint8_t j = 0; j < iface_num - i - 1; j++) {
             if (scp_worker_cmp_md_subnet(context, ifaces_p[j], ifaces_p[j + 1])) {
-                scp_worker_exchange_md(context, ifaces_p[j], ifaces_p[j + 1]);
                 // exchange iface
                 iface_p = ifaces_p[j];
                 ifaces_p[j] = ifaces_p[j + 1];
                 ifaces_p[j + 1] = iface_p;
             }
         }
+    }
+
+    /* Refill mds by order of iface. */
+    status = scp_worker_refill_mds(worker);
+    if (status != UCG_OK) {
+        ucg_error("Failed to refill mds!\n");
+        return status;
     }
 
     /* close some iface that unused later */
@@ -177,6 +207,8 @@ static ucg_status_t scp_worker_add_resource_ifaces(scp_worker_h worker)
         status = scp_worker_iface_open(worker, tl_id, &iface_params,
                                        &worker->ifaces[iface_idx++]);
         if (status != UCG_OK) {
+            context->tl_bitmap &= ~UCS_BIT(tl_id);
+            iface_idx--;
             continue;
         }
     }
