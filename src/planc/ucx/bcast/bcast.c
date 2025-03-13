@@ -95,8 +95,16 @@ static ucg_config_field_t bcast_config_table[] = {
     ucg_offsetof(ucg_planc_ucx_bcast_config_t, max_bsend),
     UCG_CONFIG_TYPE_MEMUNITS},
 
+    {"BCAST_DEFAULT_POLICY", "y",
+     "Enable default policy\n"
+     " - y : use default policy\n"
+     " - n : don't use default policy",
+     ucg_offsetof(ucg_planc_ucx_bcast_config_t, policy_default),
+     UCG_CONFIG_TYPE_BOOL},
+
     {NULL}
 };
+
 UCG_PLANC_UCX_BUILTIN_ALGO_REGISTER(UCG_COLL_TYPE_BCAST, bcast_config_table,
                                     sizeof(ucg_planc_ucx_bcast_config_t))
 
@@ -124,6 +132,13 @@ static ucg_plan_policy_t bcast_4_16[] = {
     {10,  {0, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     UCG_PLAN_LAST_POLICY,
 };
+
+static ucg_plan_policy_t bcast_4_16_default[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    UCG_PLAN_LAST_POLICY,
+};
+
 static ucg_plan_policy_t bcast_4_32[] = {
     {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
@@ -138,6 +153,13 @@ static ucg_plan_policy_t bcast_4_LG[] = {
     {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     UCG_PLAN_LAST_POLICY,
 };
+
+static ucg_plan_policy_t bcast_4_LG_default[] = {
+    {4,  {0, 16384}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    {10, {16384, UCG_PLAN_RANGE_MAX}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
+    UCG_PLAN_LAST_POLICY,
+};
+
 static ucg_plan_policy_t bcast_8_1[] = {
     {10, {0, 128}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
     {4,  {128, 32768}, UCG_PLAN_UCX_PLAN_SCORE_1ST},
@@ -315,11 +337,55 @@ static ucg_plan_policy_t* bcast_plan_policy[] = {
     bcast_LG_LG,
 };
 
+static ucg_plan_policy_t* bcast_plan_policy_default[] = {
+    bcast_4_1,
+    bcast_4_4,
+    bcast_4_8,
+    bcast_4_16_default,
+    bcast_4_32,
+    bcast_4_64,
+    bcast_4_LG_default,
+    bcast_8_1,
+    bcast_8_4,
+    bcast_8_8,
+    bcast_8_16,
+    bcast_8_32,
+    bcast_8_64,
+    bcast_8_LG,
+    bcast_16_1,
+    bcast_16_4,
+    bcast_16_8,
+    bcast_16_16,
+    bcast_16_32,
+    bcast_16_64,
+    bcast_16_LG,
+    bcast_LG_1,
+    bcast_LG_4,
+    bcast_LG_8,
+    bcast_LG_16,
+    bcast_LG_32,
+    bcast_LG_64,
+    bcast_LG_LG,
+};
+
 const ucg_plan_policy_t *ucg_planc_ucx_get_bcast_plan_policy(ucg_planc_ucx_node_level_t node_level,
-                                                             ucg_planc_ucx_ppn_level_t ppn_level)
+                                                             ucg_planc_ucx_ppn_level_t ppn_level,
+                                                             ucg_planc_ucx_group_t *ucx_group)
 {
     int idx = node_level * PPN_LEVEL_NUMS + ppn_level;
     ucg_assert(idx < NODE_LEVEL_NUMS * PPN_LEVEL_NUMS);
-    ucg_plan_policy_t *policy = bcast_plan_policy[idx];
+    ucg_plan_policy_t *policy;
+    ucg_planc_ucx_bcast_config_t *config;
+    if (ucg_planc_ucx_context_config_builtin_check(ucx_group->context, UCG_COLL_TYPE_BCAST)) {
+        config = UCG_PLANC_UCX_CONTEXT_BUILTIN_CONFIG_BUNDLE(ucx_group->context, bcast,
+                                                             UCG_COLL_TYPE_BCAST);
+        if (config->policy_default) {
+            policy = bcast_plan_policy_default[idx];
+        } else {
+            policy = bcast_plan_policy[idx];
+        }
+    } else {
+        policy = bcast_plan_policy_default[idx];
+    }
     return policy;
 }
