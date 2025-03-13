@@ -27,6 +27,8 @@ typedef struct ucg_planc_ucx_bcast_config {
     /* configuration of van de geijn */
     size_t min_bsend;
     size_t max_bsend;
+    /* for close default policy */
+    int policy_default;
 } ucg_planc_ucx_bcast_config_t;
 
 /**
@@ -55,7 +57,8 @@ typedef struct ucg_planc_ucx_bcast {
 } ucg_planc_ucx_bcast_t;
 
 const ucg_plan_policy_t *ucg_planc_ucx_get_bcast_plan_policy(ucg_planc_ucx_node_level_t node_level,
-                                                             ucg_planc_ucx_ppn_level_t ppn_level);
+                                                             ucg_planc_ucx_ppn_level_t ppn_level,
+                                                             ucg_planc_ucx_group_t *ucx_group);
 
 /* xxx_op_new routines are provided for internal algorithm combination */
 ucg_planc_ucx_op_t *ucg_planc_ucx_bcast_kntree_op_new(ucg_planc_ucx_group_t *ucx_group,
