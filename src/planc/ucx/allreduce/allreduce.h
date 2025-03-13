@@ -22,6 +22,8 @@ typedef struct ucg_planc_ucx_allreduce_config {
     int fanout_intra_degree;
     int nta_kntree_inter_degree;
     int nta_kntree_intra_degree;
+    /* for close default policy */
+    int policy_default;
 } ucg_planc_ucx_allreduce_config_t;
 
 typedef struct ucg_planc_ucx_allreduce_rabenseifner_args {
@@ -63,7 +65,8 @@ typedef struct ucg_planc_ucx_allreduce {
 } ucg_planc_ucx_allreduce_t;
 
 const ucg_plan_policy_t *ucg_planc_ucx_get_allreduce_plan_policy(ucg_planc_ucx_node_level_t node_level,
-                                                                 ucg_planc_ucx_ppn_level_t ppn_level);
+                                                                 ucg_planc_ucx_ppn_level_t ppn_level,
+                                                                 ucg_planc_ucx_group_t *ucx_group);
 
 /* xxx_op_new routines are provided for internal algorithm combination */
 ucg_planc_ucx_op_t *ucg_planc_ucx_allreduce_rd_op_new(ucg_planc_ucx_group_t *ucx_group,
