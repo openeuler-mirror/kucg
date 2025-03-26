@@ -1,37 +1,32 @@
-# kucg
+# UCG
+Group-based Collective Operations for UCX
 
-#### 介绍
-ucg is a subobject of openmpi and provides a extensible communication framework.
+# Build & Install
+1. `cd xucg`
+2. `mkdir build && cd build`
+3. `cmake -DCMAKE_INSTALL_PREFIX=${install_path} -DCMAKE_BUILD_TYPE=Release -DUCG_BUILD_WITH_UCX=${ucx_path} ..`
+> example
+> - build debug version: `cmake -DCMAKE_INSTALL_PREFIX=${install_path} -DCMAKE_BUILD_TYPE=Debug -DUCG_BUILD_WITH_UCX=${ucx_path} ..`
+> - build planc hccl: `cmake -DCMAKE_INSTALL_PREFIX=${install_path} -DCMAKE_BUILD_TYPE=Debug -DUCG_BUILD_WITH_UCX=${ucx_path} -DUCG_BUILD_WITH_HCCL=${hccl_path} -DUCG_BUILD_PLANC_HCCL=ON ..`
+4. `make -j && make install`
 
-#### 软件架构
-软件架构说明
+# UCG Build Options
+- UCG_BUILD_TOOLS: Build UCG tools, default ON
+- UCG_BUILD_TESTS: Build UCG tests, default ON
+- UCG_BUILD_WITH_UCX: Specify the UCX install path
+- UCG_BUILD_WITH_HCCL: Specify the HCCL install path
+- UCG_BUILD_WITH_GTEST: Specify the googletest install path
 
+- UCG_ENABLE_PROFILE: Enable profiling, default OFF
+- UCG_ENABLE_GCOV: Enable code coverage, default OFF
+- UCG_ENABLE_CHECK_PARAMS: Enable checking parameters, default OFF in release and ON in debug
+- UCG_ENABLE_MT: Enable thread-safe support, default OFF
 
-#### 安装教程
+## PlanC UCX Build Options
+- UCG_BUILD_PLANC_UCX: Build the plan component which is based on UCX, default ON
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## PlanC HCCL Build Options
+- UCG_BUILD_PLANC_HCCL: Build the plan component which is based on HCCL, default OFF
 
-#### 使用说明
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+# UCG PlanM Usage
+If you want to load a closed-source module, placing the closed-source library to `${ucg_install_path}/lib/planc`.
